@@ -1,0 +1,10 @@
+{
+  "scripts": {
+    "upgrade": "yarn upgrade-interactive"
+  },
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "capacitor"
+  ]
+}

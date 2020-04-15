@@ -1,0 +1,23 @@
+{
+  "name": "@types/glsl",
+  "description": "Enable TypeScript to import GLSL files as strings",
+  "version": "0.0.1",
+  "scripts": {},
+  "typings": "./index.d.ts",
+  "keywords": [
+    "webgl",
+    "typescript",
+    "typings",
+    "webpack",
+    "glsl",
+    "module",
+    "import"
+  ],
+  "license": "MIT",
+  "author": "eliasku",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/highduck/ilj",
+    "directory": "packages/types-glsl"
+  }
+}

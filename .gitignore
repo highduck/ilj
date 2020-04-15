@@ -1,7 +1,12 @@
+# packages
 node_modules/
 dist/
 
+# idea
 .idea/
+*.iml
+
+# typescript
 *.tsbuildinfo
 
 # yarn
