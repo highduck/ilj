@@ -1,4 +1,4 @@
-![ilj](ilj-logo.png "ilj")
+<p align="center"><img width="256" height="256" src="ilj-logo.png" alt="ilj"></p>
 
 Various libraries and tools for web game development.
 
