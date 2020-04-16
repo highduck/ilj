@@ -6,11 +6,10 @@ node_modules/
 Pods
 Build
 xcuserdata
+xcshareddata/
 
 # macOS files
 .DS_Store
-
-
 
 # Based on Android gitignore template: https://github.com/github/gitignore/blob/master/Android.gitignore
 

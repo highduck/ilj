@@ -6,6 +6,8 @@ node_modules/
 Pods
 Build
 xcuserdata
+xcshareddata/
+
 
 # macOS files
 .DS_Store

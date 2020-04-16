@@ -4,7 +4,8 @@
   },
   "private": true,
   "workspaces": [
+    "capacitor",
     "packages/*",
-    "capacitor"
+    "tools/*"
   ]
 }

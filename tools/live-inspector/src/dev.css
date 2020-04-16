@@ -1,0 +1,16 @@
+.dev {
+    padding: 0 0 3px 3px;
+    text-align: left;
+    font-family: Lucida Grande, monospace;
+    font-size: 13px;
+    line-height: 15px;
+    color: #CCC;
+}
+
+.noselect {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
