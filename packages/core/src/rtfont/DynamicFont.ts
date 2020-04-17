@@ -1,8 +1,8 @@
 import {declTypeID} from "../util/TypeID";
 import {Engine} from "../Engine";
-import {Rect, BoundsBuilder} from "@highduck/math";
+import {BoundsBuilder, Rect} from "@highduck/math";
 import {TextFormat} from "../scene1/TextFormat";
-import {FontFace} from "./FontFace";
+import {loadFontFace} from "./loadFontFace";
 import {DynamicFontAtlas} from "./DynamicFontAtlas";
 
 const LF = '\n'.charCodeAt(0);
@@ -15,10 +15,10 @@ export class DynamicFont {
     static TYPE_ID = declTypeID();
 
     static async load(engine: Engine, family: string, url: string, size: number, scale: number): Promise<DynamicFont> {
-        const face = new FontFace(family, engine.assetsPath + "/" + url, {});
         try {
-            await face.load();
+            await loadFontFace(family, engine.assetsPath + "/" + url, {});
         } catch {
+            console.warn(`Font ${family} load error`);
         }
         const atlas = new DynamicFontAtlas(engine, family, size, scale);
         return new DynamicFont(engine, atlas);

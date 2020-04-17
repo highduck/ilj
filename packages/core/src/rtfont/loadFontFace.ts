@@ -50,57 +50,23 @@ async function watchFont(family: string) {
                 resolve();
             } else if (times > maxAttempts) {
                 clearInterval(timer);
-                reject('Timed out.');
+                reject('Timeout');
             }
         }, interval);
     });
 }
 
-export class FontFace {
-    //featureSettings = 'normal';
-    status = 'unloaded';
-    //stretch = 'normal';
-    // style = 'normal';
-    // unicodeRange = 'U+0-10FFFF';
-    // variant = 'normal';
-    // weight = 'normal';
-
-    /**
-     * Creates a new FontFace object
-     * @constructor
-     * @param {string} family    The name of a font family.
-     * @param {string} src       The css src attribute of a font family.
-     * @param {Object} [options] Extra options to define the font.
-     */
-    constructor(readonly family: string,
-                readonly src: string,
-                readonly options: any) {
+export async function loadFontFace(family: string, src: string, options: any): Promise<void> {
+    if (isFontLoaded(family)) {
+        return;
     }
 
-    async load() {
-        if (this.status !== 'unloaded') {
-            return;
-        }
-        if (isFontLoaded(this.family)) {
-            this.status = 'loaded';
-            return;
-        }
-
-        this.status = 'loading';
-        try {
-            const data = await loadBuffer(this.src);
-            const blob = new Blob([data]);
-            const fontSrc = URL.createObjectURL(blob);
-            const styleSheet = document.styleSheets[0] as CSSStyleSheet;
-            const fontRule = `@font-face { font-family: '${this.family}'; src: url('${fontSrc}') format('truetype'); }`;
-            styleSheet.insertRule(fontRule, 0);
-            await watchFont(this.family);
-        } catch (e) {
-            this.status = 'error';
-            console.warn('load font error: ' + e);
-            // rethrow
-            throw e;
-        }
-        this.status = 'loaded';
-    };
+    const data = await loadBuffer(src);
+    const blob = new Blob([data]);
+    const fontSrc = URL.createObjectURL(blob);
+    // FIXME: styleSheets could be empty
+    const styleSheet = document.styleSheets[0] as CSSStyleSheet;
+    const fontRule = `@font-face { font-family: '${family}'; src: url('${fontSrc}') format('truetype'); }`;
+    styleSheet.insertRule(fontRule, 0);
+    await watchFont(family);
 }
