@@ -6,7 +6,7 @@
     "typecheck": "tsc --noEmit && echo OK"
   },
   "devDependencies": {
-    "@types/jquery": "^3.3.34",
+    "@types/jquery": "^3.3.35",
     "typescript": "^3.8.3"
   },
   "dependencies": {
