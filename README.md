@@ -1,6 +1,17 @@
-<p align="center"><img width="256" height="256" src="ilj-logo.png" alt="ilj"></p>
+<p align="center">
+    <a href="https://github.com/highduck/ilj">
+    <img width="256" height="256" src="ilj-logo.png" alt="ilj">
+</p>
 
-Various libraries and tools for web game development.
+<p align="center">
+    Various libraries and tools for web game development.
+</p>
+
+<p align="center">
+    <a href="https://github.com/highduck/ilj"><img alt="Build status" src="https://github.com/highduck/ilj/workflows/Build/badge.svg"></a>
+</p>
+
+---
 
 All of these are in phase of **p**assive development.
 
