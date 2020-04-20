@@ -1,0 +1,40 @@
+{
+  "compilerOptions": {
+    "module": "es6",
+    "target": "es6",
+    "moduleResolution": "node",
+    "sourceMap": true,
+    "incremental": true,
+    "strict": true,
+    "outDir": "_build/ts",
+//    "allowJs": true,
+//    "noEmitHelpers": true,
+//    "importHelpers": true,
+//    "allowSyntheticDefaultImports": true,
+//    "esModuleInterop": true,
+    "experimentalDecorators": true,
+    "baseUrl": "./",
+    "paths": {
+      "@highduck/math": [
+        "../packages/math/src/index.ts"
+      ],
+      "@highduck/polykit": [
+        "../packages/polykit/src/index.ts"
+      ],
+      "@highduck/core": [
+        "../packages/core/src/index.ts"
+      ],
+      "@highduck/live-inspector": [
+        "../tools/live-inspector/src/index.ts"
+      ]
+    },
+    "jsx": "react",
+    "jsxFactory": "h"
+  },
+  "include": [
+    "src/**/*.ts"
+  ],
+  "exclude": [
+    "**/node_modules"
+  ]
+}

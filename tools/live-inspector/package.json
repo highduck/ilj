@@ -1,12 +1,16 @@
 {
   "name": "@highduck/live-inspector",
   "version": "0.0.1",
+  "main": "dist/esm/index.js",
+  "module": "dist/esm/index.js",
+  "types": "dist/esm/index.d.ts",
   "scripts": {
-    "build": "tsc",
-    "typecheck": "tsc --noEmit && echo OK"
+    "build": "tsc -p tsconfig.build.json && cp src/dev.css dist/esm",
+    "clean": "rimraf dist/"
   },
   "devDependencies": {
     "@types/jquery": "^3.3.35",
+    "rimraf": "^3.0.2",
     "typescript": "^3.8.3"
   },
   "dependencies": {

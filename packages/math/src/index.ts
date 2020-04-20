@@ -12,3 +12,7 @@ export * from './scalar';
 export * from './Vec2';
 export * from './Vec3';
 export * from './Vec4';
+
+import * as _tempEasing from './Easing';
+
+export const Easing = _tempEasing;

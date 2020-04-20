@@ -22,6 +22,7 @@ Yarn2 runtime files excluded. To work with the repository you have to install an
 ```shell script
 yarn policies set-version berry
 yarn set version latest
+yarn config set nodeLinker node-modules
 yarn plugin import @yarnpkg/plugin-interactive-tools
 yarn plugin import @yarnpkg/plugin-workspace-tools
 yarn

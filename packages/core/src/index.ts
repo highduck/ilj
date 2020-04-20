@@ -37,9 +37,6 @@ export * from './scene1/particles/ParticleLayer';
 export * from './scene1/particles/ParticleEmitter';
 export * from './scene1/particles/ParticleDecl';
 export * from './scene1/particles/DisplayParticles';
-export * from './scene1/extra/Layout';
-export * from './scene1/extra/FastScript';
-export * from './scene1/extra/EntityAge';
 export * from './scene1/display/Transform2D';
 export * from './scene1/display/Filters2D';
 export * from './scene1/display/DisplayText';
@@ -57,7 +54,17 @@ export * from './scene1/Sprite';
 export * from './scene1/EventReceiver';
 export * from './scene1/Atlas';
 
+export * from './scene1/extra/Layout';
+export * from './scene1/extra/FastScript';
+export * from './scene1/extra/EntityAge';
+export * from './scene1/extra/TargetFollow';
+
+export * from './scene1/Font';
+
 export * from './rtfont/DynamicFont';
 export * from './rtfont/DynamicFontAtlas';
 
 export * from './ecs/Entity';
+
+export * from './scene1/TextFormat';
+export * from './graphics/Texture';

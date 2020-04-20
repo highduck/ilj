@@ -1,8 +1,6 @@
 {
   "name": "@highduck/exporter",
   "version": "0.0.1",
-  "scripts": {
-    "preinstall": "./build.sh"
-  },
+  "scripts": {},
   "bin": "bin/exporter"
 }
