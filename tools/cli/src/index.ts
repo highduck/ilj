@@ -10,7 +10,11 @@ import pngquant from 'pngquant-bin';
 import resolve from 'resolve';
 import {appicon} from "./bins/appicon";
 
-const exporterBin = resolve.sync('@highduck/exporter/bin/exporter');
+function runExporter(...args: string[]) {
+    let exporterBin = resolve.sync('@highduck/exporter/package.json');
+    exporterBin = path.join(path.dirname(exporterBin), 'bin/exporter');
+    execute(exporterBin, args);
+}
 
 function optimize_png(input: string, output?: string) {
     if (!output) {
@@ -42,12 +46,12 @@ function ekc_export_market(market_asset: string, target_type: string, output: st
     // const target_type = "market";
     // const output = "output/res";
     make_dirs(output);
-    execute(exporterBin, ["export", "market", market_asset, target_type, output]);
+    runExporter("export", "market", market_asset, target_type, output);
 }
 
 function ekc_export_assets(assets_input: string, assets_output: string) {
     make_dirs(assets_output);
-    execute(exporterBin, ["export", "assets", assets_input, assets_output]);
+    runExporter("export", "assets", assets_input, assets_output);
     optimize_png_glob(path.join(assets_output, "*.png"));
 }
 
