@@ -1,6 +1,7 @@
 <p align="center">
     <a href="https://github.com/highduck/ilj">
-    <img width="256" height="256" src="ilj-logo.png" alt="ilj">
+        <img width="256" height="256" src="ilj-logo.png" alt="ilj">
+    </a>
 </p>
 
 <p align="center">
