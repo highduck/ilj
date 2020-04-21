@@ -1,0 +1,17 @@
+# packages
+node_modules/
+dist/
+
+# idea
+.idea/
+*.iml
+
+# typescript
+*.tsbuildinfo
+
+# yarn
+.yarn/cache
+.yarn/build-state.yml
+.yarn/install-state.gz
+.yarn/unplugged
+.pnp.*

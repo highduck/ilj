@@ -1,0 +1,17 @@
+{
+  "name": "test",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "ilj build -l",
+    "build": "ilj build",
+    "prepare": "ilj export sfx"
+  },
+  "devDependencies": {
+    "@highduck/cli": "0.0.1",
+    "@highduck/live-inspector": "0.0.1",
+    "typescript": "^3.8.3"
+  },
+  "dependencies": {
+    "@highduck/core": "0.0.1"
+  }
+}

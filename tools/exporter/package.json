@@ -1,0 +1,6 @@
+{
+  "name": "@highduck/exporter",
+  "version": "0.0.1",
+  "scripts": {},
+  "bin": "bin/exporter"
+}

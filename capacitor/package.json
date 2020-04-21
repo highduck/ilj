@@ -1,0 +1,13 @@
+{
+  "scripts": {
+    "foreach:build": "yarn workspaces foreach -pv run build",
+    "foreach:check": "yarn workspaces foreach -v run check",
+    "foreach:clean": "yarn workspaces foreach -pv run clean",
+    "foreach:ios": "yarn workspaces foreach -pv run ios",
+    "foreach:android": "yarn workspaces foreach -v run android"
+  },
+  "private": true,
+  "workspaces": [
+    "*"
+  ]
+}

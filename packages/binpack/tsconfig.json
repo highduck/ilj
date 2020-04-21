@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "lib": [
+      "ES2019",
+      "DOM"
+    ],
+    "module": "esnext",
+    "target": "es5",
+    "moduleResolution": "node",
+    "sourceMap": true,
+    "strict": true,
+    "declaration": true,
+    "outDir": "./dist/esm",
+    "noEmitOnError": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "experimentalDecorators": true,
+    "downlevelIteration": true
+  },
+  "files": [
+    "src/index.ts"
+  ]
+}

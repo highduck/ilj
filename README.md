@@ -1,37 +1,45 @@
-## Welcome to GitHub Pages
+<p align="center">
+    <a href="https://github.com/highduck/ilj">
+        <img width="256" height="256" src="ilj-logo.png" alt="ilj">
+    </a>
+</p>
 
-You can use the [editor on GitHub](https://github.com/highduck/ilj/edit/master/README.md) to maintain and preview the content for your website in Markdown files.
+<p align="center">
+    Various libraries and tools for web game development.
+</p>
 
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
+<p align="center">
+    <a href="https://github.com/highduck/ilj"><img alt="Build status" src="https://github.com/highduck/ilj/workflows/Build/badge.svg"></a>
+</p>
 
-### Markdown
+---
 
-Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
+All of these are in phase of **p**assive development.
 
-```markdown
-Syntax highlighted code block
+*Please note that the provided code is amateurish, unprofessional and potentially not suitable for developing serious games or applications. You can freely use it under a license at your own risk. we do not bear any responsibility for the time spent and we do not commit ourselves to provide lifelong support and advice.*
 
-# Header 1
-## Header 2
-### Header 3
+This is monorepo based on [Yarn 2](https://yarnpkg.com/) package manager workspaces.
 
-- Bulleted
-- List
+## Development
 
-1. Numbered
-2. List
+### Prerequisites
 
-**Bold** and _Italic_ and `Code` text
+- `node.js`, `npm`, `yarn`
+- build native libraries: `conan`, `cmake`, any local c++ compile toolchain
+- convert audio files: `ffmpeg`
 
-[Link](url) and ![Image](src)
+### Standalone development
+
+Yarn2 runtime files excluded. To work with the repository you have to install and init `yarn 2`:
+```shell script
+yarn policies set-version berry
+yarn set version latest
+yarn config set nodeLinker node-modules
+yarn plugin import @yarnpkg/plugin-interactive-tools
+yarn plugin import @yarnpkg/plugin-workspace-tools
+yarn
 ```
 
-For more details see [GitHub Flavored Markdown](https://guides.github.com/features/mastering-markdown/).
+### Using development copy (local or submodule)
 
-### Jekyll Themes
-
-Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/highduck/ilj/settings). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
-
-### Support or Contact
-
-Having trouble with Pages? Check out our [documentation](https://help.github.com/categories/github-pages-basics/) or [contact support](https://github.com/contact) and we’ll help you sort it out.
+If you want to contribute during your projects development, you could add git submodule or local folder `ilj/` as nested workspace subtree

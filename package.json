@@ -1,0 +1,13 @@
+{
+  "scripts": {
+    "upgrade": "yarn upgrade-interactive",
+    "all:build": "yarn workspaces foreach -ptv run build"
+  },
+  "private": true,
+  "workspaces": [
+    "capacitor",
+    "packages/*",
+    "tools/*",
+    "test"
+  ]
+}

@@ -1,0 +1,6 @@
+{
+  "compilerOptions": {
+    "lib": ["es6"],
+    "noUnusedLocals": true
+  }
+}
