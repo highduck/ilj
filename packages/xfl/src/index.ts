@@ -1,7 +1,7 @@
 import {loadFlashArchive} from "./xfl/loadFlashArchive";
 import {FlashFile} from './xfl/FlashFile';
 import {FlashDocExporter} from "./exporter/FlashDocExporter";
-import {Atlas, AtlasResolution} from "./spritepack/SpritePack";
+import {Atlas} from "./spritepack/SpritePack";
 import {loadCanvasContext} from "./rasterizer/CanvasKitHelpers";
 import fs from "fs";
 import path from "path";
@@ -23,23 +23,25 @@ async function main() {
     const ck = await loadCanvasContext();
     console.warn("CANVASKIT-WASM loaded!");
 
-    const e = loadFlashArchive('test_fla');
+    const name = 'test_fla';
+    const e = loadFlashArchive('testData/' + name);
     if (e !== undefined) {
         const ff = new FlashFile(e);
         const fe = new FlashDocExporter(ff);
-        fe.build_library();
+        fe.buildLibrary();
         const mainAtlas = new Atlas();
         // mainAtlas.resolutions = [
         //     new AtlasResolution(0, 4)
         // ];
-        fe.build_sprites(mainAtlas);
+        fe.buildSprites(mainAtlas);
 
+        const destDir = 'output/' + name;
+        makeDirs(destDir);
         for (const res of mainAtlas.resolutions) {
-            const output = `images/x${res.scale}`;
+            const output = path.join(destDir, `images/x${res.scale}`);
             for (const spr of res.sprites) {
                 if (spr.image !== undefined && spr.image.data !== undefined) {
                     console.log(spr.name + " " + spr.image.width + " " + spr.image.height);
-                    // console.log(spr.image.data);
                     const dest = path.join(output, spr.name + ".png");
                     makeDirs(path.dirname(dest));
                     const png = encode({
@@ -53,6 +55,12 @@ async function main() {
                 }
             }
         }
+
+        // save test scene
+        fs.writeFileSync(
+            path.join(destDir, name + '.ani.json'),
+            JSON.stringify(fe.exportLibrary().serialize())
+        );
         //
 
 

@@ -5,8 +5,9 @@ const fxp = require('fast-xml-parser');
 export class Entry {
 
     protected _children = new Map<string, Entry>();
-    protected _xmlObject?: any = undefined;
-    protected _content?: any = undefined;
+    protected _xmlObject: any = undefined;
+    protected _content: undefined | string = undefined;
+    protected _buffer: undefined | Uint8Array = undefined;
     readonly path: string;
     readonly root: Entry;
 
@@ -34,8 +35,18 @@ export class Entry {
         return this._xmlObject;
     }
 
-    content(): any {
+    content(): string {
+        if(this._content === undefined) {
+            throw "no content";
+        }
         return this._content;
+    }
+
+    buffer(): Uint8Array {
+        if(this._buffer === undefined) {
+            throw "no buffer";
+        }
+        return this._buffer;
     }
 
     open(relativePath: string): Entry {

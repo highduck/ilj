@@ -1,10 +1,10 @@
 import {Matrix2D, Vec2} from "@highduck/math";
 import {Element} from '../xfl/types';
-import {sg_node_data} from "../anif/sg_data";
+import {SgNode} from "../anif/SgModel";
 import {ElementType} from "../xfl/dom";
 
 export class ExportItem {
-    readonly node = new sg_node_data();
+    readonly node = new SgNode();
 
     // TODO: add movie frames scale, so
     // estimated_scale = 1;
@@ -29,7 +29,7 @@ export class ExportItem {
         item.parent = this;
     }
 
-    append_to(parent: ExportItem) {
+    appendTo(parent: ExportItem) {
         parent.add(this);
     }
 

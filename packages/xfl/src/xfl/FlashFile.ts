@@ -4,6 +4,7 @@ import {DOMDocument, DOMSymbolItem, ElementType} from "./dom";
 import path from "path";
 import {oneOrMany} from "./parsing";
 import he from 'he';
+import {load_bitmap} from "./Bitmap";
 
 function loadXml(entry: Entry, path: string) {
     return entry.open(path).xml();
@@ -19,11 +20,13 @@ export class FlashFile {
         //     doc.library.push_back(parse_xml_node<element_t>(item));
         // }
         //
-        // for (const auto& item: node.child("media").children("DOMBitmapItem")) {
-        //     auto bi = parse_xml_node<element_t>(item);
-        //     bi.bitmap.reset(load_bitmap(*root.open(path_t{"bin"} / bi.bitmapDataHRef)));
-        //     doc.library.push_back(std::move(bi));
-        // }
+        for (const item of oneOrMany(doc.media?.DOMBitmapItem)) {
+            const el = new Element();
+            el.parse(ElementType.bitmap_item, item);
+            console.log('bin/' + item.$bitmapDataHRef);
+            el.bitmap = load_bitmap(root.open('bin/' + item.$bitmapDataHRef));
+            this.library.push(el);
+        }
         //
         // for (const auto& item: node.child("media").children("DOMSoundItem")) {
         //     auto sound = parse_xml_node<element_t>(item);

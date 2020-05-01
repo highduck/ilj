@@ -1,9 +1,18 @@
 import {Color32_ARGB} from "@highduck/math";
+import {TweenTarget} from "../xfl/dom";
 
 export const enum FilterType {
     None = 0,
     DropShadow = 1,
     Glow = 2
+}
+
+export const enum TweenTargetType {
+    All = 0,
+    Position = 1,
+    Rotation = 2,
+    Scale = 3,
+    Color = 4
 }
 
 export interface FilterJson {
@@ -14,7 +23,7 @@ export interface FilterJson {
     offset: [number, number];
 }
 
-interface DynamicTextJson {
+export interface DynamicTextJson {
     rect: [number, number, number, number];
     text: string;
     face: string;
@@ -26,12 +35,12 @@ interface DynamicTextJson {
 }
 
 export interface EasingJson {
-    attribute?: number; // default = 0
+    attribute?: TweenTargetType; // default = 0
     ease?: number; // default = 0
     curve?: number[]; //pairs: x,y,x,y,x,y...
 }
 
-interface MovieFrameJson {
+export interface MovieFrameJson {
     i: number; // index
     len: number; // duration
     mot: number; // motion_type
@@ -50,7 +59,7 @@ interface MovieFrameJson {
     tweens?: EasingJson[];
 }
 
-interface MovieLayerJson {
+export interface MovieLayerJson {
     key: number;
     frames: MovieFrameJson[];
 }

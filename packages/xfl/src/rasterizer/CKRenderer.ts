@@ -4,7 +4,7 @@ import {Bitmap, FillStyle, StrokeStyle} from "../xfl/types";
 import {RenderCommand} from "../render/RenderCommand";
 import {BlendMode, FillType, LineCaps, LineJoints, SpreadMethod} from "../xfl/dom";
 import {RenderOp} from "../render/RenderOp";
-import {getCanvasKit} from "./CanvasKitHelpers";
+import {getCanvasKit, makePMASurface} from "./CanvasKitHelpers";
 import {Color4, Matrix2D, Vec2} from "@highduck/math";
 
 export function convertBlendMode(ck: CanvasKit, mode: BlendMode): SkBlendMode {
@@ -159,7 +159,57 @@ export class CKRenderer {
     }
 
     draw_bitmap(bitmap: Bitmap) {
+        if (bitmap.data !== undefined) {
+            const surf = makePMASurface(this.ck, bitmap.width, bitmap.height);
+            surf.getCanvas().writePixels(bitmap.data, bitmap.width, bitmap.height, 0, 0);
+            const img = surf.makeImageSnapshot();
 
+            this.canvas.save();
+            const m = this.transform.matrix;
+            this.canvas.concat([
+                m.a, m.b, m.x,
+                m.c, m.d, m.y,
+                0, 0, 1
+            ]);
+            const pnt = new this.ck.SkPaint();
+            pnt.setAntiAlias(true);
+            pnt.setFilterQuality(this.ck.FilterQuality.High);
+            this.canvas.drawImage(img, 0, 0, pnt);
+            this.canvas.flush();
+            pnt.delete();
+            img.delete();
+            surf.delete();
+        }
+        // const int sx = 0;
+        // const int sy = 0;
+        // const int sw = bitmap->width;
+        // const int sh = bitmap->height;
+        //
+        // auto source_surface = cairo_image_surface_create_for_data(
+        //     const_cast<uint8_t*>(bitmap->data.data()),
+        //     CAIRO_FORMAT_ARGB32, sw, sh, sw * 4);
+        // auto source_pattern = cairo_pattern_create_for_surface(source_surface);
+        //
+        // cairo_save(ctx_);
+        //
+        // cairo_matrix_t transform_matrix;
+        // transform_matrix.xx = transform_.matrix.a;
+        // transform_matrix.yx = transform_.matrix.b;
+        // transform_matrix.xy = transform_.matrix.c;
+        // transform_matrix.yy = transform_.matrix.d;
+        // transform_matrix.x0 = transform_.matrix.tx;
+        // transform_matrix.y0 = transform_.matrix.ty;
+        // cairo_transform(ctx_, &transform_matrix);
+        //
+        // cairo_set_source(ctx_, source_pattern);
+        //
+        // cairo_rectangle(ctx_, sx, sy, sw, sh);
+        // cairo_fill(ctx_);
+        //
+        // cairo_restore(ctx_);
+        //
+        // cairo_pattern_destroy(source_pattern);
+        // cairo_surface_destroy(source_surface);
     }
 
     execute(cmd: RenderCommand) {

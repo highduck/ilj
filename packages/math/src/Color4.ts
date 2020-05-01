@@ -7,6 +7,7 @@ export class Color4 {
     get css(): string {
         return `rgba(${this.r * 255 | 0},${this.g * 255 | 0},${this.b * 255 | 0},${this.a})`;
     }
+
     get cssRGB(): string {
         return `rgb(${this.r * 255 | 0},${this.g * 255 | 0},${this.b * 255 | 0})`;
     }
@@ -43,6 +44,14 @@ export class Color4 {
                 public b: number = 0,
                 public a: number = 1) {
 
+    }
+
+    equals(v: Color4): boolean {
+        const epsilon = 0.000001;
+        return Math.abs(this.r - v.r) < epsilon &&
+            Math.abs(this.g - v.g) < epsilon &&
+            Math.abs(this.b - v.b) < epsilon &&
+            Math.abs(this.a - v.a) < epsilon;
     }
 
     add(v: Readonly<Color4>): this {

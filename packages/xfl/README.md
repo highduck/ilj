@@ -30,11 +30,12 @@ Purpose of rewriting C/C++ codebase to TypeScript:
 
 ### 1. MVP
 
-- [ ] Bitmap parsing
-- [ ] Bitmap rendering
-- [ ] Ani files export
+- [x] Bitmap parsing
+- [x] Bitmap rendering
+- [x] Ani files export
 - [ ] Atlas packing
 - [ ] Support for shapes drawing objects: Oval, Rectangle, etc
+- [ ] Bitmap font export
 
 ### 2. Library
 

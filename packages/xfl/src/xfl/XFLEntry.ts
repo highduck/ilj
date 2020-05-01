@@ -12,11 +12,18 @@ export class XFLEntry extends Entry {
         return new XFLEntry(path, root);
     }
 
-    content(): any {
+    content(): string {
         if (this._content === undefined) {
-            this._content = fs.readFileSync(this.path, 'utf-8');
+            this._content = fs.readFileSync(this.path, 'utf8');
         }
         return this._content;
+    }
+
+    buffer(): Uint8Array {
+        if (this._buffer === undefined) {
+            this._buffer = new Uint8Array(fs.readFileSync(this.path, null).buffer);
+        }
+        return this._buffer;
     }
 }
 

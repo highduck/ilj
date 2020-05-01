@@ -2,80 +2,70 @@ import {FlashFile} from "../xfl/FlashFile";
 import {ExportItem} from "./ExportItem";
 import {Element, Frame} from "../xfl/types";
 import {DOMFilterKind, ElementType, LayerType, RotationDirection, SymbolType, TweenTarget, TweenType} from "../xfl/dom";
-import {
-    dynamic_text_data,
-    easing_data_t,
-    filter_data,
-    movie_frame_data,
-    movie_layer_data,
-    sg_file,
-    sg_filter_type,
-    sg_movie_data
-} from "../anif/sg_data";
+import {SgDynamicText, SgEasing, SgFile, SgFilterData, SgMovie, SgMovieFrame, SgMovieLayer} from "../anif/SgModel";
+import {FilterType, TweenTargetType} from '../anif/AniJson';
 import {Matrix2D, Rect} from "@highduck/math";
 import {estimateBounds} from "../render/DomScanner";
 import {Atlas} from "../spritepack/SpritePack";
 import {renderElement} from "../rasterizer/RenderToSprite";
 
-function tweenTargetToAttribute(target: TweenTarget): number {
+function convertTweenTarget(target: TweenTarget): TweenTargetType {
     switch (target) {
         case TweenTarget.all:
-            return 0;
+            return TweenTargetType.All;
         case TweenTarget.position:
-            return 1;
+            return TweenTargetType.Position;
         case TweenTarget.rotation:
-            return 2;
+            return TweenTargetType.Rotation;
         case TweenTarget.scale:
-            return 3;
+            return TweenTargetType.Scale;
         case TweenTarget.color:
-            return 4;
-        default:
-            return 0;
+            return TweenTargetType.Color;
     }
+    return TweenTargetType.All;
 }
 
 function sign(a: number): number {
     return a > 0 ? 1 : (a < 0 ? -1 : 0);
 }
 
-function is_hit_rect(str?: string): boolean {
+function isHitRect(str?: string): boolean {
     return str !== undefined && str.toLowerCase() === "hitrect";
 }
 
-function is_clip_rect(str?: string): boolean {
+function isClipRect(str?: string): boolean {
     return str !== undefined && str.toLowerCase() === "cliprect";
 }
 
-function process_transform(el: Element, item: ExportItem) {
+function processElementCommons(el: Element, item: ExportItem) {
     item.node.matrix.copyFrom(el.matrix as Matrix2D);
     item.node.color.copyFrom(el.color);
 }
 
-function process_filters(el: Element, item: ExportItem) {
+function processFilters(el: Element, item: ExportItem) {
     for (const filter of el.filters) {
         const a = filter.angle * Math.PI / 180;//toRadians(filter.angle);
         const d = filter.distance;
 
-        const fd = new filter_data();
+        const fd = new SgFilterData();
         fd.blur.copyFrom(filter.blur);
         fd.color = filter.color.argb32;
         fd.offset.set(Math.cos(a) * d, Math.sin(a) * d);
         fd.quality = 0;
 
         if (filter.type === DOMFilterKind.drop_shadow) {
-            fd.type = sg_filter_type.drop_shadow;
+            fd.type = FilterType.DropShadow;
         } else if (filter.type === DOMFilterKind.glow) {
-            fd.type = sg_filter_type.glow;
+            fd.type = FilterType.Glow;
         }
 
-        if (fd.type !== sg_filter_type.none) {
+        if (fd.type !== FilterType.None) {
             item.node.filters.push(fd);
         }
     }
 }
 
-
-function normalize_rotation(layer: movie_layer_data) {
+function normalizeRotation(layer: SgMovieLayer) {
     // normalize skews, so that we always skew the shortest distance between
     // two angles (we don't want to skew more than Math.PI)
     const end = layer.frames.length - 1;
@@ -96,7 +86,7 @@ function normalize_rotation(layer: movie_layer_data) {
     }
 }
 
-function add_rotation(layer: movie_layer_data, frames: Frame[]) {
+function addRotation(layer: SgMovieLayer, frames: Frame[]) {
     let additionalRotation = 0;
     const end = layer.frames.length - 1;
     for (let i = 0; i < end; ++i) {
@@ -143,9 +133,9 @@ export class FlashDocExporter {
 
     }
 
-    build_library() {
+    buildLibrary() {
         for (const item of this.doc.library) {
-            this.process_element(item, this.library);
+            this.processElement(item, this.library);
         }
 
         for (const item of this.library.children) {
@@ -180,39 +170,39 @@ export class FlashDocExporter {
         }
     }
 
-    build_sprites(to_atlas: Atlas) {
+    buildSprites(toAtlas: Atlas) {
         for (const item of this.library.children) {
             // todo: check `node.sprite` instead of these checkings?
             if (item.ref !== undefined && (item.shapes > 0 || item.ref.bitmap !== undefined)) {
-                this.render(item, to_atlas);
+                this.render(item, toAtlas);
                 //item->node.sprite = item->node.libraryName;
             }
         }
     }
 
-    process_element(el: Element, parent: ExportItem) {
+    processElement(el: Element, parent: ExportItem) {
         const type = el.elementType;
         switch (type) {
             case ElementType.symbol_instance:
-                this.process_symbol_instance(el, parent);
+                this.processSymbolInstance(el, parent);
                 break;
             case ElementType.bitmap_instance:
-                this.process_bitmap_instance(el, parent);
+                this.processBitmapInstance(el, parent);
                 break;
             case ElementType.bitmap_item:
-                this.process_bitmap_item(el, parent);
+                this.processBitmapItem(el, parent);
                 break;
             case ElementType.symbol_item:
-                this.process_symbol_item(el, parent);
+                this.processSymbolItem(el, parent);
                 break;
             case ElementType.dynamic_text:
-                this.process_dynamic_text(el, parent);
+                this.processDynamicText(el, parent);
                 break;
             case ElementType.group:
-                this.process_group(el, parent);
+                this.processGroup(el, parent);
                 break;
             case ElementType.shape:
-                this.process_shape(el, parent);
+                this.processShape(el, parent);
                 break;
 
             case ElementType.font_item:
@@ -227,29 +217,29 @@ export class FlashDocExporter {
         }
     }
 
-    process_symbol_instance(el: Element, parent: ExportItem) {
+    processSymbolInstance(el: Element, parent: ExportItem) {
         console.assert(el.elementType === ElementType.symbol_instance);
 
         const item = new ExportItem();
         item.ref = el;
-        process_transform(el, item);
+        processElementCommons(el, item);
         item.node.name = el.item.name;
         item.node.libraryName = el.libraryItemName ?? "";
         item.node.button = el.symbolType === SymbolType.button;
         item.node.touchable = !el.silent;
         item.node.visible = el.isVisible;
 
-        process_filters(el, item);
+        processFilters(el, item);
 
-        item.append_to(parent);
+        item.appendTo(parent);
     }
 
-    process_symbol_item(el: Element, parent: ExportItem) {
+    processSymbolItem(el: Element, parent: ExportItem) {
         console.assert(el.elementType === ElementType.symbol_item);
 
         const item = new ExportItem();
         item.ref = el;
-        process_transform(el, item);
+        processElementCommons(el, item);
         item.node.libraryName = el.item.name;
         console.assert(el.libraryItemName === undefined || el.libraryItemName.length === 0);
         item.node.scaleGrid.copyFrom(el.scaleGrid);
@@ -269,7 +259,7 @@ export class FlashDocExporter {
         }
 
         if (timeline_frames_total > 1) {
-            item.node.movie = new sg_movie_data();
+            item.node.movie = new SgMovie();
             item.node.movie.frames = timeline_frames_total;
         }
 
@@ -277,15 +267,15 @@ export class FlashDocExporter {
         const layers = el.timeline.layers;
         for (let i = layers.length - 1; i >= 0; --i) {
             const layer = layers[i];
-            const layer_data = new movie_layer_data();
+            const layer_data = new SgMovieLayer();
             layer_data.key = layer_key;
             let animation_key = 1;
             for (const frame_data of layer.frames) {
-                if (is_hit_rect(layer.name)) {
+                if (isHitRect(layer.name)) {
                     item.node.hitRect.copyFrom(
                         estimateBounds(this.doc, frame_data.elements) as Rect
                     );
-                } else if (is_clip_rect(layer.name)) {
+                } else if (isClipRect(layer.name)) {
                     item.node.clipRect.copyFrom(
                         estimateBounds(this.doc, frame_data.elements) as Rect
                     );
@@ -300,32 +290,32 @@ export class FlashDocExporter {
                     case LayerType.normal:
                         if (frame_data.elements.length !== 0 && !is_static) {
                             for (const frame_element of frame_data.elements) {
-                                this.process_element(frame_element, item);
+                                this.processElement(frame_element, item);
                             }
                             if (item.node.movie
                                 // if we don't have added children there is nothing to animate
                                 && item.children.length !== 0) {
 
-                                const ef = new movie_frame_data();
+                                const ef = new SgMovieFrame();
                                 ef.index = frame_data.index;
                                 ef.duration = frame_data.duration;
                                 ef.key = animation_key;
-                                if (frame_data.tweenType == TweenType.none) {
+                                if (frame_data.tweenType === TweenType.none) {
                                     ef.motion_type = 0;
                                 } else {
                                     ef.motion_type = 1;
                                     for (const fd of frame_data.tweens) {
-                                        const g = new easing_data_t();
-                                        g.attribute = tweenTargetToAttribute(fd.target);
-                                        g.ease = fd.intensity / 100;
-                                        g.curve = fd.custom_ease ?? [];
-                                        ef.tweens.push(g);
+                                        ef.tweens.push(new SgEasing(
+                                            convertTweenTarget(fd.target),
+                                            fd.intensity / 100,
+                                            fd.custom_ease
+                                        ));
                                     }
                                     if (ef.tweens.length === 0) {
-                                        const g = new easing_data_t();
-                                        g.attribute = 0;
-                                        g.ease = frame_data.acceleration / 100;
-                                        ef.tweens.push(g);
+                                        ef.tweens.push(new SgEasing(
+                                            TweenTargetType.All,
+                                            frame_data.acceleration / 100
+                                        ));
                                     }
                                 }
 
@@ -354,8 +344,8 @@ export class FlashDocExporter {
             }
             const keyframe_count = layer_data.frames.length;
             if (keyframe_count > 1) {
-                normalize_rotation(layer_data);
-                add_rotation(layer_data, layer.frames);
+                normalizeRotation(layer_data);
+                addRotation(layer_data, layer.frames);
             }
             if (item.node.movie !== undefined) {
                 item.node.movie.layers.push(layer_data);
@@ -363,37 +353,37 @@ export class FlashDocExporter {
             ++layer_key;
         }
 
-        item.append_to(parent);
+        item.appendTo(parent);
     }
 
-    process_bitmap_instance(el: Element, parent: ExportItem) {
+    processBitmapInstance(el: Element, parent: ExportItem) {
         console.assert(el.elementType === ElementType.bitmap_instance);
 
         const item = new ExportItem();
         item.ref = el;
-        process_transform(el, item);
+        processElementCommons(el, item);
         item.node.name = el.item.name;
         item.node.libraryName = el.libraryItemName ?? "";
         item.node.sprite = el.libraryItemName;
 
-        process_filters(el, item);
+        processFilters(el, item);
 
-        item.append_to(parent);
+        item.appendTo(parent);
     }
 
-    process_bitmap_item(el: Element, library: ExportItem) {
+    processBitmapItem(el: Element, library: ExportItem) {
         const item = new ExportItem();
         item.ref = el;
         item.node.libraryName = el.item.name;
-        item.append_to(library);
+        item.appendTo(library);
     }
 
-    process_dynamic_text(el: Element, parent: ExportItem) {
+    processDynamicText(el: Element, parent: ExportItem) {
         console.assert(el.elementType === ElementType.dynamic_text);
 
         const item = new ExportItem();
         item.ref = el;
-        process_transform(el, item);
+        processElementCommons(el, item);
         item.node.name = el.item.name;
 
         //if(dynamicText.rect != null) {
@@ -409,7 +399,7 @@ export class FlashDocExporter {
             }
         }
 
-        item.node.dynamicText = new dynamic_text_data();
+        item.node.dynamicText = new SgDynamicText();
         item.node.dynamicText.rect.copyFrom(el.rect).expand(2, 2);
         item.node.dynamicText.text = el.textRuns[0].characters.replace(/\r/g, '\n');
         item.node.dynamicText.alignment.copyFrom(el.textRuns[0].attributes.alignment);
@@ -419,19 +409,19 @@ export class FlashDocExporter {
         item.node.dynamicText.line_spacing = el.textRuns[0].attributes.line_spacing;
         item.node.dynamicText.color = el.textRuns[0].attributes.color.argb32;
 
-        process_filters(el, item);
+        processFilters(el, item);
 
-        item.append_to(parent);
+        item.appendTo(parent);
     }
 
-    process_group(el: Element, parent: ExportItem) {
+    processGroup(el: Element, parent: ExportItem) {
         console.assert(el.elementType === ElementType.group);
         for (const member of el.members) {
-            this.process_element(member, parent);
+            this.processElement(member, parent);
         }
     }
 
-    process_shape(el: Element, parent: ExportItem) {
+    processShape(el: Element, parent: ExportItem) {
         console.assert(el.elementType === ElementType.shape);
         //if (parent) {
         ++parent.shapes;
@@ -463,8 +453,11 @@ export class FlashDocExporter {
         }
     }
 
-    export_library(): sg_file {
-        return new sg_file(this.library.node, this.linkages);
+    exportLibrary(): SgFile {
+        return new SgFile(
+            this.library.node,
+            this.linkages
+        );
     }
 
 }
