@@ -403,7 +403,7 @@ function getRectsArea(rects: RectSize[]) {
 function nextSize(sz: RectSize) {
     const t = sz.w;
     sz.w = sz.h << 1;
-    //sz.w = sz.h + 16;
+    // sz.w = sz.h + 16;
     sz.h = t;
 }
 

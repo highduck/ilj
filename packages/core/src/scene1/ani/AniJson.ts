@@ -50,7 +50,7 @@ interface MovieFrameJson {
     tweens?: EasingJson[];
 }
 
-interface MovieLayerJson {
+export interface MovieLayerJson {
     key: number;
     frames: MovieFrameJson[];
 }

@@ -45,7 +45,7 @@ export class Matrix2D {
 
     }
 
-    copyFrom(m: Matrix2D) {
+    copyFrom(m: Readonly<Matrix2D>) {
         this.a = m.a;
         this.b = m.b;
         this.c = m.c;
@@ -207,5 +207,19 @@ export class Matrix2D {
 
     toString(): string {
         return `a: ${this.a} b: ${this.b} c: ${this.c} d: ${this.d} x: ${this.x} y: ${this.y}`
+    }
+
+    extractScale(out: Vec2): this {
+        out.x = Math.sqrt(this.a * this.a + this.b * this.b);
+        out.y = Math.sqrt(this.c * this.c + this.d * this.d);
+        // if (a < 0.0) sx = -sx;
+        // if (d < 0.0) sy = -sy;
+        return this;
+    }
+
+    extractSkew(out: Vec2): this {
+        out.x = Math.atan2(-this.c, this.d);
+        out.y = Math.atan2(this.b, this.a);
+        return this;
     }
 }

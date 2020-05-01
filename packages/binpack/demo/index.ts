@@ -53,6 +53,8 @@ function pack() {
             packerStats.bh = b;
         }
     }
+
+    console.log(`${packerStats.bw}x${packerStats.bh} : ${packerStats.flip} ${names[packerStats.method]}`);
 }
 
 pack();

@@ -27,6 +27,17 @@ export class Vec2 {
         return this;
     }
 
+    add2(x: number, y: number): this {
+        this.x += x;
+        this.y += y;
+        return this;
+    }
+
+    equals(o: Vec2): boolean {
+        return Math.abs(this.x - o.x) < 0.000001 &&
+            Math.abs(this.y - o.y) < 0.000001;
+    }
+
     addScale(v: Readonly<Vec2>, s: number): this {
         this.x += s * v.x;
         this.y += s * v.y;
