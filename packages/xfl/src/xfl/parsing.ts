@@ -1,5 +1,4 @@
 import {Color32_ARGB, Color4, Matrix2D, Rect, Vec2} from "@highduck/math";
-import {ColorTransform} from "./ColorTransform";
 import {DOMMatrix2DHolder, FDOMColor, FDOMPoint, FDOMRect, FDOMTransformationPoint} from "./dom";
 
 export function parseMatrix2D(out: Matrix2D, data: DOMMatrix2DHolder) {
@@ -7,41 +6,50 @@ export function parseMatrix2D(out: Matrix2D, data: DOMMatrix2DHolder) {
     if (m === undefined) {
         return;
     }
-    out.a = m.$a ?? 1;
-    out.b = m.$b ?? 0;
-    out.c = m.$c ?? 0;
-    out.d = m.$d ?? 1;
-    out.x = m.$tx ?? 0;
-    out.y = m.$ty ?? 0;
+    out.a = m._a ?? 1;
+    out.b = m._b ?? 0;
+    out.c = m._c ?? 0;
+    out.d = m._d ?? 1;
+    out.x = m._tx ?? 0;
+    out.y = m._ty ?? 0;
 }
 
 export function parseColorCSS(v?: string): Color32_ARGB {
     return v !== undefined ? parseInt(v.substr(1), 16) : 0x0;
 }
 
-export function parseColorTransform(out: ColorTransform, data: { color?: { Color?: FDOMColor } }) {
+function applyTint(multiplier: Color4, offset: Color4, color: Color32_ARGB, intensity: number) {
+    multiplier.r = 1 - intensity;
+    multiplier.g = 1 - intensity;
+    multiplier.b = 1 - intensity;
+    offset.r = ((color >>> 16) & 0xFF) * intensity / 255.0;
+    offset.g = ((color >>> 8) & 0xFF) * intensity / 255.0;
+    offset.b = (color & 0xFF) * intensity / 255.0;
+}
+
+export function parseColorTransform(outMultiplier: Color4, outOffset: Color4, data: { color?: { Color?: FDOMColor } }) {
     const v = data.color?.Color;
     if (v === undefined) {
         return;
     }
-    out.multiplier.r = v.$redMultiplier ?? 1;
-    out.multiplier.g = v.$greenMultiplier ?? 1;
-    out.multiplier.b = v.$blueMultiplier ?? 1;
-    out.multiplier.a = v.$alphaMultiplier ?? 1;
+    outMultiplier.r = v._redMultiplier ?? 1;
+    outMultiplier.g = v._greenMultiplier ?? 1;
+    outMultiplier.b = v._blueMultiplier ?? 1;
+    outMultiplier.a = v._alphaMultiplier ?? 1;
 
-    out.offset.r = v.$redOffset ?? 0;
-    out.offset.g = v.$greenOffset ?? 0;
-    out.offset.b = v.$blueOffset ?? 0;
-    out.offset.a = v.$alphaOffset ?? 0;
+    outOffset.r = v._redOffset ?? 0;
+    outOffset.g = v._greenOffset ?? 0;
+    outOffset.b = v._blueOffset ?? 0;
+    outOffset.a = v._alphaOffset ?? 0;
 
-    const tintMultiplier = v.$tintMultiplier ?? 0;
+    const tintMultiplier = v._tintMultiplier ?? 0;
     if (tintMultiplier > 0) {
-        const tintColor = v.$tintColor != null ? parseColorCSS(v.$tintColor) : 0;
-        out.tint(tintColor, tintMultiplier);
+        const tintColor = v._tintColor != null ? parseColorCSS(v._tintColor) : 0;
+        applyTint(outMultiplier, outOffset, tintColor, tintMultiplier);
     }
 }
 
-export function readColor(out: Color4, data: any, colorTag: string = '$color', alphaTag: string = '$alpha') {
+export function readColor(out: Color4, data: any, colorTag: string = '_color', alphaTag: string = '_alpha') {
     const c = parseColorCSS(data[colorTag]);
     const a = data[alphaTag] ?? 1;
     out.r = ((c >>> 16) & 0xFF) / 255;
@@ -83,15 +91,15 @@ export function readAlignment(out: Vec2, data?: string) {
 
 
 export function readRect(rc: Rect, data: FDOMRect) {
-    rc.x = data.$left ?? 0;
-    rc.y = data.$top ?? 0;
-    rc.width = data.$width ?? 0;
-    rc.height = data.$height ?? 0;
+    rc.x = data._left ?? 0;
+    rc.y = data._top ?? 0;
+    rc.width = data._width ?? 0;
+    rc.height = data._height ?? 0;
 }
 
 export function readPoint(p: Vec2, data: FDOMPoint) {
-    p.x = data.$x ?? 0;
-    p.y = data.$y ?? 0;
+    p.x = data._x ?? 0;
+    p.y = data._y ?? 0;
 }
 
 export function readTransformationPoint(p: Vec2, data: { transformationPoint?: FDOMTransformationPoint }) {

@@ -1,5 +1,4 @@
 import {Color32_ARGB, Color4, Matrix2D, Rect, Vec2} from "@highduck/math";
-import {ColorTransform} from "../xfl/ColorTransform";
 import {
     AniJson,
     DynamicTextJson,
@@ -9,8 +8,9 @@ import {
     MovieFrameJson,
     MovieJson,
     MovieLayerJson,
-    NodeJson, TweenTargetType
-} from "./AniJson";
+    NodeJson,
+    TweenTargetType
+} from "@highduck/anijson";
 import {fixPrecision, tupleColor4, tupleRect, tupleVec2} from "./Serialize";
 
 export class SgFilterData {
@@ -99,7 +99,8 @@ export class SgMovieFrame {
     readonly scale = new Vec2();
     readonly skew = new Vec2();
     readonly pivot = new Vec2();
-    readonly color = new ColorTransform();
+    readonly colorMultiplier = new Color4(1, 1, 1, 1);
+    readonly colorOffset = new Color4(0, 0, 0, 0);
 
     serialize(): MovieFrameJson {
         const r: MovieFrameJson = {
@@ -109,28 +110,28 @@ export class SgMovieFrame {
             mot: this.motion_type
         };
 
-        if (Vec2.ZERO.equals(this.position)) {
+        if (!Vec2.ZERO.equals(this.position)) {
             r.p = tupleVec2(this.position);
         }
 
-        if (Vec2.ONE.equals(this.scale)) {
+        if (!Vec2.ONE.equals(this.scale)) {
             r.s = tupleVec2(this.scale);
         }
 
-        if (Vec2.ZERO.equals(this.skew)) {
+        if (!Vec2.ZERO.equals(this.skew)) {
             r.r = tupleVec2(this.skew);
         }
 
-        if (Vec2.ZERO.equals(this.pivot)) {
+        if (!Vec2.ZERO.equals(this.pivot)) {
             r.o = tupleVec2(this.pivot);
         }
 
-        if (Color4.ONE.equals(this.color.multiplier)) {
-            r.cm = tupleColor4(this.color.multiplier);
+        if (!Color4.ONE.equals(this.colorMultiplier)) {
+            r.cm = tupleColor4(this.colorMultiplier);
         }
 
-        if (Color4.ZERO.equals(this.color.offset)) {
-            r.co = tupleColor4(this.color.offset);
+        if (!Color4.ZERO.equals(this.colorOffset)) {
+            r.co = tupleColor4(this.colorOffset);
         }
 
         if (this.tweens.length > 0) {
@@ -168,7 +169,8 @@ export class SgMovie {
 export class SgNode {
 
     readonly matrix = new Matrix2D();
-    readonly color = new ColorTransform();
+    readonly colorMultiplier = new Color4(1, 1, 1, 1);
+    readonly colorOffset = new Color4(0, 0, 0, 0);
 
     // instance name
     name: string = "";
@@ -207,6 +209,7 @@ export class SgNode {
         if (this.libraryName.length > 0) {
             res.ref = this.libraryName;
         }
+        // matrix
         if (!Vec2.ZERO.equals(pos)) {
             res.p = tupleVec2(pos, 2);
         }
@@ -216,14 +219,14 @@ export class SgNode {
         if (!Vec2.ZERO.equals(skew)) {
             res.r = tupleVec2(skew);
         }
-
-        if (!Color4.ONE.equals(this.color.multiplier)) {
-            res.cm = tupleColor4(this.color.multiplier);
+        // color transform
+        if (!Color4.ONE.equals(this.colorMultiplier)) {
+            res.cm = tupleColor4(this.colorMultiplier);
         }
-        if (!Color4.ZERO.equals(this.color.offset)) {
-            res.co = tupleColor4(this.color.offset);
+        if (!Color4.ZERO.equals(this.colorOffset)) {
+            res.co = tupleColor4(this.colorOffset);
         }
-        // matrix
+        // flags
         if (this.button) {
             res.button = this.button;
         }

@@ -1,14 +1,11 @@
-import fs from "fs";
 import {Entry} from "./Entry";
 import AdmZip from "adm-zip";
 
 export class FLAEntry extends Entry {
 
-    static fromZip(zipFilePath: string): FLAEntry {
-        console.log("reading fla file content: " + zipFilePath);
-        const buffer = fs.readFileSync(zipFilePath);
-        console.log("fla file content size: " + buffer.length);
-        const zipFile = new AdmZip(buffer);
+    static fromZipBuffer(buffer: ArrayBuffer): FLAEntry {
+        console.log("fla file content size: " + buffer.byteLength);
+        const zipFile = new AdmZip(new Buffer(buffer));
         const rootFla = new FLAEntry("", zipFile);
         console.log('entries: ' + zipFile.getEntries().length);
         return rootFla;
@@ -25,12 +22,12 @@ export class FLAEntry extends Entry {
         return new FLAEntry(path, this.zipFile, root);
     }
 
-    content(): string {
-        if (this._content === undefined) {
+    text(): string {
+        if (this._text === undefined) {
             const entry = this.zipFile.getEntry(this.path);
-            this._content = entry.getData().toString('utf-8');
+            this._text = entry.getData().toString('utf-8');
         }
-        return this._content;
+        return this._text;
     }
 
     buffer(): Uint8Array {

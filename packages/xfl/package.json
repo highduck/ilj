@@ -4,11 +4,13 @@
   "main": "dist/cjs/index.js",
   "types": "dist/cjs/index.d.ts",
   "scripts": {
-    "build": "tsc",
-    "test": "rimraf output/ && tsc && node --expose-wasm dist/cjs/index.js",
-    "clean": "rimraf dist/"
+    "build": "tsc -p tsconfig.commonjs.json",
+    "test": "run clean && run build && node --expose-wasm dist/commonjs/index.js",
+    "clean": "rimraf dist/ && rimraf output/"
   },
   "dependencies": {
+    "@highduck/anijson": "0.0.1",
+    "@highduck/binpack": "0.0.1",
     "@highduck/math": "0.0.1",
     "adm-zip": "^0.4.14",
     "canvaskit-wasm": "^0.14.0",

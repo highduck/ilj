@@ -1,21 +1,21 @@
 import {FlashFile} from "../xfl/FlashFile";
 import {Element} from "../xfl/types";
 import {Rect} from "@highduck/math";
-import {transform_model} from "./TransformModel";
+import {TransformModel} from "./TransformModel";
 import {ShapeRenderer} from "./ShapeRenderer";
 import {ElementType, LayerType} from "../xfl/dom";
 
 export class DomScanner {
     name?: string;
     readonly output = new ShapeRenderer();
-    stack: transform_model[] = [];
+    stack: TransformModel[] = [];
 
     constructor(readonly doc: FlashFile) {
         this.reset();
     }
 
     reset() {
-        this.stack = [new transform_model()];
+        this.stack = [new TransformModel()];
         this.output.reset();
     }
 
@@ -53,7 +53,7 @@ export class DomScanner {
         }
     }
 
-    getTopTransform(): transform_model {
+    getTopTransform(): TransformModel {
         return this.stack[this.stack.length - 1];
     }
 
@@ -107,9 +107,14 @@ export class DomScanner {
 
     push_transform(element: Element) {
         this.stack.push(
-            new transform_model()
+            new TransformModel()
                 .copyFrom(this.getTopTransform())
-                .mult(element.matrix, element.color, element.blend_mode)
+                .mult(
+                    element.matrix,
+                    element.colorMultiplier,
+                    element.colorOffset,
+                    element.blendMode
+                )
         );
     }
 

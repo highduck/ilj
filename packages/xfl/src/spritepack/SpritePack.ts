@@ -1,4 +1,5 @@
 import {Rect} from "@highduck/math";
+import {AtlasJson, AtlasPageJson, SpriteFlag, SpriteJson} from "@highduck/anijson";
 
 export class SpriteImage {
 
@@ -16,12 +17,6 @@ export class SpriteImage {
     }
 }
 
-export const enum SpriteFlag {
-    none = 0,
-    rotated = 1,
-    packed = 2
-}
-
 export class Sprite {
 
     name: string = "";
@@ -33,7 +28,7 @@ export class Sprite {
     readonly uv = new Rect();
 
     // flags in atlas image
-    flags = SpriteFlag.none;
+    flags = SpriteFlag.None;
 
     // rect in source image
     readonly source = new Rect(); // integers
@@ -45,11 +40,11 @@ export class Sprite {
     image: undefined | SpriteImage = undefined;
 
     get isPacked() {
-        return (this.flags & SpriteFlag.packed) !== 0;
+        return (this.flags & SpriteFlag.Packed) !== 0;
     }
 
     get isRotated() {
-        return (this.flags & SpriteFlag.rotated) !== 0;
+        return (this.flags & SpriteFlag.Rotated) !== 0;
     }
 
     enable(flag: SpriteFlag) {
@@ -60,8 +55,13 @@ export class Sprite {
         this.flags &= ~flag;
     }
 
-    serialize(io: any) {
-        //io(name, rc, uv, flags);
+    serialize(): SpriteJson {
+        return {
+            name: this.name,
+            rc: [this.rc.x, this.rc.y, this.rc.width, this.rc.height],
+            uv: [this.uv.x, this.uv.y, this.uv.width, this.uv.height],
+            flags: this.flags
+        };
     }
 }
 
@@ -72,8 +72,13 @@ export class AtlasPage {
     image_path: string = "";
     image: undefined | SpriteImage = undefined;
 
-    serialize(io: any) {
-        // io(size, image_path, sprites);
+    serialize(): AtlasPageJson {
+        return {
+            width: this.width,
+            height: this.height,
+            image_path: this.image_path,
+            sprites: this.sprites.map((v) => v.serialize())
+        };
     }
 }
 
@@ -82,38 +87,32 @@ export class AtlasResolution {
     pages: AtlasPage[] = [];
 
     constructor(
-        public index = 0,
-        public scale = 1,
+        public index:number,
+        public scale:number,
         public widthMax = 2048,
         public heightMax = 2048,
     ) {
 
     }
 
-    serialize(io: any) {
-        // io(pages);
+    serialize(): AtlasJson {
+        return {
+            pages: this.pages.map((v) => v.serialize()),
+        };
     }
 }
 
 export class Atlas {
-    name: string = "";
     resolutions: AtlasResolution[] = [];
 
-    constructor() {
-        for (let i = 0; i < 4; ++i) {
-            this.resolutions.push(new AtlasResolution(i, i + 1));
+    constructor(
+        public name:string,
+        scales: number[] = [1, 2, 3, 4]
+    ) {
+        for (let i = 0; i < scales.length; ++i) {
+            this.resolutions.push(new AtlasResolution(i, scales[i]));
         }
     }
-
-    // explicit atlas_t(const atlas_decl_t& decl) {
-    //     int i = 0;
-    //     resolutions.reserve(decl.resolutions.size());
-    //     for (const auto& resolution : decl.resolutions) {
-    //         resolutions.emplace_back(resolution, i);
-    //         ++i;
-    //     }
-    //     name = decl.name;
-    // }
 
     dispose() {
         for (const res of this.resolutions) {
@@ -124,5 +123,9 @@ export class Atlas {
                 }
             }
         }
+    }
+
+    serialize() {
+
     }
 }

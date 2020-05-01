@@ -1,9 +1,8 @@
 import {Color32_ARGB, Color4, Matrix2D, Rect, Vec2} from "@highduck/math";
-import {ColorTransform} from "./ColorTransform";
 import {
     BlendMode,
     DOMAnyFilter,
-    DOMEdges,
+    DOMEdges, DOMFillStyle,
     DOMFilterKind,
     DOMFrame,
     DOMGradientEntry,
@@ -67,15 +66,15 @@ class Filter {
     parse(tag: string, data: DOMAnyFilter) {
         this.type = tag as DOMFilterKind;
         readColor(this.color, data);
-        this.blur.x = data.$blurX ?? 4;
-        this.blur.y = data.$blurY ?? 4;
-        this.distance = data.$distance ?? 4;
-        this.angle = data.$angle ?? 45;
-        this.quality = data.$quality ?? 1;
-        this.strength = data.$strength ?? 100.0;
-        this.inner = data.$inner ?? false;
-        this.knockout = data.$knockout ?? false;
-        this.hideObject = data.$hideObject ?? false;
+        this.blur.x = data._blurX ?? 4;
+        this.blur.y = data._blurY ?? 4;
+        this.distance = data._distance ?? 4;
+        this.angle = data._angle ?? 45;
+        this.quality = data._quality ?? 1;
+        this.strength = data._strength ?? 100.0;
+        this.inner = data._inner ?? false;
+        this.knockout = data._knockout ?? false;
+        this.hideObject = data._hideObject ?? false;
     }
 }
 
@@ -87,10 +86,12 @@ class Edge {
     stroke_style = 0;
 
     parse(data: DOMEdges) {
-        this.fill_style_0 = data.$fillStyle0 ?? 0;
-        this.fill_style_1 = data.$fillStyle1 ?? 0;
-        this.stroke_style = data.$strokeStyle ?? 0;
-        parseEdges(data.$edges, this.commands, this.values);
+        if (data._edges !== undefined) {
+            this.fill_style_0 = data._fillStyle0 ?? 0;
+            this.fill_style_1 = data._fillStyle1 ?? 0;
+            this.stroke_style = data._strokeStyle ?? 0;
+            parseEdges(data._edges, this.commands, this.values);
+        }
     }
 }
 
@@ -104,14 +105,14 @@ class TextAttributes {
     size = 32;// = "32";
     bitmap_size = 640; // just twips size
     parse(data: DOMTextAttributes) {
-        readAlignment(this.alignment, data.$alignment);
-        this.alias_text = data.$aliasText ?? false;
-        this.size = data.$size ?? 12;
-        this.line_height = data.$lineHeight ?? this.size;
-        this.line_spacing = data.$lineSpacing ?? 0;
-        this.bitmap_size = data.$bitmapSize ?? (this.size * 20);
-        this.face = data.$face;
-        readColor(this.color, data, "$fillColor");
+        readAlignment(this.alignment, data._alignment);
+        this.alias_text = data._aliasText ?? false;
+        this.size = data._size ?? 12;
+        this.line_height = data._lineHeight ?? this.size;
+        this.line_spacing = data._lineSpacing ?? 0;
+        this.bitmap_size = data._bitmapSize ?? (this.size * 20);
+        this.face = data._face;
+        readColor(this.color, data, "_fillColor");
     }
 }
 
@@ -141,16 +142,16 @@ class SolidStroke {
     pixelHinting = false;
 
     parse(data: DOMSolidStroke) {
-        this.weight = data.$weight ?? 1;
+        this.weight = data._weight ?? 1;
         if (data.fill) {
             readColor(this.fill, data.fill.SolidColor);
         }
-        this.miterLimit = data.$miterLimit ?? 3;
-        this.pixelHinting = data.$pixelHinting ?? false;
-        this.scaleMode = data.$scaleMode ?? ScaleMode.normal;
-        this.caps = data.$caps ?? LineCaps.round;
-        this.joints = data.$joints ?? LineJoints.round;
-        this.solidStyle = data.$solidStyle ?? SolidStyleType.hairline;
+        this.miterLimit = data._miterLimit ?? 3;
+        this.pixelHinting = data._pixelHinting ?? false;
+        this.scaleMode = data._scaleMode ?? ScaleMode.normal;
+        this.caps = data._caps ?? LineCaps.round;
+        this.joints = data._joints ?? LineJoints.round;
+        this.solidStyle = data._solidStyle ?? SolidStyleType.hairline;
     }
 }
 
@@ -160,7 +161,7 @@ class GradientEntry {
 
     parse(data: DOMGradientEntry) {
         readColor(this.color, data);
-        this.ratio = data.$ratio ?? 0;
+        this.ratio = data._ratio ?? 0;
     }
 }
 
@@ -171,9 +172,9 @@ export class FillStyle {
     entries: GradientEntry[] = [];
     readonly matrix = new Matrix2D();
 
-    parse(data: { $index: number; SolidColor?: { $color: string }; LinearGradient?: any, RadialGradient?: any }) {
+    parse(data: DOMFillStyle) {
         // TODO:
-        this.index = data.$index;
+        this.index = data._index;
         for (const fillData of oneOrMany(data.SolidColor)) {
             this.type = FillType.solid;
             const entry = new GradientEntry();
@@ -183,58 +184,40 @@ export class FillStyle {
 
         for (const fillData of oneOrMany(data.LinearGradient)) {
             this.type = FillType.linear;
-            this.spreadMethod = fillData.$spreadMethod ?? SpreadMethod.extend;
-            parseMatrix2D(this.matrix, fillData as DOMMatrix2DHolder);
+            this.spreadMethod = fillData._spreadMethod ?? SpreadMethod.extend;
+            parseMatrix2D(this.matrix, fillData);
             for (const entryData of oneOrMany(fillData.GradientEntry)) {
                 const entry = new GradientEntry();
-                entry.parse(entryData as DOMGradientEntry);
+                entry.parse(entryData);
                 this.entries.push(entry);
             }
         }
 
         for (const fillData of oneOrMany(data.RadialGradient)) {
             this.type = FillType.radial;
-            this.spreadMethod = fillData.$spreadMethod ?? SpreadMethod.extend;
-            parseMatrix2D(this.matrix, fillData as DOMMatrix2DHolder);
+            this.spreadMethod = fillData._spreadMethod ?? SpreadMethod.extend;
+            parseMatrix2D(this.matrix, fillData);
             for (const entryData of oneOrMany(fillData.GradientEntry)) {
                 const entry = new GradientEntry();
-                entry.parse(entryData as DOMGradientEntry);
+                entry.parse(entryData);
                 this.entries.push(entry);
             }
         }
-        // for (const tag of data) {
-        //     r.type << el.name();
-        //     switch (r.type) {
-        //         case fill_type::solid:
-        //             r.entries.push_back(parse_xml_node<gradient_entry>(el));
-        //             break;
-        //         case fill_type::linear:
-        //             case fill_type::radial:
-        //             r.spreadMethod << el.attribute("spreadMethod").value();
-        //             r.matrix << el;
-        //             for (const auto& e: el.children("GradientEntry")) {
-        //             r.entries.push_back(parse_xml_node<gradient_entry>(e));
-        //         }
-        //             break;
-        //         default:
-        //             break;
-        //     }
-        // }
     }
 }
 
 export class StrokeStyle {
     index = 0;
     solid = new SolidStroke();
-    is_solid = false;
+    isSolid = false;
 
     parse(data: DOMStrokeStyle) {
-        this.index = data.$index;
+        this.index = data._index;
         const solidData = data.SolidStroke;
         if (solidData !== undefined) {
             this.solid.parse(solidData);
         }
-        this.is_solid = solidData !== undefined;
+        this.isSolid = solidData !== undefined;
     }
 }
 
@@ -268,23 +251,23 @@ export class Frame {
     motionObject?: MotionObject;
 
     parse(data: DOMFrame) {
-        this.index = data.$index;
-        this.duration = data.$duration ?? 1;
-        this.tweenType = data.$tweenType ?? TweenType.none;
-        if (data.$name) {
-            this.name = he.decode(data.$name);
+        this.index = data._index;
+        this.duration = data._duration ?? 1;
+        this.tweenType = data._tweenType ?? TweenType.none;
+        if (data._name) {
+            this.name = he.decode(data._name);
         }
 
-        this.motionTweenSnap = data.$motionTweenSnap ?? false;
-        this.motionTweenOrientToPath = data.$motionTweenOrientToPath ?? false;
+        this.motionTweenSnap = data._motionTweenSnap ?? false;
+        this.motionTweenOrientToPath = data._motionTweenOrientToPath ?? false;
 
-        this.motionTweenRotate = data.$motionTweenRotate ?? RotationDirection.none;
-        this.motionTweenRotateTimes = data.$motionTweenRotateTimes ?? 0;
+        this.motionTweenRotate = data._motionTweenRotate ?? RotationDirection.none;
+        this.motionTweenRotateTimes = data._motionTweenRotateTimes ?? 0;
 
-        this.hasCustomEase = data.$hasCustomEase ?? false;
+        this.hasCustomEase = data._hasCustomEase ?? false;
 
-        this.keyMode = data.$keyMode ?? 0;
-        this.acceleration = data.$acceleration ?? 0;
+        this.keyMode = data._keyMode ?? 0;
+        this.acceleration = data._acceleration ?? 0;
 
         for (const tag in data.elements) {
             // if (data.elements.hasOwnProperty(tag)) {
@@ -300,14 +283,14 @@ export class Frame {
         if (data.tweens !== undefined) {
             for (const tweenData of oneOrMany(data.tweens.Ease)) {
                 const tweenObject = new TweenObject();
-                tweenObject.target = tweenData.$target ?? TweenTarget.all;
-                tweenObject.intensity = tweenData.$intensity ?? 0;
+                tweenObject.target = tweenData._target ?? TweenTarget.all;
+                tweenObject.intensity = tweenData._intensity ?? 0;
                 this.tweens.push(tweenObject);
             }
 
             for (const tweenData of oneOrMany(data.tweens.CustomEase)) {
                 const tweenObject = new TweenObject();
-                tweenObject.target = tweenData.$target ?? TweenTarget.all;
+                tweenObject.target = tweenData._target ?? TweenTarget.all;
                 tweenObject.custom_ease = [];
                 for (const p of oneOrMany(tweenData.Point)) {
                     const v = new Vec2();
@@ -341,10 +324,10 @@ class Layer {
     }
 
     parse(data: DOMLayer) {
-        this.name = he.decode(data.$name);
-        this.color = parseColorCSS(data.$color);
-        if (data.$layerType) {
-            this.layerType = data.$layerType as LayerType;
+        this.name = he.decode(data._name);
+        this.color = parseColorCSS(data._color);
+        if (data._layerType) {
+            this.layerType = data._layerType as LayerType;
         }
 
         for (const frameData of oneOrMany(data.frames.DOMFrame)) {
@@ -369,7 +352,7 @@ export class Timeline {
     }
 
     parse(data: DOMTimeline) {
-        this.name = he.decode(data.$name);
+        this.name = he.decode(data._name);
         for (const layerData of oneOrMany(data.layers.DOMLayer)) {
             const layer = new Layer();
             layer.parse(layerData);
@@ -391,29 +374,29 @@ class ItemProperties {
     linkageExportForAS = false;
 
     parse(data: any) {
-        if (data.$name) {
-            this.name = he.decode(data.$name);
+        if (data._name) {
+            this.name = he.decode(data._name);
         }
-        if (data.$itemID) {
-            this.itemID = data.$itemID;
+        if (data._itemID) {
+            this.itemID = data._itemID;
         }
-        if (data.$sourceLastImported) {
-            this.sourceLastImported = data.$sourceLastImported;
+        if (data._sourceLastImported) {
+            this.sourceLastImported = data._sourceLastImported;
         }
-        if (data.$sourceExternalFilepath) {
-            this.sourceExternalFilepath = data.$sourceExternalFilepath;
+        if (data._sourceExternalFilepath) {
+            this.sourceExternalFilepath = data._sourceExternalFilepath;
         }
-        if (data.$linkageClassName) {
-            this.linkageClassName = data.$linkageClassName;
+        if (data._linkageClassName) {
+            this.linkageClassName = data._linkageClassName;
         }
-        if (data.$linkageExportForAS) {
-            this.linkageExportForAS = data.$linkageExportForAS;
+        if (data._linkageExportForAS) {
+            this.linkageExportForAS = data._linkageExportForAS;
         }
-        if (data.$linkageBaseClass) {
-            this.linkageBaseClass = data.$linkageBaseClass;
+        if (data._linkageBaseClass) {
+            this.linkageBaseClass = data._linkageBaseClass;
         }
-        if (data.$lastModified) {
-            this.lastModified = data.$lastModified;
+        if (data._lastModified) {
+            this.lastModified = data._lastModified;
         }
     }
 }
@@ -426,7 +409,8 @@ export class Element {
     /** Transform point (Free Transform Tool) for current element, in LOCAL SPACE (do not applicate matrix) **/
     readonly transformationPoint = new Vec2();
     readonly matrix = new Matrix2D();
-    readonly color = new ColorTransform();
+    readonly colorMultiplier = new Color4(1, 1, 1, 1);
+    readonly colorOffset = new Color4(0, 0, 0, 0);
     readonly rect = new Rect();
 
     /// SYMBOL ITEM
@@ -469,7 +453,7 @@ export class Element {
     autoExpand = false;
     lineType?: string; // lineType="multiline no wrap"
 
-    blend_mode = BlendMode.last;
+    blendMode = BlendMode.last;
 
     // bitmap item
     bitmapDataHRef: undefined | string = undefined;
@@ -512,8 +496,8 @@ export class Element {
         readRect(this.rect, data);
 
         //// shape
-        if (data.$isDrawingObject != null) {
-            this.isDrawingObject = data.$isDrawingObject;
+        if (data._isDrawingObject != null) {
+            this.isDrawingObject = data._isDrawingObject;
         }
 
         if (data.fills) {
@@ -532,7 +516,7 @@ export class Element {
         }
         if (data.edges) {
             for (const edgeData of oneOrMany(data.edges.Edge)) {
-                if (edgeData.$edges != null) {
+                if (edgeData._edges != null) {
                     const edge = new Edge();
                     edge.parse(edgeData);
                     this.edges.push(edge);
@@ -541,66 +525,66 @@ export class Element {
         }
 
         /// instances ref
-        if (data.$libraryItemName != null) {
-            this.libraryItemName = he.decode(data.$libraryItemName);
+        if (data._libraryItemName != null) {
+            this.libraryItemName = he.decode(data._libraryItemName);
         }
 
         /////   SymbolInstance
-        if (data.$symbolType != null) {
-            this.symbolType = data.$symbolType;
+        if (data._symbolType != null) {
+            this.symbolType = data._symbolType;
         }
 
-        if (data.$centerPoint3DX != null) {
-            this.centerPoint3DX = data.$centerPoint3DX;
+        if (data._centerPoint3DX != null) {
+            this.centerPoint3DX = data._centerPoint3DX;
         }
 
-        if (data.$centerPoint3DY != null) {
-            this.centerPoint3DY = data.$centerPoint3DY;
+        if (data._centerPoint3DY != null) {
+            this.centerPoint3DY = data._centerPoint3DY;
         }
 
-        if (data.$cacheAsBitmap != null) {
-            this.cacheAsBitmap = data.$cacheAsBitmap;
+        if (data._cacheAsBitmap != null) {
+            this.cacheAsBitmap = data._cacheAsBitmap;
         }
 
-        if (data.$exportAsBitmap != null) {
-            this.exportAsBitmap = data.$exportAsBitmap;
+        if (data._exportAsBitmap != null) {
+            this.exportAsBitmap = data._exportAsBitmap;
         }
 
-        if (data.$hasAccessibleData) {
-            if (data.$forceSimple != null) {
-                this.forceSimple = data.$forceSimple;
+        if (data._hasAccessibleData) {
+            if (data._forceSimple != null) {
+                this.forceSimple = data._forceSimple;
             }
-            if (data.$silent != null) {
-                this.silent = data.$silent;
+            if (data._silent != null) {
+                this.silent = data._silent;
             }
         }
 
-        if (data.$isVisible != null) {
-            this.isVisible = data.$isVisible;
+        if (data._isVisible != null) {
+            this.isVisible = data._isVisible;
         }
 
         /// text
 
-        if (data.$isSelectable != null) {
-            this.isSelectable = data.$isSelectable;
+        if (data._isSelectable != null) {
+            this.isSelectable = data._isSelectable;
         }
 
         /// dynamic text
 
-        if (data.$border != null) {
-            this.border = data.$border;
+        if (data._border != null) {
+            this.border = data._border;
         }
-        if (data.$fontRenderingMode != null) {
-            this.fontRenderingMode = data.$fontRenderingMode;
+        if (data._fontRenderingMode != null) {
+            this.fontRenderingMode = data._fontRenderingMode;
         }
-        if (data.$autoExpand != null) {
-            this.autoExpand = data.$autoExpand;
+        if (data._autoExpand != null) {
+            this.autoExpand = data._autoExpand;
         }
-        if (data.$lineType != null) {
-            this.lineType = data.$lineType;
+        if (data._lineType != null) {
+            this.lineType = data._lineType;
         }
         readTransformationPoint(this.transformationPoint, data);
-        parseColorTransform(this.color, data);
+        parseColorTransform(this.colorMultiplier, this.colorOffset, data);
         parseMatrix2D(this.matrix, data);
 
         //// group
@@ -633,8 +617,8 @@ export class Element {
         }
 
         //// symbol item
-        if (data.$blendMode != null) {
-            this.blend_mode = data.$blendMode;
+        if (data._blendMode != null) {
+            this.blendMode = data._blendMode;
         }
         readScaleGrid(this.scaleGrid, data);
         if (data.timeline !== undefined) {
@@ -642,36 +626,34 @@ export class Element {
         }
 
         // bitmap item
-        if (data.$quality != null) {
-            this.quality = data.$quality;
+        if (data._quality != null) {
+            this.quality = data._quality;
         }
-        if (data.$href != null) {
-            this.href = he.decode(data.$href);
+        if (data._href != null) {
+            this.href = he.decode(data._href);
         }
-        if (data.$bitmapDataHRef != null) {
-            this.bitmapDataHRef = he.decode(data.$bitmapDataHRef);
+        if (data._bitmapDataHRef != null) {
+            this.bitmapDataHRef = he.decode(data._bitmapDataHRef);
         }
-        if (data.$isJPEG != null) {
-            this.isJPEG = data.$isJPEG;
+        if (data._isJPEG != null) {
+            this.isJPEG = data._isJPEG;
         }
 
         // font item
 
-        if (data.$font != null) {
-            this.font = data.$font;
+        if (data._font != null) {
+            this.font = data._font;
         }
 
-        if (data.$size != null) {
-            this.size = data.$size;
+        if (data._size != null) {
+            this.size = data._size;
         }
 
-        if (data.$id != null) {
-            this.id = data.$id;
+        if (data._id != null) {
+            this.id = data._id;
         }
 
         // sound item
         ////  todo:
-
-
     }
 }

@@ -12,6 +12,11 @@ function isFile(p: string) {
     return fs.existsSync(p) && fs.lstatSync(p).isFile();
 }
 
+function loadFLA(filepath: string): FLAEntry {
+    const buffer = fs.readFileSync(filepath);
+    return FLAEntry.fromZipBuffer(buffer.buffer);
+}
+
 export function loadFlashArchive(filepath: string): Entry | undefined {
     if (isFile(filepath)) {
         const ext = path.extname(filepath);
@@ -24,16 +29,16 @@ export function loadFlashArchive(filepath: string): Entry | undefined {
                 console.error(`Import Flash: loading ${filepath} XFL file, but ${dir} is not a dir`);
             }
         } else if (ext === "fla") {
-            return FLAEntry.fromZip(filepath);
+            return loadFLA(filepath);
         } else {
             console.error(`Import Flash: file is not xfl or fla: ${filepath}`);
         }
     }
 
     // dir/FILE.fla
-    const fla_file = filepath + ".fla";
-    if (isFile(fla_file)) {
-        return FLAEntry.fromZip(fla_file);
+    const flaFile = filepath + ".fla";
+    if (isFile(flaFile)) {
+        return loadFLA(flaFile);
     } else if (isDir(filepath)) {
         if (isFile(path.join(filepath, path.basename(filepath) + ".xfl"))) {
             return new XFLEntry(filepath);

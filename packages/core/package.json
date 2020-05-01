@@ -12,6 +12,7 @@
   },
   "sideEffects": false,
   "dependencies": {
+    "@highduck/anijson": "0.0.1",
     "@highduck/math": "0.0.1",
     "@types/howler": "^2.1.2",
     "howler": "^2.1.3"

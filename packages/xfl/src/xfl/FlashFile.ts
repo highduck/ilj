@@ -23,8 +23,8 @@ export class FlashFile {
         for (const item of oneOrMany(doc.media?.DOMBitmapItem)) {
             const el = new Element();
             el.parse(ElementType.bitmap_item, item);
-            console.log('bin/' + item.$bitmapDataHRef);
-            el.bitmap = load_bitmap(root.open('bin/' + item.$bitmapDataHRef));
+            console.log('bin/' + item._bitmapDataHRef);
+            el.bitmap = load_bitmap(root.open('bin/' + item._bitmapDataHRef));
             this.library.push(el);
         }
         //
@@ -36,9 +36,8 @@ export class FlashFile {
         const includes = oneOrMany(doc.symbols?.Include);
         // console.log(JSON.stringify(doc, null, 2));
         for (const include of includes) {
-            const href = he.decode(include.$href);
+            const href = he.decode(include._href);
             const libraryDoc = loadXml(root, path.join("LIBRARY", href));
-            //console.log(JSON.stringify(libraryDoc, null, 2));
             const el = new Element();
             el.parse(ElementType.symbol_item, libraryDoc.DOMSymbolItem as DOMSymbolItem);
             this.library.push(el);

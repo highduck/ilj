@@ -6,7 +6,7 @@ export class Entry {
 
     protected _children = new Map<string, Entry>();
     protected _xmlObject: any = undefined;
-    protected _content: undefined | string = undefined;
+    protected _text: undefined | string = undefined;
     protected _buffer: undefined | Uint8Array = undefined;
     readonly path: string;
     readonly root: Entry;
@@ -18,32 +18,27 @@ export class Entry {
 
     xml(): any {
         if (this._xmlObject === undefined) {
-            const t = this.content() as string;
-            if (t) {
-                this._xmlObject = fxp.parse(t, {
-                    attributeNamePrefix: "$",
-                    // attrNodeName: "attr",
-                    textNodeName: "$_text",
-                    ignoreAttributes: false,
-                    allowBooleanAttributes: true,
-                    parseAttributeValue: true,
-                    ignoreNameSpace: true,
-                    // arrayMode: true
-                });
-            }
+            this._xmlObject = fxp.parse(this.text(), {
+                attributeNamePrefix: "_",
+                textNodeName: "$",
+                ignoreAttributes: false,
+                allowBooleanAttributes: true,
+                parseAttributeValue: true,
+                ignoreNameSpace: true
+            });
         }
         return this._xmlObject;
     }
 
-    content(): string {
-        if(this._content === undefined) {
+    text(): string {
+        if (this._text === undefined) {
             throw "no content";
         }
-        return this._content;
+        return this._text;
     }
 
     buffer(): Uint8Array {
-        if(this._buffer === undefined) {
+        if (this._buffer === undefined) {
             throw "no buffer";
         }
         return this._buffer;

@@ -7,17 +7,6 @@ import {loadJSON} from "../util/load";
 import {declTypeID} from "../util/TypeID";
 import {Vec2} from "@highduck/math";
 
-interface AtlasPageJson {
-    width: number;
-    height: number;
-    image_path: string;
-    sprites: SpriteJson[];
-}
-
-interface AtlasJson {
-    pages: AtlasPageJson[];
-}
-
 function pathDir(path: string): string {
     const i = path.lastIndexOf("/");
     if (i >= 0) {

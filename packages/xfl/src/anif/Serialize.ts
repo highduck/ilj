@@ -2,10 +2,9 @@ import {Color4, Matrix2D, Rect, Vec2} from "@highduck/math";
 
 /*** serialization utils **/
 export function fixPrecision(x: number, precision: number): number {
-//    return
-//            ceil( (double)x * pow(10,(double)prec) - .4999999999999)
-//            / pow(10,(double)prec);
-    return x;
+    const p = Math.pow(10, precision);
+    return Math.ceil(x * p - 0.4999999999999) / p;
+    // return x;
 }
 
 export function tupleMatrix2D(m: Matrix2D): [number, number, number, number, number, number] {

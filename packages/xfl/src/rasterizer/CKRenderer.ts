@@ -1,5 +1,5 @@
 import {CanvasKit, SkBlendMode, SkCanvas, SkPaint, SkPath, SkShader} from "canvaskit-wasm";
-import {transform_model} from "../render/TransformModel";
+import {TransformModel} from "../render/TransformModel";
 import {Bitmap, FillStyle, StrokeStyle} from "../xfl/types";
 import {RenderCommand} from "../render/RenderCommand";
 import {BlendMode, FillType, LineCaps, LineJoints, SpreadMethod} from "../xfl/dom";
@@ -47,7 +47,7 @@ interface CanvasKitEx extends CanvasKit {
     Color4f(r: number, g: number, b: number, a: number): number;
 }
 
-function create_fill_pattern(ck: CanvasKit, fill: FillStyle, transform: transform_model): SkShader {
+function create_fill_pattern(ck: CanvasKit, fill: FillStyle, transform: TransformModel): SkShader {
     let tileMode = ck.TileMode.Clamp;
     if (fill.spreadMethod === SpreadMethod.extend) {
         tileMode = ck.TileMode.Clamp;
@@ -66,7 +66,7 @@ function create_fill_pattern(ck: CanvasKit, fill: FillStyle, transform: transfor
     for (const entry of fill.entries) {
         const color = new Color4();
         color.copyFrom(entry.color);
-        transform.color.transform(color);
+        transform.transformColor(color);
         colors.push(ck.Color(255 * color.r, 255 * color.g, 255 * color.b, color.a));
         positions.push(entry.ratio);
     }
@@ -152,7 +152,7 @@ export class CKRenderer {
     // private setBlendMode(mode: BlendMode) {
     // }
 
-    set_transform(transform: transform_model) {
+    set_transform(transform: TransformModel) {
         this.transform.copyFrom(transform);
         // this.setBlendMode(transform.blend_mode);
         // this.paint.setBlendMode(convertBlendMode(this.ck, mode));
@@ -264,7 +264,7 @@ export class CKRenderer {
         }
     }
 
-    readonly transform = new transform_model();
+    readonly transform = new TransformModel();
 
     fill_flag_ = false;
     stroke_flag_ = false;
@@ -297,7 +297,7 @@ export class CKRenderer {
             if (this.fill_style_.type === FillType.solid) {
                 if (this.fill_style_.entries && this.fill_style_.entries.length > 0) {
                     const c = this.fill_style_.entries[0].color.copy();
-                    this.transform.color.transform(c);
+                    this.transform.transformColor(c);
                     paint.setColorf(c.r, c.g, c.b, c.a);
                 } else {
                     throw "bad data";
@@ -372,7 +372,7 @@ export class CKRenderer {
                 paint.setStrokeMiter(solid.miterLimit);
 
                 const c = solid.fill.copy();
-                this.transform.color.transform(c);
+                this.transform.transformColor(c);
                 paint.setColorf(c.r, c.g, c.b, c.a);
                 // this.paint.setColorf(1,0,0,1);
                 // todo: cairo_stroke_preserve(ctx_);

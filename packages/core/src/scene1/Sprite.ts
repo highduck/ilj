@@ -4,19 +4,6 @@ import {AssetRef} from "../util/Resources";
 import {Drawer} from "../drawer/Drawer";
 import {declTypeID} from "../util/TypeID";
 
-export const enum SpriteFlag {
-    None = 0,
-    Rotated = 1,
-    Packed = 2,
-}
-
-export interface SpriteJson {
-    name: string;
-    rc: [number, number, number, number];
-    uv: [number, number, number, number];
-    flags: SpriteFlag;
-}
-
 export class Sprite {
     static TYPE_ID = declTypeID();
 

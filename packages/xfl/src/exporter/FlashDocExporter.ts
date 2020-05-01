@@ -3,11 +3,11 @@ import {ExportItem} from "./ExportItem";
 import {Element, Frame} from "../xfl/types";
 import {DOMFilterKind, ElementType, LayerType, RotationDirection, SymbolType, TweenTarget, TweenType} from "../xfl/dom";
 import {SgDynamicText, SgEasing, SgFile, SgFilterData, SgMovie, SgMovieFrame, SgMovieLayer} from "../anif/SgModel";
-import {FilterType, TweenTargetType} from '../anif/AniJson';
 import {Matrix2D, Rect} from "@highduck/math";
 import {estimateBounds} from "../render/DomScanner";
 import {Atlas} from "../spritepack/SpritePack";
 import {renderElement} from "../rasterizer/RenderToSprite";
+import {FilterType, TweenTargetType} from "@highduck/anijson";
 
 function convertTweenTarget(target: TweenTarget): TweenTargetType {
     switch (target) {
@@ -39,7 +39,8 @@ function isClipRect(str?: string): boolean {
 
 function processElementCommons(el: Element, item: ExportItem) {
     item.node.matrix.copyFrom(el.matrix as Matrix2D);
-    item.node.color.copyFrom(el.color);
+    item.node.colorMultiplier.copyFrom(el.colorMultiplier);
+    item.node.colorOffset.copyFrom(el.colorOffset);
 }
 
 function processFilters(el: Element, item: ExportItem) {
@@ -319,15 +320,17 @@ export class FlashDocExporter {
                                     }
                                 }
 
-                                const m = frame_data.elements[0].matrix;
-                                const c = frame_data.elements[0].color;
-                                const p = frame_data.elements[0].transformationPoint;
+                                const el0 = frame_data.elements[0];
+                                const m = el0.matrix;
+                                const p = el0.transformationPoint;
                                 ef.pivot.copyFrom(p);
                                 p.transform(m);
                                 ef.position.copyFrom(p);
                                 m.extractScale(ef.scale);
                                 m.extractSkew(ef.skew);
-                                ef.color.copyFrom(c);
+
+                                ef.colorMultiplier.copyFrom(el0.colorMultiplier);
+                                ef.colorOffset.copyFrom(el0.colorOffset);
 
                                 layer_data.frames.push(ef);
 

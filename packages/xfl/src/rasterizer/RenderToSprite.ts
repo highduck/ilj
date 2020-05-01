@@ -142,7 +142,7 @@ export function renderBatch(bounds: Rect,
                 canvas.restore();
                 sub_canvas.restore();
 
-                blit_downsample(canvas, sub_surf, up_scaled_size.x, up_scaled_size.y, upscale, batch.transform.blend_mode);
+                blit_downsample(canvas, sub_surf, up_scaled_size.x, up_scaled_size.y, upscale, batch.transform.blendMode);
                 surf.flush();
             }
 

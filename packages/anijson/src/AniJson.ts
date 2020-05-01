@@ -1,4 +1,4 @@
-import {Color32_ARGB} from "@highduck/math";
+export type ARGB32 = number;
 
 export const enum FilterType {
     None = 0,
@@ -6,15 +6,23 @@ export const enum FilterType {
     Glow = 2
 }
 
+export const enum TweenTargetType {
+    All = 0,
+    Position = 1,
+    Rotation = 2,
+    Scale = 3,
+    Color = 4
+}
+
 export interface FilterJson {
     type: FilterType;
     quality: number;
-    color: Color32_ARGB;
+    color: ARGB32;
     blur: [number, number];
     offset: [number, number];
 }
 
-interface DynamicTextJson {
+export interface DynamicTextJson {
     rect: [number, number, number, number];
     text: string;
     face: string;
@@ -22,16 +30,16 @@ interface DynamicTextJson {
     line_spacing: number;
     line_height: number;
     size: number;
-    color: Color32_ARGB;
+    color: ARGB32;
 }
 
 export interface EasingJson {
-    attribute?: number; // default = 0
+    attribute?: TweenTargetType; // default = 0
     ease?: number; // default = 0
     curve?: number[]; //pairs: x,y,x,y,x,y...
 }
 
-interface MovieFrameJson {
+export interface MovieFrameJson {
     i: number; // index
     len: number; // duration
     mot: number; // motion_type

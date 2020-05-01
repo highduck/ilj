@@ -1,4 +1,4 @@
-import {transform_model} from "./TransformModel";
+import {TransformModel} from "./TransformModel";
 import {BoundsBuilder, Vec2} from "@highduck/math";
 import {RenderCommand} from "./RenderCommand";
 import {Element} from "../xfl/types";
@@ -17,7 +17,7 @@ const enum CommandSymbol {
 }
 
 export class ShapeDecoder {
-    readonly transform = new transform_model()
+    readonly transform = new TransformModel()
     readonly boundsBuilder = new BoundsBuilder();
     total = 0;
 
@@ -25,7 +25,7 @@ export class ShapeDecoder {
     fill_styles: RenderCommand[] = [];
     line_styles: RenderCommand[] = [];
 
-    constructor(transform: transform_model) {
+    constructor(transform: TransformModel) {
         this.transform.copyFrom(transform);
     }
 
@@ -203,7 +203,7 @@ export class ShapeDecoder {
         result.push(new RenderCommand(RenderOp.line_style_reset));
 
         for (const stroke of el.strokes) {
-            if (stroke.is_solid) {
+            if (stroke.isSolid) {
                 const cmd = new RenderCommand(RenderOp.line_style_setup);
                 cmd.stroke = stroke;
                 result.push(cmd);

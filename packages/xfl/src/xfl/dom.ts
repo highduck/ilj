@@ -57,15 +57,15 @@ export const enum DOMFilterKind {
 }
 
 export interface DOMAnyFilter {
-    $blurX?: number;
-    $blurY?: number;
-    $distance?: number;
-    $angle?: number;
-    $quality?: number;
-    $strength?: number;
-    $inner?: boolean;
-    $knockout?: boolean;
-    $hideObject?: boolean;
+    _blurX?: number;
+    _blurY?: number;
+    _distance?: number;
+    _angle?: number;
+    _quality?: number;
+    _strength?: number;
+    _inner?: boolean;
+    _knockout?: boolean;
+    _hideObject?: boolean;
 }
 
 export const enum ScaleMode {
@@ -115,102 +115,92 @@ export const enum RotationDirection {
 }
 
 export interface DOMFolderItem {
-    $name: string,
-    $itemID: string,
-    $isExpanded?: boolean
+    _name: string,
+    _itemID: string,
+    _isExpanded?: boolean
 }
 
 export interface DOMFontItem {
-    $name: string,
-    $itemID: string,
-    $linkageExportForAS: boolean,
-    $linkageBaseClass: string, // "flash.text.Font"
-    $linkageClassName: string, // Font1
-    $font: string, //"mini",
-    $size: number, // 0
-    $id: number, // 1
-    $sourceLastImported: number, //1553239021,
-    $embedRanges: string //"1|2|3|4|5"
+    _name: string,
+    _itemID: string,
+    _linkageExportForAS: boolean,
+    _linkageBaseClass: string, // "flash.text.Font"
+    _linkageClassName: string, // Font1
+    _font: string, //"mini",
+    _size: number, // 0
+    _id: number, // 1
+    _sourceLastImported: number, //1553239021,
+    _embedRanges: string //"1|2|3|4|5"
 }
 
 export interface DOMBitmapItem {
-    $name: string,//"flump/puppet parts/calf copy",
-    $itemID: string,
-    $sourceExternalFilepath: string, //"./LIBRARY/flump/puppet parts/calf copy",
-    $sourceLastImported: number,
-    $sourcePlatform: string,
-    $originalCompressionType: string,// TODO: enum? "lossless",
-    $quality: number, //90,
-    $href: string,// "flump/puppet parts/calf copy",
-    $bitmapDataHRef: string,//"M 10 1552682487.dat",
-    $frameRight: number, //1300,
-    $frameBottom: number, //1780
+    _name: string,//"flump/puppet parts/calf copy",
+    _itemID: string,
+    _sourceExternalFilepath: string, //"./LIBRARY/flump/puppet parts/calf copy",
+    _sourceLastImported: number,
+    _sourcePlatform: string,
+    _originalCompressionType: string,// TODO: enum? "lossless",
+    _quality: number, //90,
+    _href: string,// "flump/puppet parts/calf copy",
+    _bitmapDataHRef: string,//"M 10 1552682487.dat",
+    _frameRight: number, //1300,
+    _frameBottom: number, //1780
 }
 
 interface DOMSoundItem {
-    $name: "media_test/next_level.mp3",
-    $itemID: "5c938c07-0000034a",
-    $sourceExternalFilepath: "./LIBRARY/media_test/next_level.mp3",
-    $sourceLastImported: 1536049774,
-    $sourcePlatform: "macintosh",
-    $externalFileCRC32: 4118010386,
-    $externalFileSize: 18807,
-    $href: "media_test/next_level.mp3",
-    $soundDataHRef: "M 23 1553173508.dat",
-    $format: "44kHz 16bit Stereo",
-    $sampleCount: 51840,
-    $exportFormat: 1,
-    $exportBits: 7,
-    $dataLength: 18807,
-    $exportNative: true,
-    $cacheFormat: "5kHz 8bit Stereo",
-    $cachedSampleCount: 6480
+    _name: "media_test/next_level.mp3",
+    _itemID: "5c938c07-0000034a",
+    _sourceExternalFilepath: "./LIBRARY/media_test/next_level.mp3",
+    _sourceLastImported: 1536049774,
+    _sourcePlatform: "macintosh",
+    _externalFileCRC32: 4118010386,
+    _externalFileSize: 18807,
+    _href: "media_test/next_level.mp3",
+    _soundDataHRef: "M 23 1553173508.dat",
+    _format: "44kHz 16bit Stereo",
+    _sampleCount: 51840,
+    _exportFormat: 1,
+    _exportBits: 7,
+    _dataLength: 18807,
+    _exportNative: true,
+    _cacheFormat: "5kHz 8bit Stereo",
+    _cachedSampleCount: 6480
 }
 
 export interface Include {
-    $href: string,//"bella/dance_01.xml",
-    $itemIcon?: number,
-    $loadImmediate?: boolean,
-    $itemID: string,
-    $lastModified: string,
+    _href: string,//"bella/dance_01.xml",
+    _itemIcon?: number,
+    _loadImmediate?: boolean,
+    _itemID: string,
+    _lastModified: string,
+}
+
+export interface DOMGradientEntry {
+    _color?: string,
+    _alpha?: number,
+    _ratio?: number
+}
+
+export interface DOMGradientStyle extends DOMMatrix2DHolder {
+    _spreadMethod?: SpreadMethod,
+    GradientEntry?: DOMGradientEntry | DOMGradientEntry[]
+}
+
+export interface DOMFillStyle {
+    _index: number,
+    SolidColor?: DOMGradientEntry, // actually only color / alpha
+    LinearGradient?: DOMGradientStyle,
+    RadialGradient?: DOMGradientStyle
 }
 
 export interface DOMShape {
-    "$selected": true,
-    "$isDrawingObject": true,
-    "fills": {
-        "FillStyle": {
-            "$index": 1,
-            "SolidColor": {
-                "$color": "#F8E28D"
-            }
-        }
+    _selected: true,
+    _isDrawingObject: true,
+    fills?: {
+        FillStyle?: DOMFillStyle | DOMFillStyle[]
     },
-    "edges": {
-        "Edge": [
-            {
-                "$fillStyle1": 1,
-                "$edges": "!5315 180|140 180!140 180[105 183 70 173!70 173[0 154 0 90!0 90[0 26 70 7!70 7[105 -3 140 0!140 0|5315 0!5315 0|5385 12!5385 12[5455 34 5455 90!5455 90[5455 145 5385 168!5385 168|5315 180"
-            },
-            {
-                "$cubics": "!5315 180(;5315,180 140,180 140,180q5315 180 140 180);"
-            },
-            {
-                "$cubics": "!140 180(;140,180 0,192 0,90q140 180Q105 183q70 173Q0 154q0 90);"
-            },
-            {
-                "$cubics": "!0 90(;0,-12 140,0 140,0q0 90Q0 26q70 7Q105 -3q140 0);"
-            },
-            {
-                "$cubics": "!140 0(;140,0 5315,0 5315,0q140 0 5315 0);"
-            },
-            {
-                "$cubics": "!5315 0(;5315,0 5455,1 5455,90q5315 0Q5315 0q5385 12Q5455 34q5455 90);"
-            },
-            {
-                "$cubics": "!5455 90(;5455,178 5315,180 5315,180q5455 90Q5455 145q5385 168Q5315 180q5315 180);"
-            }
-        ]
+    edges?: {
+        Edge?: DOMEdges | DOMEdges[]
     }
 }
 
@@ -224,12 +214,12 @@ export const enum TweenTarget {
 }
 
 export interface DOMEase {
-    $target?: TweenTarget, // all
-    $intensity?: number // -100 .. 100
+    _target?: TweenTarget, // all
+    _intensity?: number // -100 .. 100
 }
 
 export interface DOMCustomEase {
-    $target?: TweenTarget, // all
+    _target?: TweenTarget, // all
     Point: FDOMPoint | FDOMPoint[]
 }
 
@@ -249,17 +239,17 @@ export interface DOMElementAny {
 }
 
 export interface DOMFrame {
-    $name: string,
-    $index: number,//0,
-    $duration: number, // 1
-    $tweenType: TweenType,
-    $keyMode: number,//9728,
-    $acceleration?: number,
-    $hasCustomEase?: boolean,
-    $motionTweenRotateTimes?: number, // 0
-    $motionTweenRotate?: RotationDirection,
-    $motionTweenSnap?: boolean,
-    $motionTweenOrientToPath?: boolean,
+    _name: string,
+    _index: number,//0,
+    _duration: number, // 1
+    _tweenType: TweenType,
+    _keyMode: number,//9728,
+    _acceleration?: number,
+    _hasCustomEase?: boolean,
+    _motionTweenRotateTimes?: number, // 0
+    _motionTweenRotate?: RotationDirection,
+    _motionTweenSnap?: boolean,
+    _motionTweenOrientToPath?: boolean,
 
     elements: DOMElementAny,
 
@@ -270,27 +260,27 @@ export interface DOMFrame {
 }
 
 export interface DOMLayer {
-    $name: string,
-    $color: string, //"#4FFF4F",
-    //$current: boolean,
-    //$isSelected: boolean,
-    $layerType: 'guide' | 'normal'
+    _name: string,
+    _color: string, //"#4FFF4F",
+    //_current: boolean,
+    //_isSelected: boolean,
+    _layerType?: LayerType
     frames: {
         DOMFrame: DOMFrame | DOMFrame[]
     }
 }
 
 export interface DOMTimeline {
-    $name: string,
+    _name: string,
     layers: {
         DOMLayer: DOMLayer | DOMLayer[]
     }
 }
 
 export interface DOMSymbolItem {
-    $name: string, //"test_button/001.ai Assets/&amp;#060Path&amp;#062_6",
-    $itemID: string,
-    $lastModified: number,
+    _name: string, //"test_button/001.ai Assets/&amp;#060Path&amp;#062_6",
+    _itemID: string,
+    _lastModified: number,
     timeline: {
         DOMTimeline: DOMTimeline
     }
@@ -298,20 +288,20 @@ export interface DOMSymbolItem {
 
 
 export interface DOMDocument {
-    $currentTimeline: number,
-    $xflVersion: number,
-    $creatorInfo: string,
-    $platform: string,
-    $versionInfo: string,
-    $majorVersion: number,
-    $minorVersion: number,
-    $buildNumber: number,
-    $nextSceneIdentifier: number,
-    $playOptionsPlayLoop: boolean,
-    $playOptionsPlayPages: boolean,
-    $playOptionsPlayFrameActions: boolean,
-    $filetypeGUID: string,
-    $fileGUID: string,
+    _currentTimeline: number,
+    _xflVersion: number,
+    _creatorInfo: string,
+    _platform: string,
+    _versionInfo: string,
+    _majorVersion: number,
+    _minorVersion: number,
+    _buildNumber: number,
+    _nextSceneIdentifier: number,
+    _playOptionsPlayLoop: boolean,
+    _playOptionsPlayPages: boolean,
+    _playOptionsPlayFrameActions: boolean,
+    _filetypeGUID: string,
+    _fileGUID: string,
 
     folders?: {
         DOMFolderItem?: DOMFolderItem | DOMFolderItem[]
@@ -334,15 +324,15 @@ export interface DOMDocument {
 }
 
 export interface FDOMRect {
-    $left?: number;
-    $top?: number;
-    $width?: number;
-    $height?: number;
+    _left?: number;
+    _top?: number;
+    _width?: number;
+    _height?: number;
 }
 
 export interface FDOMPoint {
-    $x?: number;
-    $y?: number;
+    _x?: number;
+    _y?: number;
 }
 
 export interface FDOMTransformationPoint {
@@ -350,39 +340,39 @@ export interface FDOMTransformationPoint {
 }
 
 export interface FDOMMatrix2D {
-    $a?: number;
-    $b?: number;
-    $c?: number;
-    $d?: number;
-    $tx?: number;
-    $ty?: number;
+    _a?: number;
+    _b?: number;
+    _c?: number;
+    _d?: number;
+    _tx?: number;
+    _ty?: number;
 }
 
 export interface FDOMColor {
-    $redMultiplier?: number;
-    $greenMultiplier?: number;
-    $blueMultiplier?: number;
-    $alphaMultiplier?: number;
+    _redMultiplier?: number;
+    _greenMultiplier?: number;
+    _blueMultiplier?: number;
+    _alphaMultiplier?: number;
 
-    $redOffset?: number;
-    $greenOffset?: number;
-    $blueOffset?: number;
-    $alphaOffset?: number;
+    _redOffset?: number;
+    _greenOffset?: number;
+    _blueOffset?: number;
+    _alphaOffset?: number;
 
-    $tintMultiplier?: number;
-    $tintColor?: string;
+    _tintMultiplier?: number;
+    _tintColor?: string;
 }
 
 export interface DOMTextAttributes {
-    $fillColor?: string,
-    $alpha?: number,
-    $alignment?: string,
-    $aliasText?: boolean,
-    $size?: number,
-    $lineHeight?: number,
-    $lineSpacing?: number,
-    $bitmapSize?: number,
-    $face?: string,
+    _fillColor?: string,
+    _alpha?: number,
+    _alignment?: string,
+    _aliasText?: boolean,
+    _size?: number,
+    _lineHeight?: number,
+    _lineSpacing?: number,
+    _bitmapSize?: number,
+    _face?: string,
 }
 
 export interface DOMTextRun {
@@ -391,36 +381,41 @@ export interface DOMTextRun {
 }
 
 export interface DOMEdges {
-    $fillStyle0?: number,
-    $fillStyle1?: number,
-    $strokeStyle?: number
-    $edges: string
+    _fillStyle0?: number,
+    _fillStyle1?: number,
+    _strokeStyle?: number,
+    _edges?: string,
+    _cubics?: string
 }
 
 export interface DOMSolidStroke {
-    $weight?: number;
-    fill?: { SolidColor: { $color: string, $alpha: number } };
-    $miterLimit?: number;
-    $pixelHinting?: boolean;
-    $scaleMode?: ScaleMode;
-    $caps?: LineCaps;
-    $joints?: LineJoints;
-    $solidStyle?: SolidStyleType;
+    _weight?: number;
+    fill?: { SolidColor: { _color: string, _alpha: number } };
+    _miterLimit?: number;
+    _pixelHinting?: boolean;
+    _scaleMode?: ScaleMode;
+    _caps?: LineCaps;
+    _joints?: LineJoints;
+    _solidStyle?: SolidStyleType;
 }
 
 export interface DOMStrokeStyle {
-    $index: number,
+    _index: number,
     SolidStroke?: DOMSolidStroke;
-}
-
-export interface DOMGradientEntry {
-    $color?: string,
-    $alpha?: number,
-    $ratio?: number
 }
 
 export interface DOMMatrix2DHolder {
     matrix?: {
         Matrix?: FDOMMatrix2D
     }
+}
+
+// TODO:
+export interface DOMOvalObject extends DOMMatrix2DHolder {
+    _objectWidth?:number; // 58
+    _objectHeight?:number; // 58
+    _x?:number;
+    _y?:number;
+    endAngle?:number; // 0
+    fill?: DOMFillStyle;
 }

@@ -1,6 +1,6 @@
 import {BoundsBuilder, Rect, Vec2} from "@highduck/math";
 import {Bitmap, Element} from "../xfl/types";
-import {transform_model} from "./TransformModel";
+import {TransformModel} from "./TransformModel";
 import {ElementType} from "../xfl/dom";
 import {RenderBatch} from "./RenderBatch";
 import {ShapeDecoder} from "./ShapeDecoder";
@@ -27,7 +27,7 @@ export class ShapeRenderer {
         return false;
     }
 
-    addElement(el: Element, world: transform_model): boolean {
+    addElement(el: Element, world: TransformModel): boolean {
         if (el.elementType === ElementType.bitmap_item) {
             if (el.bitmap !== undefined) {
                 return this.addBitmap(el.bitmap, world);
@@ -39,7 +39,7 @@ export class ShapeRenderer {
         return !decoder.empty && this.add(decoder.getResult());
     }
 
-    addBitmap(bitmap: Bitmap, world: transform_model): boolean {
+    addBitmap(bitmap: Bitmap, world: TransformModel): boolean {
         const batch = new RenderBatch();
         batch.transform.copyFrom(world);
         batch.bitmap = bitmap;

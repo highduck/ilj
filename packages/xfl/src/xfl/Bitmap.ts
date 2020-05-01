@@ -8,10 +8,10 @@ class bitmap_desc_t {
     stride = 0; // uint16_t
     width = 0; //uint16_t
     height = 0;//uint16_t
-    width_high = 0; //uint32_t
-    width_tw = 0; //uint32_t
-    height_high = 0; //uint32_t
-    height_tw = 0; //uint32_t
+    widthHigh = 0; //uint32_t
+    widthTwips = 0; //uint32_t
+    heightHigh = 0; //uint32_t
+    heightTwips = 0; //uint32_t
     alpha = 0; // flags , uint8_t
     compressed = 0; // flags, uint8_t
 
@@ -22,13 +22,15 @@ class bitmap_desc_t {
             this.stride = reader.readU16();
             this.width = reader.readU16();
             this.height = reader.readU16();
-            this.width_high = reader.readU32();
-            this.width_tw = reader.readU32();
-            this.height_high = reader.readU32();
-            this.height_tw = reader.readU32();
+            this.widthHigh = reader.readU32();
+            this.widthTwips = reader.readU32();
+            this.heightHigh = reader.readU32();
+            this.heightTwips = reader.readU32();
 
-            console.assert(this.width_tw === this.width * 20, `${this.width_tw} | ${this.width}`);
-            console.assert(this.height_tw === this.height * 20, `${this.height_tw} | ${this.height}`);
+            console.assert(this.widthTwips === this.width * 20,
+                `${this.widthTwips} | ${this.width}`);
+            console.assert(this.heightTwips === this.height * 20,
+                `${this.heightTwips} | ${this.height}`);
 
             this.alpha = reader.readU8();
             this.compressed = reader.readU8();
@@ -38,10 +40,9 @@ class bitmap_desc_t {
     }
 }
 
-// bgra_to_argb / vica versa
-// hack: temporary for skia: to abgr
-function reverse_color_components(data: Uint8Array, length: number) {
-    for (let i = 0; i < length; i += 4) {
+// to A-B-G-R for Google Skia default surface format
+function convertColors(data: Uint8Array) {
+    for (let i = 0; i < data.length; i += 4) {
         const a = data[i];
         const r = data[i + 1];
         const g = data[i + 2];
@@ -137,7 +138,7 @@ export function load_bitmap(entry: Entry): Bitmap {
         reader.pos += bm_size;
     }
 
-    reverse_color_components(bitmap.data, bitmap.data.length);
+    convertColors(bitmap.data);
 
     return bitmap;
 }
