@@ -5,7 +5,7 @@
     "ilj": "./ilj.js"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.commonjs.json",
+    "build": "tsc -b tsconfig.commonjs.json",
     "clean": "rimraf dist/"
   },
   "main": "./dist/index.js",

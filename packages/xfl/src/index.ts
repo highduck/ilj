@@ -1,7 +1,7 @@
 import {loadFlashArchive} from "./xfl/loadFlashArchive";
 import {FlashFile} from './xfl/FlashFile';
 import {FlashDocExporter} from "./exporter/FlashDocExporter";
-import {Atlas} from "./spritepack/SpritePack";
+import {Atlas, SpriteImage} from "./spritepack/SpritePack";
 import {loadCanvasContext} from "./rasterizer/CanvasKitHelpers";
 import fs from "fs";
 import path from "path";
@@ -20,22 +20,29 @@ function makeDirs(p: string) {
     }
 }
 
+function savePNG(filepath: string, image?: SpriteImage) {
+    if (image === undefined || image.data === undefined) {
+        console.warn('image has no data');
+        return;
+    }
+
+    makeDirs(path.dirname(filepath));
+    const png = encode({
+        width: image.width,
+        height: image.height,
+        data: image.data,
+        depth: 8,
+        channels: 4
+    });
+    fs.writeFileSync(filepath, png);
+}
+
 function saveDebugImages(destDir: string, atlas: Atlas) {
     for (const res of atlas.resolutions) {
         const output = path.join(destDir, atlas.name, `images@${res.scale}x`);
         for (const spr of res.sprites) {
             if (spr.image !== undefined && spr.image.data !== undefined) {
-                console.log(spr.name + " " + spr.image.width + " " + spr.image.height);
-                const dest = path.join(output, spr.name + ".png");
-                makeDirs(path.dirname(dest));
-                const png = encode({
-                    width: spr.image.width,
-                    height: spr.image.height,
-                    data: spr.image.data,
-                    depth: 8,
-                    channels: 4
-                });
-                fs.writeFileSync(dest, png);
+                savePNG(path.join(output, spr.name + ".png"), spr.image);
             }
         }
     }
@@ -60,17 +67,8 @@ function saveAtlas(destDir: string, atlas: Atlas) {
             const page = res.pages[i];
             const postfix = getAtlasPageSuffix(res.scale, i);
             page.image_path = `${atlas.name}${postfix}.png`;
-            if (page.image !== undefined && page.image.data !== undefined) {
-                console.info(`save atlas page: ${page.image_path}`);
-                const png = encode({
-                    width: page.image.width,
-                    height: page.image.height,
-                    data: page.image.data,
-                    depth: 8,
-                    channels: 4
-                });
-                fs.writeFileSync(path.join(destDir, page.image_path), png);
-            }
+            console.info(`save atlas page: ${page.image_path}`);
+            savePNG(path.join(destDir, page.image_path), page.image);
         }
         fs.writeFileSync(path.join(destDir, jsonName), JSON.stringify(res.serialize()));
     }

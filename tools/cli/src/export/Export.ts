@@ -6,22 +6,7 @@ import console from "../common/log";
 import * as glob from "glob";
 import fs from 'fs';
 import {createAtlas, exportAtlases, exportFlashAsset} from "@highduck/xfl";
-
-interface BundleDeclaration {
-    name: string,
-    atlas?: AtlasDeclaration[],
-    flash?: FlashDeclaration[],
-}
-
-interface AtlasDeclaration {
-    name: string
-}
-
-interface FlashDeclaration {
-    name: string,
-    file?: string,
-    atlas?: string
-}
+import {BundleDef} from "./Bundle";
 
 export function exportMarketingAssets(market_asset: string, target_type: string, output: string) {
     // const market_asset = "assets/res";
@@ -30,6 +15,15 @@ export function exportMarketingAssets(market_asset: string, target_type: string,
     make_dirs(output);
     console.error("TODO");
     //runExporter("export", "market", market_asset, target_type, output);
+}
+
+function copySound(input: string, output: string) {
+    try {
+        make_dirs(path.dirname(output));
+        execute("ffmpeg", ["-y", "-i", input, "-map_metadata", "-1", "-codec:a", "libmp3lame", "-q:a", "8", output]);
+    } catch (e) {
+        console.warn(e);
+    }
 }
 
 export function prepare_sfx_files() {
@@ -65,7 +59,7 @@ export function optimize_png(input: string, output?: string) {
     }
 }
 
-function optimize_png_glob(input_pattern: string) {
+function pngQuantGlob(input_pattern: string) {
     const files = glob.sync(input_pattern);
     for (const file of files) {
         optimize_png(file, file);
@@ -74,23 +68,76 @@ function optimize_png_glob(input_pattern: string) {
 
 export async function exportAssets(input: string, output: string) {
     make_dirs(output);
-    const bundleDecl = JSON.parse(fs.readFileSync(path.join(input, "bundle.json"), 'utf8')) as BundleDeclaration;
-    if (bundleDecl.atlas) {
-        for (const atlas of bundleDecl.atlas) {
-            createAtlas(atlas.name);
+    const bundle = JSON.parse(fs.readFileSync(path.join(input, "bundle.json"), 'utf8')) as BundleDef;
+
+    const list: any[] = [];
+
+    if (bundle.assets === undefined) {
+        console.warn('empty "assets"');
+        return;
+    }
+
+    for (const def of bundle.assets) {
+        if (def.type === 'atlas') {
+            createAtlas(def.name);
+            list.push({
+                type: "atlas",
+                name: def.name
+            });
         }
     }
-    if (bundleDecl.flash) {
-        for (const flash of bundleDecl.flash) {
+
+    for (const def of bundle.assets) {
+        if (def.type === 'flash') {
             await exportFlashAsset(
-                flash.name,
-                path.join(input, flash.file ?? flash.name),
+                def.name,
+                path.join(input, def.file ?? def.name),
                 output,
-                flash.atlas ?? flash.name
+                def.atlas ?? def.name
             );
+            list.push({
+                type: "ani",
+                name: def.name
+            });
         }
     }
+
+    for (const def of bundle.assets) {
+        if (def.type === 'font') {
+            const filepath = def.path ?? (def.name + '.ttf');
+            fs.copyFileSync(
+                path.join(input, filepath),
+                path.join(output, filepath)
+            );
+            list.push({
+                type: "font",
+                name: def.name,
+                size: def.size ?? 30,
+                path: filepath
+            });
+        }
+    }
+
+    for (const def of bundle.assets) {
+        if (def.type === 'sound') {
+            const files = glob.sync(path.join(input, def.glob));
+            for (const file of files) {
+                const rel = path.relative(input, file);
+                copySound(file, path.join(output, rel));
+                const pp = path.parse(rel);
+                list.push({
+                    type: "sound",
+                    path: rel,
+                    id: path.join(pp.dir, pp.name)
+                });
+            }
+        }
+    }
+
     exportAtlases(output);
-    // runExporter("export", "assets", input, output);
-    optimize_png_glob(path.join(output, "*.png"));
+    pngQuantGlob(path.join(output, "*.png"));
+
+    fs.writeFileSync(path.join(output, 'assets.json'), JSON.stringify({
+        assets: list
+    }));
 }

@@ -47,7 +47,6 @@ export class ShapeDecoder {
         let fills: ShapeEdge[] = [];
         let back_fills: ShapeEdge[] = [];
 
-        // console.log("EDGES count: " + el.edges.length);
         for (const edge of el.edges) {
             let line_started = false;
             const edgeCommands = edge.commands;
@@ -166,9 +165,6 @@ export class ShapeDecoder {
         res.bounds.copyFrom(this.boundsBuilder);
         res.total = this.total;
         res.commands = this.commands.concat();
-        // console.info(res.bounds);
-        // console.info(res.total);
-        // console.info(res.commands);
         return res;
     }
 
@@ -177,7 +173,6 @@ export class ShapeDecoder {
     }
 
     private extend(x: number, y: number, r: number) {
-        //console.log('extend: ', x, y, r);
         this.boundsBuilder.addBounds(x - r, y - r, x + r, y + r);
     }
 

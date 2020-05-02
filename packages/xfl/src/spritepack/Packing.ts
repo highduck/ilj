@@ -55,16 +55,12 @@ export function pack(sprites: Sprite[], maxWidth: number, maxHeight: number): At
 
         for (const sprite of sprites) {
             if (!sprite.isPacked) {
-                //if (sprite.image?.data !== undefined) {
                 packer_state.add(
                     sprite.source.width,
                     sprite.source.height,
                     sprite.padding,
                     sprite
                 );
-                // } else {
-                //     console.warn('sprite with bad image: ' + sprite.name);
-                // }
             }
         }
 

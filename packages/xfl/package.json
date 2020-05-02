@@ -4,7 +4,7 @@
   "main": "dist/commonjs/index.js",
   "types": "dist/commonjs/index.d.ts",
   "scripts": {
-    "build": "tsc -p tsconfig.commonjs.json",
+    "build": "tsc -b tsconfig.commonjs.json",
     "test": "run clean && run build && node --expose-wasm dist/commonjs/index.js",
     "clean": "rimraf dist/ && rimraf output/"
   },

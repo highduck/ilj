@@ -4,11 +4,8 @@ import AdmZip from "adm-zip";
 export class FLAEntry extends Entry {
 
     static fromZipBuffer(buffer: ArrayBuffer): FLAEntry {
-        console.log("fla file content size: " + buffer.byteLength);
         const zipFile = new AdmZip(new Buffer(buffer));
-        const rootFla = new FLAEntry("", zipFile);
-        console.log('entries: ' + zipFile.getEntries().length);
-        return rootFla;
+        return new FLAEntry("", zipFile);
     }
 
     zipFile: AdmZip;

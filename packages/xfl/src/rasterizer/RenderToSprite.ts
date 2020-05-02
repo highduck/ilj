@@ -96,77 +96,65 @@ export function renderBatch(bounds: Rect,
             Math.trunc(h * upscale)
         );
 
-        // const sub_surf = ck.MakeSurface(up_scaled_size.x, up_scaled_size.y);
-        console.info("Create sub-surface size: ", up_scaled_size.x, up_scaled_size.y);
         const sub_surf = makePMASurface(ck, up_scaled_size.x, up_scaled_size.y);
-//         auto sub_surf = cairo_surface_create_similar(surf,
-//             CAIRO_CONTENT_COLOR_ALPHA,
-//             up_scaled_size.x,
-//             up_scaled_size.y);
         const sub_canvas = sub_surf.getCanvas();
-//         auto sub_cr = cairo_create(sub_surf);
-//         cairo_set_antialias(sub_cr, CAIRO_ANTIALIAS_NONE);
-//
-        {
-            const renderer = new CKRenderer(canvas, true);
-            const sub_renderer = new CKRenderer(sub_canvas, false);
 
-            for (const batch of batches) {
-                renderer.set_transform(batch.transform);
 
-                canvas.save();
-                sub_canvas.save();
-                canvas.scale(scale, scale);
-                sub_canvas.scale(scale * upscale, scale * upscale);
-                if (!fixed) {
-                    canvas.translate(-rc.x, -rc.y);
-                    sub_canvas.translate(-rc.x, -rc.y);
-                }
+        // BEGIN
+        const renderer = new CKRenderer(canvas, true);
+        const sub_renderer = new CKRenderer(sub_canvas, false);
 
-                if (batch.bitmap) {
-                    renderer.draw_bitmap(batch.bitmap);
-                    canvas.flush();
-                }
+        for (const batch of batches) {
+            renderer.set_transform(batch.transform);
 
-                // for (const cmd of batch.commands) {
-                //     renderer.execute(cmd);
-                // }
-
-                sub_canvas.clear(ck.TRANSPARENT);
-                sub_renderer.set_transform(batch.transform);
-                for (const cmd of batch.commands) {
-                    sub_renderer.execute(cmd);
-                }
-                sub_surf.flush();
-
-                canvas.restore();
-                sub_canvas.restore();
-
-                blit_downsample(canvas, sub_surf, up_scaled_size.x, up_scaled_size.y, upscale, batch.transform.blendMode);
-                surf.flush();
+            canvas.save();
+            sub_canvas.save();
+            canvas.scale(scale, scale);
+            sub_canvas.scale(scale * upscale, scale * upscale);
+            if (!fixed) {
+                canvas.translate(-rc.x, -rc.y);
+                sub_canvas.translate(-rc.x, -rc.y);
             }
 
-            sub_renderer.dispose();
-            renderer.dispose();
+            if (batch.bitmap) {
+                renderer.draw_bitmap(batch.bitmap);
+                canvas.flush();
+            }
+
+            // for (const cmd of batch.commands) {
+            //     renderer.execute(cmd);
+            // }
+
+            sub_canvas.clear(ck.TRANSPARENT);
+            sub_renderer.set_transform(batch.transform);
+            for (const cmd of batch.commands) {
+                sub_renderer.execute(cmd);
+            }
+            sub_surf.flush();
+
+            canvas.restore();
+            sub_canvas.restore();
+
+            blit_downsample(canvas, sub_surf, up_scaled_size.x, up_scaled_size.y, upscale, batch.transform.blendMode);
+            surf.flush();
         }
 
+        sub_renderer.dispose();
+        renderer.dispose();
+        // END
+
         sub_surf.delete();
-        // convert ARGB to ABGR
-        // convert_image_bgra_to_rgba(*img, *img);
-        // const surfImage = surf.makeImageSnapshot();
-        // img.data = canvas.readPixels(0, 0, w, h, ck.AlphaType.Premul, ck.ColorType.BGRA_8888) as Uint8Array;
-        img.data = canvas.readPixels(0, 0, w, h, ck.AlphaType.Unpremul, ck.ColorType.RGBA_8888, 4 * w) as Uint8Array;
-        // for (let i = 0; i < img.data.length; i += 4) {
-        //     const ia = 255.0 / img.data[i + 3];
-        //     img.data[i] = Math.min(255, (img.data[i] * ia)) | 0;
-        //     img.data[i + 1] = Math.min(255, (img.data[i + 1] * ia)) | 0;
-        //     img.data[i + 2] = Math.min(255, (img.data[i + 2] * ia)) | 0;
-        // }
-        // ck.AlphaType.Unpremul, ck.ColorType.RGBA_8888, 4
+
+        img.data = canvas.readPixels(
+            0, 0, w, h,
+            ck.AlphaType.Unpremul,
+            ck.ColorType.RGBA_8888,
+            4 * w
+        ) as Uint8Array | undefined;
+
         if (img.data === undefined) {
             throw "Error canvas.readPixels ";
         }
-        //console.log("readPixels OK: " + img.data + " " + img.width + " " + img.height);
 
         surf.delete();
     }

@@ -8,7 +8,6 @@ import {estimateBounds} from "../render/DomScanner";
 import {Atlas} from "../spritepack/SpritePack";
 import {renderElement} from "../rasterizer/RenderToSprite";
 import {FilterType, TweenTargetType} from "@highduck/anijson";
-import {oneOrMany} from "../xfl/parsing";
 
 function convertTweenTarget(target: TweenTarget): TweenTargetType {
     switch (target) {
@@ -394,10 +393,10 @@ export class FlashDocExporter {
 //    item->node.matrix.tx += el.rect.x - 2;
 //    item->node.matrix.ty += el.rect.y - 2;
         //}
-        const textRun = oneOrMany(el.textRuns)
-        console.warn(el.textRuns[0].attributes.face);
-        let face = el.textRuns[0].attributes.face;
-        if (face !== undefined && face.length !== 0 && face[face.length - 1] === '*') {
+        const textRun0 = el.textRuns[0];
+
+        let face = textRun0.attributes.face;
+        if (face !== undefined && face.length > 0 && face[face.length - 1] === '*') {
             face = face.substr(0, face.length - 1);
             const fontItem = this.doc.find(face, ElementType.font_item);
             if (fontItem) {
@@ -405,15 +404,16 @@ export class FlashDocExporter {
             }
         }
 
-        item.node.dynamicText = new SgDynamicText();
-        item.node.dynamicText.rect.copyFrom(el.rect).expand(2, 2);
-        item.node.dynamicText.text = el.textRuns[0].characters.replace(/\r/g, '\n');
-        item.node.dynamicText.alignment.copyFrom(el.textRuns[0].attributes.alignment);
-        item.node.dynamicText.face = face ?? "";
-        item.node.dynamicText.size = el.textRuns[0].attributes.size;
-        item.node.dynamicText.line_height = el.textRuns[0].attributes.line_height;
-        item.node.dynamicText.line_spacing = el.textRuns[0].attributes.line_spacing;
-        item.node.dynamicText.color = el.textRuns[0].attributes.color.argb32;
+        const dynamicText = new SgDynamicText();
+        dynamicText.rect.copyFrom(el.rect).expand(2, 2);
+        dynamicText.text = textRun0.characters.replace(/\r/g, '\n');
+        dynamicText.alignment.copyFrom(textRun0.attributes.alignment);
+        dynamicText.face = face ?? "";
+        dynamicText.size = textRun0.attributes.size;
+        dynamicText.line_height = textRun0.attributes.line_height;
+        dynamicText.line_spacing = textRun0.attributes.line_spacing;
+        dynamicText.color = textRun0.attributes.color.argb32;
+        item.node.dynamicText = dynamicText;
 
         processFilters(el, item);
 
@@ -449,10 +449,6 @@ export class FlashDocExporter {
                 item.max_abs_scale,
                 resolution.scale * Math.min(1, item.estimated_scale)
             );
-            // if(item.node.libraryName === 'bella/parts/pupils') {
-            //     const scanner = new DomScanner(this.doc);
-            //     scanner.scanTrace(el);
-            // }
             const result = renderElement(this.doc, el, options);
             result.name = el.item.name;
             resolution.sprites.push(result);

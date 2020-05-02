@@ -33,7 +33,7 @@ Purpose of rewriting C/C++ codebase to TypeScript:
 - [x] Bitmap parsing
 - [x] Bitmap rendering
 - [x] Ani files export
-- [ ] Atlas packing
+- [x] Atlas packing
 - [ ] Support for shapes drawing objects: Oval, Rectangle, etc
 - [ ] Bitmap font export
 

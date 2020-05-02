@@ -121,8 +121,7 @@ class TextRun {
     attributes = new TextAttributes();
 
     parse(data: DOMTextRun) {
-        console.log(data.characters);
-        this.characters = data.characters !== undefined ? he.decode(String(data.characters)) : "";
+        this.characters = he.decode(String(data.characters ?? ""));
         this.attributes.parse(oneOrMany(data.textAttrs?.DOMTextAttrs)[0]);
     }
 }
@@ -490,9 +489,7 @@ export class Element {
     // cacheFormat="5kHz 8bit Stereo"
     // cachedSampleCount="6480"
 
-
     parse(tag: ElementType, data: any) {
-        //console.warn("parse " + tag);
         this.item.parse(data);
         this.elementType = tag;
 

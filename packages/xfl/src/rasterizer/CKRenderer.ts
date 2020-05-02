@@ -77,19 +77,12 @@ function create_fill_pattern(ck: CanvasKit, fill: FillStyle, transform: Transfor
             const p1 = new Vec2();
             matrix.transform(-819.2, 0, p0);
             matrix.transform(819.2, 0, p1);
-            // console.info(colors);
-            // console.info(positions);
             return ck.MakeLinearGradientShader(
                 [p0.x, p0.y],
                 [p1.x, p1.y],
                 colors,
                 positions,
                 tileMode.value,
-                // [
-                //     matrix.a, matrix.b, matrix.x,
-                //     matrix.c, matrix.d, matrix.y,
-                //     0, 0, 1,
-                // ],
                 null,
                 0
             );
@@ -100,21 +93,12 @@ function create_fill_pattern(ck: CanvasKit, fill: FillStyle, transform: Transfor
             matrix.transform(0, 0, p0);
             matrix.transform(819.2, 0, p1);
             const radius = p1.distance(p0);
-            // console.info(colors);
-            // console.info(positions);
-            // console.info(p0.x, p0.y, radius);
-            // return ck.MakeRadialGradientShader(
             return ck.MakeTwoPointConicalGradientShader(
                 [p0.x, p0.y], 0,
                 [p0.x, p0.y], radius,
                 colors,
                 positions,
                 tileMode.value,
-                // [
-                //     matrix.a, matrix.b, matrix.x,
-                //     matrix.c, matrix.d, matrix.y,
-                //     0, 0, 1,
-                // ],
                 null,
                 0
             );
@@ -148,9 +132,6 @@ export class CKRenderer {
             this.path.delete();
         }
     }
-
-    // private setBlendMode(mode: BlendMode) {
-    // }
 
     set_transform(transform: TransformModel) {
         this.transform.copyFrom(transform);

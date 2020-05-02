@@ -2,7 +2,7 @@ import {Bitmap} from "./types";
 import {Entry} from "./Entry";
 import zlib from 'zlib';
 
-class bitmap_desc_t {
+class BitmapDataDesc {
     tag1 = 0; // uint8
     tag2 = 0; // uint8
     stride = 0; // uint16_t
@@ -77,6 +77,10 @@ class BufferReader {
         return v;
     }
 
+    readU16_unaligned() {
+        return this.readU8() | (this.readU8() << 8);
+    }
+
     readU32() {
         const v = this.u32[this.pos >>> 2];
         this.pos += 4;
@@ -88,18 +92,15 @@ class BufferReader {
     }
 }
 
-function uncompress(reader: BufferReader, dest: Uint8Array, destSize: number): number {
-    let chunkSize = reader.readU16();
+function uncompress(reader: BufferReader, dest: Uint8Array): number {
+    let chunkSize = reader.readU16_unaligned();
     const buffers = [];
     let allSize = 0;
     while (chunkSize > 0) {
         allSize += chunkSize;
-        console.log('pos: ' + reader.pos, ' chunkSize: ' + chunkSize, ' bufsize: ' + reader.buf.byteLength);
-        console.log();
         buffers.push(new Uint8Array(reader.buf, reader.pos, chunkSize));
         reader.seek(chunkSize);
-        // unaligned reading... :(
-        chunkSize = reader.readU8() | (reader.readU8() << 8);
+        chunkSize = reader.readU16_unaligned();
     }
 
     const buffer = new Uint8Array(allSize);
@@ -109,16 +110,15 @@ function uncompress(reader: BufferReader, dest: Uint8Array, destSize: number): n
         off += b.length;
     }
 
-    const sz = destSize;
-    const resbuffer = zlib.unzipSync(buffer);
-    dest.set(resbuffer, 0);
-    return resbuffer.length;
+    const result = zlib.unzipSync(buffer);
+    dest.set(result, 0);
+    return result.length;
 }
 
-export function load_bitmap(entry: Entry): Bitmap {
+export function loadBitmap(entry: Entry): Bitmap {
     const bitmap = new Bitmap();
     const data = entry.buffer().buffer;
-    const desc = new bitmap_desc_t();
+    const desc = new BitmapDataDesc();
     const reader = new BufferReader(data);
     desc.read(reader);
 
@@ -127,15 +127,15 @@ export function load_bitmap(entry: Entry): Bitmap {
     bitmap.bpp = Math.trunc(desc.stride / bitmap.width);
     bitmap.alpha = desc.alpha !== 0;
     bitmap.data = new Uint8Array(bitmap.width * bitmap.height * bitmap.bpp);
-    const bm_size = bitmap.data.length;
+    const bitmapBytesLength = bitmap.data.length;
     if (desc.compressed !== 0) {
-        const written = uncompress(reader, bitmap.data, bm_size);
-        if (written !== bm_size) {
+        const written = uncompress(reader, bitmap.data);
+        if (written !== bitmapBytesLength) {
             console.error("bitmap decompress error");
         }
     } else {
-        bitmap.data.set(new Uint8Array(reader.buf, reader.pos, bm_size));
-        reader.pos += bm_size;
+        bitmap.data.set(new Uint8Array(reader.buf, reader.pos, bitmapBytesLength));
+        reader.pos += bitmapBytesLength;
     }
 
     convertColors(bitmap.data);
