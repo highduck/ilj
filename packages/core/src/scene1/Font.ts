@@ -1,11 +1,11 @@
 import {Engine} from "../Engine";
 import {BoundsBuilder, Rect} from "@highduck/math";
-import {Sprite, SpriteFlag} from "./Sprite";
+import {Sprite} from "./Sprite";
 import {loadJSON} from "../util/load";
 import {TextFormat} from "./TextFormat";
 import {declTypeID} from "../util/TypeID";
 import {AssetRef, Resources} from "../util/Resources";
-import {GlyphJson, FontJson} from "@highduck/anijson";
+import {GlyphJson, FontJson, SpriteFlag} from "@highduck/anijson";
 
 const LF = '\n'.charCodeAt(0);
 

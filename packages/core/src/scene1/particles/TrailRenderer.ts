@@ -2,8 +2,9 @@ import {declTypeID} from "../../util/TypeID";
 import {Trail} from "./Trail";
 import {Display2D} from "../display/Display2D";
 import {Drawer} from "../../drawer/Drawer";
-import {Sprite, SpriteFlag} from "../Sprite";
+import {Sprite} from "../Sprite";
 import {AssetRef} from "../../util/Resources";
+import {SpriteFlag} from "@highduck/anijson";
 
 export class TrailRenderer extends Display2D {
     static TYPE_ID = declTypeID(Display2D);

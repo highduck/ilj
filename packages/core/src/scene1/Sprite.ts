@@ -3,6 +3,7 @@ import {Rect} from "@highduck/math";
 import {AssetRef} from "../util/Resources";
 import {Drawer} from "../drawer/Drawer";
 import {declTypeID} from "../util/TypeID";
+import {SpriteFlag} from "@highduck/anijson";
 
 export class Sprite {
     static TYPE_ID = declTypeID();

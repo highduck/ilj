@@ -44,7 +44,7 @@ function createTsLoaderConfig(basedir: string, live: boolean) {
     return {
         loader: require.resolve('ts-loader'),
         options: wrapPnp({
-            transpileOnly: live,
+            transpileOnly: false,
             experimentalWatchApi: true,
             configFile: path.resolve(basedir, 'tsconfig.json')
         })
@@ -117,6 +117,8 @@ export function createWebpackConfig(projectConfig: ProjectConfig, mode?: string,
 
     if (live) {
         config.resolve.alias["@highduck/core"] = getTsModuleSrc('@highduck/core', baseDir);
+        config.resolve.alias["@highduck/anijson"] = getTsModuleSrc('@highduck/anijson', baseDir);
+        config.resolve.alias["@highduck/math"] = getTsModuleSrc('@highduck/math', baseDir);
         config.resolve.alias["@highduck/live-inspector"] = getTsModuleSrc('@highduck/live-inspector', baseDir);
     }
 

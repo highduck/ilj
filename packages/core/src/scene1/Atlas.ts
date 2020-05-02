@@ -2,10 +2,11 @@ import {Engine} from "../Engine";
 import {Texture} from "../graphics/Texture";
 import {Disposable} from "../util/Disposable";
 import {AssetRef, Resources} from "../util/Resources";
-import {Sprite, SpriteJson} from "./Sprite";
+import {Sprite} from "./Sprite";
 import {loadJSON} from "../util/load";
 import {declTypeID} from "../util/TypeID";
 import {Vec2} from "@highduck/math";
+import {AtlasJson} from "@highduck/anijson";
 
 function pathDir(path: string): string {
     const i = path.lastIndexOf("/");

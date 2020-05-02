@@ -10,7 +10,7 @@
 //    "allowJs": true,
 //    "noEmitHelpers": true,
 //    "importHelpers": true,
-//    "allowSyntheticDefaultImports": true,
+    "allowSyntheticDefaultImports": true,
 //    "esModuleInterop": true,
     "experimentalDecorators": true,
     "baseUrl": "./",
@@ -20,6 +20,9 @@
       ],
       "@highduck/polykit": [
         "../packages/polykit/src/index.ts"
+      ],
+      "@highduck/anijson": [
+        "../packages/anijson/src/index.ts"
       ],
       "@highduck/core": [
         "../packages/core/src/index.ts"

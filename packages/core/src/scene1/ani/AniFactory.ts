@@ -1,5 +1,4 @@
 import {Entity} from "../../ecs/Entity";
-import {NodeJson} from "./AniJson";
 import {Ani, findLinkageRef} from "./Ani";
 import {Transform2D} from "../display/Transform2D";
 import {DisplaySprite} from "../display/DisplaySprite";
@@ -13,6 +12,7 @@ import {Filters2D} from "../display/Filters2D";
 import {Interactive} from "./Interactive";
 import {Button} from "./Button";
 import {Resources} from "../../util/Resources";
+import {NodeJson} from "@highduck/anijson";
 
 export class AniFactory {
 
