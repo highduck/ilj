@@ -3,19 +3,16 @@
   "compilerOptions": {
     "composite": true,
     "module": "commonjs",
-    "outDir": "dist/commonjs",
+    "outDir": "dist",
     "esModuleInterop": true
   },
   "references": [
     {
-      "path": "../math/tsconfig.commonjs.json"
-    },
-    {
-      "path": "../anijson/tsconfig.commonjs.json"
-    },
-    {
-      "path": "../binpack/tsconfig.commonjs.json"
+      "path": "../../packages/xfl/tsconfig.commonjs.json"
     }
+  ],
+  "files": [
+    "src/index.ts"
   ],
   "include": [
     "src/**/*.ts"

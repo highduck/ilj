@@ -265,7 +265,7 @@ export interface DOMLayer {
     //_current: boolean,
     //_isSelected: boolean,
     _layerType?: LayerType
-    frames: {
+    frames?: {
         DOMFrame: DOMFrame | DOMFrame[]
     }
 }
@@ -281,9 +281,16 @@ export interface DOMSymbolItem {
     _name: string, //"test_button/001.ai Assets/&amp;#060Path&amp;#062_6",
     _itemID: string,
     _lastModified: number,
+
+    // TODO: base type
+    _scaleGridLeft?: number,
+    _scaleGridTop?: number,
+    _scaleGridRight?: number,
+    _scaleGridBottom?: number,
+
     timeline: {
         DOMTimeline: DOMTimeline
-    }
+    },
 }
 
 
@@ -376,8 +383,10 @@ export interface DOMTextAttributes {
 }
 
 export interface DOMTextRun {
-    characters: string,
-    textAttrs: DOMTextAttributes | DOMTextAttributes[]
+    characters?: string,
+    textAttrs?: {
+        DOMTextAttrs?: DOMTextAttributes | DOMTextAttributes[]
+    }
 }
 
 export interface DOMEdges {
@@ -412,10 +421,10 @@ export interface DOMMatrix2DHolder {
 
 // TODO:
 export interface DOMOvalObject extends DOMMatrix2DHolder {
-    _objectWidth?:number; // 58
-    _objectHeight?:number; // 58
-    _x?:number;
-    _y?:number;
-    endAngle?:number; // 0
+    _objectWidth?: number; // 58
+    _objectHeight?: number; // 58
+    _x?: number;
+    _y?: number;
+    endAngle?: number; // 0
     fill?: DOMFillStyle;
 }

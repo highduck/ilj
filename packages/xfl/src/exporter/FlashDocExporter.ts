@@ -8,6 +8,7 @@ import {estimateBounds} from "../render/DomScanner";
 import {Atlas} from "../spritepack/SpritePack";
 import {renderElement} from "../rasterizer/RenderToSprite";
 import {FilterType, TweenTargetType} from "@highduck/anijson";
+import {oneOrMany} from "../xfl/parsing";
 
 function convertTweenTarget(target: TweenTarget): TweenTargetType {
     switch (target) {
@@ -206,9 +207,9 @@ export class FlashDocExporter {
                 this.processShape(el, parent);
                 break;
 
+            case ElementType.static_text:
             case ElementType.font_item:
             case ElementType.sound_item:
-            case ElementType.static_text:
                 console.warn('element type is not supported yet: ' + type);
                 break;
             case ElementType.unknown:
@@ -393,6 +394,8 @@ export class FlashDocExporter {
 //    item->node.matrix.tx += el.rect.x - 2;
 //    item->node.matrix.ty += el.rect.y - 2;
         //}
+        const textRun = oneOrMany(el.textRuns)
+        console.warn(el.textRuns[0].attributes.face);
         let face = el.textRuns[0].attributes.face;
         if (face !== undefined && face.length !== 0 && face[face.length - 1] === '*') {
             face = face.substr(0, face.length - 1);

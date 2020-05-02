@@ -5,13 +5,13 @@
     "ilj": "./ilj.js"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "tsc -p tsconfig.commonjs.json",
     "clean": "rimraf dist/"
   },
   "main": "./dist/index.js",
   "dependencies": {
     "@capacitor/cli": "^2.0.2",
-    "@highduck/exporter": "0.0.1",
+    "@highduck/xfl": "0.0.1",
     "app-icon": "^0.13.2",
     "chalk": "^4.0.0",
     "copy-webpack-plugin": "^5.1.1",

@@ -5,7 +5,7 @@
   },
   "references": [
     {
-      "path": "../math/tsconfig.build.json"
+      "path": "../math/tsconfig.esm.json"
     },
     {
       "path": "../anijson/tsconfig.esm.json"

@@ -2,12 +2,12 @@ import {Color32_ARGB, Color4, Matrix2D, Rect, Vec2} from "@highduck/math";
 import {
     BlendMode,
     DOMAnyFilter,
-    DOMEdges, DOMFillStyle,
+    DOMEdges,
+    DOMFillStyle,
     DOMFilterKind,
     DOMFrame,
     DOMGradientEntry,
     DOMLayer,
-    DOMMatrix2DHolder,
     DOMSolidStroke,
     DOMStrokeStyle,
     DOMTextAttributes,
@@ -121,8 +121,9 @@ class TextRun {
     attributes = new TextAttributes();
 
     parse(data: DOMTextRun) {
-        this.characters = he.decode(data.characters);
-        this.attributes.parse(oneOrMany(data.textAttrs)[0]);
+        console.log(data.characters);
+        this.characters = data.characters !== undefined ? he.decode(String(data.characters)) : "";
+        this.attributes.parse(oneOrMany(data.textAttrs?.DOMTextAttrs)[0]);
     }
 }
 
@@ -330,10 +331,12 @@ class Layer {
             this.layerType = data._layerType as LayerType;
         }
 
-        for (const frameData of oneOrMany(data.frames.DOMFrame)) {
-            const frame = new Frame();
-            frame.parse(frameData);
-            this.frames.push(frame);
+        if (data.frames !== undefined) {
+            for (const frameData of oneOrMany(data.frames.DOMFrame)) {
+                const frame = new Frame();
+                frame.parse(frameData);
+                this.frames.push(frame);
+            }
         }
     }
 }

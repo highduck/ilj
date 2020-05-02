@@ -16,14 +16,15 @@ export class FlashFile {
         // console.log(JSON.stringify(doc, null, 2));
         this.doc = doc;
 
-        // for (const auto& item: node.child("fonts").children("DOMFontItem")) {
-        //     doc.library.push_back(parse_xml_node<element_t>(item));
-        // }
-        //
+        for (const item of oneOrMany(doc.fonts?.DOMFontItem)) {
+            const el = new Element();
+            el.parse(ElementType.font_item, item);
+            this.library.push(el);
+        }
+
         for (const item of oneOrMany(doc.media?.DOMBitmapItem)) {
             const el = new Element();
             el.parse(ElementType.bitmap_item, item);
-            console.log('bin/' + item._bitmapDataHRef);
             el.bitmap = load_bitmap(root.open('bin/' + item._bitmapDataHRef));
             this.library.push(el);
         }

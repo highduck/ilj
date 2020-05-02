@@ -1,84 +1,22 @@
-import {spawnSync} from "child_process";
-import * as glob from "glob";
 import path from "path";
 import yargs from "yargs";
-import {deleteFolderRecursive, execute, is_file, make_dirs} from "./common/utility";
+import {deleteFolderRecursive, execute, is_file} from "./common/utility";
 import {build} from "./iljwebpack/build";
 import {loadConfig} from "./config/loadConfig";
 import console from "./common/log";
 import pngquant from 'pngquant-bin';
-import resolve from 'resolve';
 import {appicon} from "./bins/appicon";
-
-function runExporter(...args: string[]) {
-    let exporterBin = resolve.sync('@highduck/exporter/package.json');
-    exporterBin = path.join(path.dirname(exporterBin), 'bin/exporter');
-    execute(exporterBin, args);
-}
-
-function optimize_png(input: string, output?: string) {
-    if (!output) {
-        output = input;
-    }
-    const result = spawnSync(pngquant, [
-        "--strip",
-        "--force",
-        "-o", output,
-        input
-    ]);
-    if (result.status === 0) {
-        console.log('Image minified! ' + input);
-    } else {
-        console.warn(result.stderr.toString());
-        console.warn(result.status);
-    }
-}
-
-function optimize_png_glob(input_pattern: string) {
-    const files = glob.sync(input_pattern);
-    for (const file of files) {
-        optimize_png(file, file);
-    }
-}
-
-function ekc_export_market(market_asset: string, target_type: string, output: string) {
-    // const market_asset = "assets/res";
-    // const target_type = "market";
-    // const output = "output/res";
-    make_dirs(output);
-    runExporter("export", "market", market_asset, target_type, output);
-}
-
-function ekc_export_assets(assets_input: string, assets_output: string) {
-    make_dirs(assets_output);
-    runExporter("export", "assets", assets_input, assets_output);
-    optimize_png_glob(path.join(assets_output, "*.png"));
-}
-
-function prepare_sfx_files() {
-    const files = glob.sync("assets/**/*.mp3");
-    for (const file of files) {
-        const output = file.replace("assets/", "public/assets/");
-        try {
-            console.log("input: " + file);
-            console.log("output: " + output);
-            make_dirs(path.dirname(output));
-            execute("ffmpeg", ["-y", "-i", file, "-map_metadata", "-1", "-codec:a", "libmp3lame", "-q:a", "8", output]);
-        } catch (e) {
-            console.log(e);
-        }
-    }
-}
+import {exportAssets, exportMarketingAssets, optimize_png, prepare_sfx_files} from "./export/Export";
 
 const args = yargs
-    .command('export', 'export assets', {}, (args) => {
-        ekc_export_assets("assets", "public/assets");
+    .command('export', 'export assets', {}, async (args) => {
+        await exportAssets("assets", "public/assets");
     })
     .command('sfx', 'prepare audio files', {}, (args) => {
         prepare_sfx_files();
     })
     .command('market', 'export marketing assets', {}, (_) => {
-        ekc_export_market("assets/res", "gen", "export/market");
+        exportMarketingAssets("assets/res", "gen", "export/market");
     })
     .command('pngquant', 'exposed optimizer for png with glob pattern',
         (yargs) => yargs.options({input: {type: 'array', array: true, alias: "i", default: []}}),

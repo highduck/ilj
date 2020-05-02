@@ -1,14 +1,14 @@
 {
   "name": "@highduck/math",
   "version": "0.0.1",
-  "main": "dist/cjs/index.js",
+  "main": "dist/commonjs/index.js",
   "module": "dist/esm/index.js",
   "types": "dist/esm/index.d.ts",
   "scripts": {
-    "build": "run build:esm && run build:cjs",
-    "build:esm": "tsc -p tsconfig.build.json",
-    "build:cjs": "tsc -p tsconfig.cjs.json",
-    "clean": "rimraf dist"
+    "build": "run build:esm && run build:commonjs",
+    "build:esm": "tsc -p tsconfig.esm.json",
+    "build:commonjs": "tsc -p tsconfig.commonjs.json",
+    "clean": "rimraf dist/"
   },
   "sideEffects": false,
   "devDependencies": {

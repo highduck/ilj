@@ -69,10 +69,10 @@ export function readRectBounds(out: Rect, data: any, nn: [string, string, string
 
 export function readScaleGrid(out: Rect, data: any) {
     return readRectBounds(out, data, [
-        "scaleGridLeft",
-        "scaleGridTop",
-        "scaleGridRight",
-        "scaleGridBottom"
+        "_scaleGridLeft",
+        "_scaleGridTop",
+        "_scaleGridRight",
+        "_scaleGridBottom"
     ]);
 }
 

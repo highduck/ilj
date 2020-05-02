@@ -1,8 +1,8 @@
 {
   "name": "@highduck/xfl",
   "version": "0.0.1",
-  "main": "dist/cjs/index.js",
-  "types": "dist/cjs/index.d.ts",
+  "main": "dist/commonjs/index.js",
+  "types": "dist/commonjs/index.d.ts",
   "scripts": {
     "build": "tsc -p tsconfig.commonjs.json",
     "test": "run clean && run build && node --expose-wasm dist/commonjs/index.js",

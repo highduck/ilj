@@ -76,41 +76,50 @@ function saveAtlas(destDir: string, atlas: Atlas) {
     }
 }
 
-async function main() {
-    const ck = await loadCanvasContext();
-    console.warn("CANVASKIT-WASM loaded!");
+const atlases = new Map<string, Atlas>();
 
-    const name = 'test_fla';
-    const e = loadFlashArchive('testData/' + name);
-    if (e !== undefined) {
-        const ff = new FlashFile(e);
-        const fe = new FlashDocExporter(ff);
-        fe.buildLibrary();
-        const mainAtlas = new Atlas("main");
-        // mainAtlas.resolutions = [
-        //     new AtlasResolution(0, 1)
-        // ];
-        fe.buildSprites(mainAtlas);
+export function createAtlas(name: string) {
+    atlases.set(name, new Atlas(name));
+}
 
-        const destDir = 'output/' + name;
-        makeDirs(destDir);
-
-        // saveDebugImages(destDir, mainAtlas);
-
-        for (const res of mainAtlas.resolutions) {
-            console.info(`pack ${mainAtlas.name} @${res.scale}x`);
+export function exportAtlases(destDir: string) {
+    for (const atlas of atlases.values()) {
+        for (const res of atlas.resolutions) {
+            console.info(`pack ${atlas.name} @${res.scale}x`);
             res.pages = pack(res.sprites, res.widthMax, res.heightMax);
         }
 
-        saveAtlas(destDir, mainAtlas);
-
-        // save test scene
-        fs.writeFileSync(
-            path.join(destDir, name + '.ani.json'),
-            JSON.stringify(fe.exportLibrary().serialize())
-        );
+        saveAtlas(destDir, atlas);
     }
 }
 
+export async function exportFlashAsset(name: string, filepath: string, destDir: string, atlas: string) {
+    const archive = loadFlashArchive(filepath);
+    if (archive === undefined) {
+        console.error('cant open flash asset: ' + filepath);
+        return;
+    }
 
-main().then();
+    await loadCanvasContext();
+
+    const ff = new FlashFile(archive);
+    const fe = new FlashDocExporter(ff);
+    fe.buildLibrary();
+
+    let atlasInstance = atlases.get(atlas);
+    if (atlasInstance === undefined) {
+        atlasInstance = new Atlas(name);
+        atlases.set(name, atlasInstance);
+    }
+
+    fe.buildSprites(atlasInstance);
+    makeDirs(destDir);
+
+    // saveDebugImages(destDir, mainAtlas);
+
+    // save test scene
+    fs.writeFileSync(
+        path.join(destDir, name + '.ani.json'),
+        JSON.stringify(fe.exportLibrary().serialize())
+    );
+}
