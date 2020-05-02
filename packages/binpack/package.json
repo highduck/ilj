@@ -1,16 +1,17 @@
 {
   "name": "@highduck/binpack",
   "version": "0.0.1",
+  "main": "dist/commonjs/index.js",
   "module": "dist/esm/index.js",
   "types": "dist/esm/index.d.ts",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc -p tsconfig.commonjs.json && tsc -p tsconfig.esm.json",
     "demo:build": "run build && cd demo && tsc && rollup --config rollup.config.js",
     "clean": "rimraf dist/ && rimraf demo/dist/"
   },
   "devDependencies": {
     "rimraf": "^3.0.2",
-    "rollup": "^2.6.1",
+    "rollup": "^2.7.6",
     "rollup-plugin-node-resolve": "^5.2.0",
     "rollup-plugin-terser": "^5.3.0",
     "typescript": "^3.8.3"

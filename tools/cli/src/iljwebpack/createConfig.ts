@@ -35,7 +35,7 @@ function wrapPnp(opts: any) {
     return is_pnp ? Object.assign(PnpWebpackPlugin.tsLoaderOptions(), opts) : opts;
 }
 
-function createTsLoaderConfig(basedir: string) {
+function createTsLoaderConfig(basedir: string, live: boolean) {
     const tsConfigPath = path.resolve(basedir, 'tsconfig.json');
     if (!fs.existsSync(tsConfigPath)) {
         console.error(`tsconfig.json not found`);
@@ -44,7 +44,7 @@ function createTsLoaderConfig(basedir: string) {
     return {
         loader: require.resolve('ts-loader'),
         options: wrapPnp({
-            transpileOnly: true,
+            transpileOnly: false,
             experimentalWatchApi: true,
             configFile: path.resolve(basedir, 'tsconfig.json')
         })
@@ -85,7 +85,7 @@ export function createWebpackConfig(projectConfig: ProjectConfig, mode?: string,
             rules: [
                 {
                     test: /\.tsx?$/,
-                    use: [createTsLoaderConfig(projectConfig.basedir)]
+                    use: [createTsLoaderConfig(projectConfig.basedir, live)]
                 },
                 {
                     test: /\.glsl$/,
@@ -117,6 +117,8 @@ export function createWebpackConfig(projectConfig: ProjectConfig, mode?: string,
 
     if (live) {
         config.resolve.alias["@highduck/core"] = getTsModuleSrc('@highduck/core', baseDir);
+        config.resolve.alias["@highduck/anijson"] = getTsModuleSrc('@highduck/anijson', baseDir);
+        config.resolve.alias["@highduck/math"] = getTsModuleSrc('@highduck/math', baseDir);
         config.resolve.alias["@highduck/live-inspector"] = getTsModuleSrc('@highduck/live-inspector', baseDir);
     }
 

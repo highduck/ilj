@@ -1,9 +1,9 @@
 import {Entity} from "../../ecs/Entity";
 import {Ani} from "../ani/Ani";
 import {AssetRef} from "../../util/Resources";
-import {MovieJson} from "../ani/AniJson";
 import {Transform2D} from "./Transform2D";
 import {declTypeID} from "../../util/TypeID";
+import {MovieJson} from "@highduck/anijson";
 
 // const cos = Math.cos;
 // const sin = Math.sin;

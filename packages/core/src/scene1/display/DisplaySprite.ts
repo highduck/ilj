@@ -1,9 +1,10 @@
 import {Drawer} from "../../drawer/Drawer";
 import {Rect, Vec2} from "@highduck/math";
 import {AssetRef} from "../../util/Resources";
-import {Sprite, SpriteFlag} from "../Sprite";
+import {Sprite} from "../Sprite";
 import {Display2D} from "./Display2D";
 import {declTypeID} from "../../util/TypeID";
+import {SpriteFlag} from "@highduck/anijson";
 
 const TMP_RC = new Rect();
 

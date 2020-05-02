@@ -2,11 +2,11 @@ import {Entity} from "../../ecs/Entity";
 import {Transform2D} from "./Transform2D";
 import {Display2D} from "./Display2D";
 import {Filters2D} from "./Filters2D";
-import {FilterType} from "../ani/AniJson";
 import {Vec2, Rect, Matrix2D} from "@highduck/math";
 import {DrawingState} from "../../drawer/DrawingState";
 import {Engine} from "../../Engine";
 import {debugCameraGizmo, debugDrawFill, debugDrawHitTarget, debugDrawPointer} from "./SceneDebug";
+import {FilterType} from "@highduck/anijson";
 
 const TMP_V2 = new Vec2();
 const TEMP_RECT = new Rect();
@@ -116,7 +116,7 @@ export class DisplaySystem {
                 const colorMultiplier = state.colorMultiplier;
                 const colorOffset = state.colorOffset;
                 for (const data of filters.filters) {
-                    if (data.type == FilterType.DropShadow) {
+                    if (data.type === FilterType.DropShadow) {
                         filters.processing = true;
                         state.saveTransform()
                             .translate(data.offset[0], data.offset[1]);
@@ -133,7 +133,7 @@ export class DisplaySystem {
                         state.restoreTransform();
 
                         filters.processing = false;
-                    } else if (data.type == FilterType.Glow) {
+                    } else if (data.type === FilterType.Glow) {
                         filters.processing = true;
 
                         state.saveColor();

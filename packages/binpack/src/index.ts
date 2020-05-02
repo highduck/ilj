@@ -8,7 +8,7 @@ const enum Flag {
     Rotated = 2
 }
 
-const enum Method {
+export const enum Method {
     All = 0,
     BestAreaFit,
     ContactPoint,
@@ -313,8 +313,8 @@ export class PackerState {
     add(width: number, height: number, padding: number, userData: any): boolean {
         // filter empty input as well
         if (width > 0 && height > 0) {
-            const w = Math.max(0, width + padding << 1);
-            const h = Math.max(0, height + padding << 1);
+            const w = Math.max(0, width + (padding << 1));
+            const h = Math.max(0, height + (padding << 1));
             // filter ultra-big entries
             if (w <= this.maxWidth && h <= this.maxHeight) {
                 this.rects.push({x: 0, y: 0, w: w, h: h});
@@ -403,7 +403,7 @@ function getRectsArea(rects: RectSize[]) {
 function nextSize(sz: RectSize) {
     const t = sz.w;
     sz.w = sz.h << 1;
-    //sz.w = sz.h + 16;
+    // sz.w = sz.h + 16;
     sz.h = t;
 }
 
@@ -440,7 +440,7 @@ function tryPackState(state: PackerState, method: Method, allowFlip: boolean): b
     return false;
 }
 
-export function packNodes(state: PackerState, method: Method, allowFlip: boolean): boolean {
+export function packNodes(state: PackerState, method: Method = Method.All, allowFlip: boolean = true): boolean {
     state.w = state.h = packStartSize;
     estimateSize(state, getRectsArea(state.rects), state.maxWidth, state.maxHeight);
     while (!tryPackState(state, method, allowFlip)) {

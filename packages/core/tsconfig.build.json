@@ -6,6 +6,9 @@
   "references": [
     {
       "path": "../math/tsconfig.build.json"
+    },
+    {
+      "path": "../anijson/tsconfig.esm.json"
     }
   ],
   "include": [

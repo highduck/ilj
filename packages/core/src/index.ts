@@ -49,7 +49,6 @@ export * from './scene1/ani/InteractiveManager';
 export * from './scene1/ani/Interactive';
 export * from './scene1/ani/Button';
 export * from './scene1/ani/Ani';
-export * from './scene1/ani/AniJson';
 export * from './scene1/Sprite';
 export * from './scene1/EventReceiver';
 export * from './scene1/Atlas';

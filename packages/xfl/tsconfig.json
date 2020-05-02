@@ -1,0 +1,17 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@highduck/math": [
+        "../math/src/index.ts"
+      ],
+      "@highduck/anijson": [
+        "../anijson/src/index.ts"
+      ],
+      "@highduck/binpack": [
+        "../binpack/src/index.ts"
+      ]
+    }
+  }
+}

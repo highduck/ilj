@@ -1,4 +1,5 @@
-import {DisplayQuad, DisplayText, Engine, Entity, Filters2D, FilterType, Transform2D} from "@highduck/core";
+import {DisplayQuad, DisplayText, Engine, Entity, Filters2D, Transform2D} from "@highduck/core";
+import {FilterType} from "@highduck/anijson";
 
 export class Entities {
 

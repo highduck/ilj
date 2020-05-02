@@ -1,25 +1,13 @@
 import {Engine} from "../Engine";
 import {BoundsBuilder, Rect} from "@highduck/math";
-import {Sprite, SpriteFlag} from "./Sprite";
+import {Sprite} from "./Sprite";
 import {loadJSON} from "../util/load";
 import {TextFormat} from "./TextFormat";
 import {declTypeID} from "../util/TypeID";
 import {AssetRef, Resources} from "../util/Resources";
+import {GlyphJson, FontJson, SpriteFlag} from "@highduck/anijson";
 
 const LF = '\n'.charCodeAt(0);
-
-interface GlyphJson {
-    codes: number[]; /* u32 */
-    box: [number, number, number, number]; /* s16 */
-    advance_width: number; /* int */
-    sprite: string | null;
-}
-
-interface FontJson {
-    units_per_em: number; /* u16 */
-    glyphs: GlyphJson[];
-    sizes: number[]; /* u16[] */
-}
 
 const BOUNDS_BUILDER_TMP = new BoundsBuilder();
 

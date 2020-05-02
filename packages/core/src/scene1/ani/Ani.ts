@@ -1,8 +1,8 @@
-import {AniJson, LinkagesMap, NodeJson} from "./AniJson";
 import {Engine} from "../../Engine";
 import {loadJSON} from "../../util/load";
 import {declTypeID} from "../../util/TypeID";
 import {AssetRef, Resources} from "../../util/Resources";
+import {AniJson, LinkagesMap, NodeJson} from "@highduck/anijson";
 
 type LinkageRef = {
     library: Ani,

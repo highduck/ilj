@@ -18,6 +18,18 @@ export class BoundsBuilder {
         return this;
     }
 
+    copyFrom(o:BoundsBuilder):this {
+        this.x0 = o.x0;
+        this.y0 = o.y0;
+        this.x1 = o.x1;
+        this.y1 = o.y1;
+        return this;
+    }
+
+    addPoint(x: number, y: number): this {
+        return this.addBounds(x, y, x, y);
+    }
+
     addBounds(l: number, t: number, r: number, b: number): this {
         if (l < this.x0) {
             this.x0 = l;
