@@ -4,6 +4,9 @@
     "baseUrl": ".",
     "paths": {
       "@highduck/math": [
+        "../../packages/math/src/index.ts"
+      ],
+      "@highduck/xfl": [
         "../../packages/xfl/src/index.ts"
       ]
     }

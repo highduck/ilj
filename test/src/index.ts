@@ -1,22 +1,24 @@
-import {awaitDocument} from "@highduck/core";
-import {Engine} from "@highduck/core";
+import {awaitDocument, Engine, loadBundle} from "@highduck/core";
 import {startMain} from "./game/Game";
 import {Plugins} from '@capacitor/core';
 
-awaitDocument().then(() => {
+async function main() {
+    await awaitDocument();
 
     Plugins.SplashScreen.hide().then();
 
-    if(!Engine.restore()) {
+    if (!Engine.restore()) {
         const engine = new Engine({
             width: 768,
             height: 1024
         });
-            startMain(engine);
+
+        await loadBundle();
+        startMain(engine);
         engine.start();
     }
 
-    if(process.env.NODE_ENV === 'development') {
+    if (process.env.NODE_ENV === 'development') {
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.has('dev')) {
             const {DevApp} = require("@highduck/live-inspector");
@@ -33,4 +35,6 @@ awaitDocument().then(() => {
             });
         }
     }
-});
+}
+
+main().then();

@@ -4,7 +4,7 @@
   "scripts": {
     "start": "ilj build -l",
     "build": "ilj build",
-    "prepare": "ilj export sfx"
+    "prepare": "ilj export"
   },
   "devDependencies": {
     "@highduck/cli": "0.0.1",
@@ -12,6 +12,9 @@
     "typescript": "^3.8.3"
   },
   "dependencies": {
-    "@highduck/core": "0.0.1"
+    "@capacitor/core": "^2.0.2",
+    "@highduck/core": "0.0.1",
+    "@highduck/math": "0.0.1",
+    "@highduck/polykit": "0.0.1"
   }
 }

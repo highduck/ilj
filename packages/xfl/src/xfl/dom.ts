@@ -100,7 +100,9 @@ export const enum FillType {
 
 export const enum LayerType {
     normal = 'normal',
-    guide = 'guide'
+    guide = 'guide',
+    Folder = 'folder',
+    Camera = 'camera'
 }
 
 export const enum TweenType {
@@ -251,6 +253,8 @@ export interface DOMFrame {
     _motionTweenSnap?: boolean,
     _motionTweenOrientToPath?: boolean,
 
+    _parentLayerIndex?:number, // ?? todo:
+
     elements: DOMElementAny,
 
     tweens?: {
@@ -261,19 +265,25 @@ export interface DOMFrame {
 
 export interface DOMLayer {
     _name: string,
-    _color: string, //"#4FFF4F",
-    //_current: boolean,
-    //_isSelected: boolean,
-    _layerType?: LayerType
+    _layerType?: LayerType,
+    _attachedToCamera?:boolean, // default: false (means layer actually affected by camera)
+    _parentLayerIndex?:number, // ?? todo:
+    _layerRiggingIndex?:number, // ?? layers hierarchy, also propagated into the DOMFrame
     frames?: {
         DOMFrame: DOMFrame | DOMFrame[]
-    }
+    },
+    _color: string, //"#4FFF4F",
+    _highlighted: boolean, // false
+    //_current: boolean,
+    //_isSelected: boolean,
 }
 
 export interface DOMTimeline {
     _name: string,
-    layers: {
-        DOMLayer: DOMLayer | DOMLayer[]
+    _cameraLayerEnabled?: boolean, // false
+    _layerDepthEnabled?: boolean, // false
+    layers?: {
+        DOMLayer?: DOMLayer | DOMLayer[]
     }
 }
 

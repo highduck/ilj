@@ -6,13 +6,10 @@ export class TestAni {
 
     constructor() {
         const engine = Engine.current;
-        Ani.load(engine, "tests").then((a) => {
-            this.ani.reset(a);
-            const test = engine.aniFactory.createFromLibrary("tests", "test");
-            if (test) {
-                test.name = "Flash Scene Test";
-                engine.root.append(test);
-            }
-        });
+        const test = engine.aniFactory.createFromLibrary("tests", "test");
+        if (test) {
+            test.name = "Flash Scene Test";
+            engine.root.append(test);
+        }
     }
 }

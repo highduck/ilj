@@ -87,8 +87,8 @@ export class AtlasResolution {
     pages: AtlasPage[] = [];
 
     constructor(
-        public index:number,
-        public scale:number,
+        public index: number,
+        public scale: number,
         public widthMax = 2048,
         public heightMax = 2048,
     ) {
@@ -106,7 +106,7 @@ export class Atlas {
     resolutions: AtlasResolution[] = [];
 
     constructor(
-        public name:string,
+        public name: string,
         scales: number[] = [1, 2, 3, 4]
     ) {
         for (let i = 0; i < scales.length; ++i) {

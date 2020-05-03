@@ -5,7 +5,7 @@
   "types": "dist/commonjs/index.d.ts",
   "scripts": {
     "build": "tsc -b tsconfig.commonjs.json",
-    "test": "run clean && run build && node --expose-wasm dist/commonjs/index.js",
+    "test": "run clean && run build && node --expose-wasm dist/commonjs/runTest.js",
     "clean": "rimraf dist/ && rimraf output/"
   },
   "dependencies": {
@@ -16,15 +16,13 @@
     "canvaskit-wasm": "^0.14.0",
     "fast-png": "^5.0.2",
     "fast-xml-parser": "^3.16.0",
-    "he": "^1.2.0",
-    "unzip": "^0.1.11"
+    "he": "^1.2.0"
   },
   "devDependencies": {
     "@types/adm-zip": "^0.4.33",
     "@types/canvaskit-wasm": "^0.9.0",
     "@types/he": "^1.1.1",
     "@types/node": "^13.13.4",
-    "@types/unzip": "^0.1.1",
     "rimraf": "^3.0.2",
     "typescript": "^3.8.3"
   }

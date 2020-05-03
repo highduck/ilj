@@ -4,16 +4,12 @@ import {deleteFolderRecursive, execute, is_file} from "./common/utility";
 import {build} from "./iljwebpack/build";
 import {loadConfig} from "./config/loadConfig";
 import console from "./common/log";
-import pngquant from 'pngquant-bin';
 import {appicon} from "./bins/appicon";
-import {exportAssets, exportMarketingAssets, optimize_png, prepare_sfx_files} from "./export/Export";
+import {exportAssets, exportMarketingAssets, pngQuant} from "./export/Export";
 
 const args = yargs
     .command('export', 'export assets', {}, async (args) => {
         await exportAssets("assets", "public/assets");
-    })
-    .command('sfx', 'prepare audio files', {}, (args) => {
-        prepare_sfx_files();
     })
     .command('market', 'export marketing assets', {}, (_) => {
         exportMarketingAssets("assets/res", "gen", "export/market");
@@ -22,7 +18,7 @@ const args = yargs
         (yargs) => yargs.options({input: {type: 'array', array: true, alias: "i", default: []}}),
         (args) => {
             for (const f of args.input) {
-                optimize_png(f, f);
+                pngQuant(f, f);
             }
         }
     )

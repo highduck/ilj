@@ -1,0 +1,26 @@
+{
+  "id": "main",
+  "items": [
+    {
+      "type": "atlas",
+      "id": "main",
+      "pngquant": true
+    },
+    {
+      "type": "flash",
+      "id": "tests",
+      "atlas": "main"
+    },
+    {
+      "type": "font",
+      "id": "Comfortaa-Regular",
+      "path": "Comfortaa-Regular.ttf",
+      "size": 30
+    },
+    {
+      "type": "audio",
+      "glob": "sfx/**/*.mp3",
+      "compress": false
+    }
+  ]
+}

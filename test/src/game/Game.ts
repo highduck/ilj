@@ -1,4 +1,4 @@
-import {Atlas, Camera2D, Engine, Font, Resources, Transform2D} from "@highduck/core";
+import {Atlas, Camera2D, Engine, Font, loadBundle, Resources, Transform2D} from "@highduck/core";
 import {TestAni} from "./scene/TestAni";
 import {Entities} from "./scene/Entities";
 import {TrailDemo} from "./scene/TrailTest";
@@ -12,18 +12,7 @@ const localStats = {
     quadsToDraw: 2000
 };
 
-const SFX_LIST = [
-    "sfx/btn_click",
-    "sfx/btn_down",
-    "sfx/btn_out",
-    "sfx/btn_over",
-];
-
 export function startMain(engine: Engine) {
-    for (const sfx of SFX_LIST) {
-        engine.audio.preload(sfx);
-    }
-
     const camera = engine.root.create();
     camera.set(Camera2D);
     camera.set(Transform2D);
@@ -67,11 +56,6 @@ export function startMain(engine: Engine) {
     engine.input.onKeyboard.on((e) => {
         console.info(e);
     });
-
-    Font.load(engine, "Comfortaa-Regular").then(res => {
-        Resources.get(Font, "Comfortaa-Regular").reset(res);
-    });
-    Atlas.load(engine, "main", engine.view.contentScale).then();
 
     engine.onUpdate.on(() => {
         const time = engine.time.total;

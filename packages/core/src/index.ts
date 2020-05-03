@@ -67,3 +67,5 @@ export * from './ecs/Entity';
 
 export * from './scene1/TextFormat';
 export * from './graphics/Texture';
+
+export * from './loaders/loadBundle';

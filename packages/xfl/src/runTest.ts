@@ -4,7 +4,7 @@ async function runTest() {
     const atlasName = "main";
     const destDir = "output";
     createAtlas(atlasName);
-    await exportFlashAsset("test", "testData/test_fla", destDir, atlasName);
+    await exportFlashAsset("parrot", "testData/parrot", destDir, atlasName);
     exportAtlases(destDir);
 }
 

@@ -355,7 +355,7 @@ export class Timeline {
 
     parse(data: DOMTimeline) {
         this.name = he.decode(data._name);
-        for (const layerData of oneOrMany(data.layers.DOMLayer)) {
+        for (const layerData of oneOrMany(data.layers?.DOMLayer)) {
             const layer = new Layer();
             layer.parse(layerData);
             this.layers.push(layer);
