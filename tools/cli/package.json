@@ -11,6 +11,7 @@
   "main": "./dist/index.js",
   "dependencies": {
     "@capacitor/cli": "^2.0.2",
+    "@highduck/anijson": "0.0.1",
     "@highduck/xfl": "0.0.1",
     "app-icon": "^0.13.2",
     "chalk": "^4.0.0",

@@ -7,14 +7,14 @@ import * as glob from "glob";
 import fs from 'fs';
 import {createAtlas, exportAtlases, exportFlashAsset} from "@highduck/xfl";
 import {BundleDef} from "./BundleDef";
-import {BundleItem, BundleItemType} from "../../../../packages/anijson/src";
+import {BundleItem, BundleItemType} from "@highduck/anijson";
 
 export function exportMarketingAssets(market_asset: string, target_type: string, output: string) {
     // const market_asset = "assets/res";
     // const target_type = "market";
     // const output = "output/res";
     make_dirs(output);
-    console.error("TODO");
+    console.error("TODO: ");
     //runExporter("export", "market", market_asset, target_type, output);
 }
 

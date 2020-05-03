@@ -1,5 +1,5 @@
 export interface BundleDef {
-    name: string,
+    id?: string,
     items?: AnyItem[]
 }
 
