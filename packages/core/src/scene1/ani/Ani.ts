@@ -2,7 +2,7 @@ import {Engine} from "../../Engine";
 import {loadJSON} from "../../util/load";
 import {declTypeID} from "../../util/TypeID";
 import {AssetRef, Resources} from "../../util/Resources";
-import {AniJson, LinkagesMap, NodeJson} from "@highduck/anijson";
+import {AniJson, NodeJson} from "@highduck/anijson";
 
 type LinkageRef = {
     library: Ani,
@@ -11,16 +11,14 @@ type LinkageRef = {
 
 const LINKAGE_REGISTRY = new Map<string, LinkageRef>();
 
-function registerLinkages(library: Ani, linkagesMap: LinkagesMap) {
+function registerLinkages(library: Ani, linkageMap: { [id: string]: string }) {
     const registry = LINKAGE_REGISTRY;
-    for (const linkage of Object.keys(linkagesMap)) {
-        const path = linkagesMap[linkage];
-        if (path !== undefined) {
-            if (registry.has(linkage)) {
-                console.warn(`[Ani] Duplicated linkage: ${linkage}`);
-            }
-            registry.set(linkage, {library, path});
+    for (const linkage of Object.keys(linkageMap)) {
+        const path = linkageMap[linkage];
+        if (registry.has(linkage)) {
+            console.warn(`[Ani] Duplicated linkage: ${linkage}`);
         }
+        registry.set(linkage, {library, path});
     }
 }
 

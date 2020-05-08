@@ -1,5 +1,6 @@
 {
-  "name": "test",
+  "name": "test-xfl",
+  "private": true,
   "version": "1.0.0",
   "scripts": {
     "start": "ilj build -l",
@@ -12,9 +13,6 @@
     "typescript": "^3.8.3"
   },
   "dependencies": {
-    "@capacitor/core": "^2.1.0",
-    "@highduck/core": "0.0.1",
-    "@highduck/math": "0.0.1",
-    "@highduck/polykit": "0.0.1"
+    "@highduck/core": "0.0.1"
   }
 }

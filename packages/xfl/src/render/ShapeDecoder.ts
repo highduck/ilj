@@ -213,12 +213,13 @@ export class ShapeDecoder {
         let left = fills.length;
 //        bool init = false;
         let current_fill = 0;
+        let fillBeginCount = 0;
         while (left > 0) {
             let first = fills[0];
             let found_fill = false;
             if (current_fill > 0) {
                 for (let i = 0; i < left; ++i) {
-                    if (fills[i].fill_style_idx == current_fill) {
+                    if (fills[i].fill_style_idx === current_fill) {
                         first = fills[i];
                         fills.splice(i, 1);
                         --left;
@@ -228,7 +229,9 @@ export class ShapeDecoder {
                 }
             }
             if (!found_fill) {
-                fills[0] = fills[--left];
+                fills.splice(0, 1);
+                //fills[0] = fills[--left];
+                --left;
             }
             if (first.fill_style_idx >= this.fill_styles.length) {
                 console.warn(`Fill Style ${first.fill_style_idx} not found`);
@@ -240,6 +243,7 @@ export class ShapeDecoder {
             if (current_fill !== first.fill_style_idx) {
                 this.commands.push(this.fill_styles[first.fill_style_idx]);
                 current_fill = first.fill_style_idx;
+                ++fillBeginCount;
             }
 //          }
             const m = first.p0;
@@ -255,7 +259,9 @@ export class ShapeDecoder {
                 for (let i = 0; i < left; ++i) {
                     if (prev.connects(fills[i])) {
                         prev = fills[i];
-                        fills[i] = fills[--left];
+                        fills.splice(i, 1);
+                        --left;
+                        // fills[i] = fills[--left];
                         this.commands.push(prev.to_command());
                         found = true;
                         if (prev.connects(first)) {
@@ -276,7 +282,7 @@ export class ShapeDecoder {
             }
         }
 
-        if (fills.length !== 0) {
+        if (fillBeginCount > 0) {
             this.commands.push(new RenderCommand(RenderOp.fill_end));
         }
 
@@ -288,4 +294,15 @@ export class ShapeDecoder {
             this.commands.push(new RenderCommand(RenderOp.line_style_reset));
         }
     }
+}
+
+function extractFirstFill(fills: ShapeEdge[], fillStyleIndex: number): ShapeEdge | undefined {
+    for (let i = 0; i < fills.length; ++i) {
+        const fill = fills[i];
+        if (fill.fill_style_idx === fillStyleIndex) {
+            fills.splice(i, 1);
+            return fill;
+        }
+    }
+    return undefined;
 }

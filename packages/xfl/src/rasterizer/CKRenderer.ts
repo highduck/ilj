@@ -1,11 +1,65 @@
-import {CanvasKit, SkBlendMode, SkCanvas, SkPaint, SkPath, SkShader} from "canvaskit-wasm";
+import {
+    CanvasKit,
+    SkBlendMode,
+    SkCanvas,
+    SkImage,
+    SkMatrix,
+    SkPaint,
+    SkPath,
+    SkShader,
+    SkSurface,
+    SkTileMode
+} from "canvaskit-wasm";
 import {TransformModel} from "../render/TransformModel";
 import {Bitmap, FillStyle, StrokeStyle} from "../xfl/types";
 import {RenderCommand} from "../render/RenderCommand";
 import {BlendMode, FillType, LineCaps, LineJoints, SpreadMethod} from "../xfl/dom";
 import {RenderOp} from "../render/RenderOp";
-import {getCanvasKit, makePMASurface} from "./CanvasKitHelpers";
-import {Color4, Matrix2D, Vec2} from "@highduck/math";
+import {destroyPMASurface, getCanvasKit, makePMASurface} from "./CanvasKitHelpers";
+import {Color4, Matrix2D} from "@highduck/math";
+
+function convertMatrix(m: Matrix2D): SkMatrix {
+    return [
+        m.a, m.c, m.x,
+        m.b, m.d, m.y,
+        0, 0, 1
+    ];
+}
+
+class SkBitmapFillInstance {
+
+    surface: SkSurface;
+    image: SkImage;
+
+    constructor(
+        readonly ck: CanvasKit, bitmap: Bitmap
+    ) {
+        this.surface = makePMASurface(ck, bitmap.width, bitmap.height);
+        if (bitmap.data) {
+            this.surface.getCanvas().writePixels(bitmap.data, bitmap.width, bitmap.height, 0, 0);
+        } else {
+            console.warn('error: empty bitmap data!');
+        }
+        this.image = this.surface.makeImageSnapshot();
+        if (this.image == null) {
+            console.warn('error: create skia image!');
+        }
+    }
+
+    dispose() {
+        this.image.delete();
+        destroyPMASurface(this.ck, this.surface);
+    }
+
+    makeShader(fill: FillStyle, transform: TransformModel): SkShader {
+        const tileMode = convertSpreadMethod(this.ck, fill.spreadMethod);
+        const matrix = new Matrix2D();
+        matrix.copyFrom(transform.matrix);
+        matrix.mult(fill.matrix);
+        const localMatrix = convertMatrix(matrix);
+        return ((this.image as any).makeShader(tileMode, tileMode, localMatrix)) as SkShader;
+    }
+}
 
 export function convertBlendMode(ck: CanvasKit, mode: BlendMode): SkBlendMode {
     switch (mode) {
@@ -47,21 +101,26 @@ interface CanvasKitEx extends CanvasKit {
     Color4f(r: number, g: number, b: number, a: number): number;
 }
 
-function create_fill_pattern(ck: CanvasKit, fill: FillStyle, transform: TransformModel): SkShader {
-    let tileMode = ck.TileMode.Clamp;
-    if (fill.spreadMethod === SpreadMethod.extend) {
-        tileMode = ck.TileMode.Clamp;
-    } else if (fill.spreadMethod === SpreadMethod.repeat) {
-        tileMode = ck.TileMode.Repeat;
-    } else if (fill.spreadMethod === SpreadMethod.reflect) {
-        tileMode = ck.TileMode.Mirror;
+function convertSpreadMethod(ck: CanvasKit, spreadMethod?: SpreadMethod): SkTileMode {
+    if (spreadMethod === SpreadMethod.extend) {
+        return ck.TileMode.Clamp;
+    } else if (spreadMethod === SpreadMethod.repeat) {
+        return ck.TileMode.Repeat;
+    } else if (spreadMethod === SpreadMethod.reflect) {
+        return ck.TileMode.Mirror;
     }
+    return ck.TileMode.Decal;
+}
 
-    let colors = [];
-    let positions = [];
-    let matrix = new Matrix2D();
+function create_fill_pattern(ck: CanvasKit, fill: FillStyle, transform: TransformModel): SkShader {
+    const tileMode = convertSpreadMethod(ck, fill.spreadMethod);
+
+    const colors = [];
+    const positions = [];
+    const matrix = new Matrix2D();
     matrix.copyFrom(transform.matrix);
     matrix.mult(fill.matrix);
+    const localMatrix = convertMatrix(matrix);
 
     for (const entry of fill.entries) {
         const color = new Color4();
@@ -72,44 +131,35 @@ function create_fill_pattern(ck: CanvasKit, fill: FillStyle, transform: Transfor
     }
 
     switch (fill.type) {
-        case FillType.linear: {
-            const p0 = new Vec2();
-            const p1 = new Vec2();
-            matrix.transform(-819.2, 0, p0);
-            matrix.transform(819.2, 0, p1);
-            return ck.MakeLinearGradientShader(
-                [p0.x, p0.y],
-                [p1.x, p1.y],
-                colors,
-                positions,
-                tileMode.value,
-                null,
-                0
-            );
-        }
-        case FillType.radial: {
-            const p0 = new Vec2();
-            const p1 = new Vec2();
-            matrix.transform(0, 0, p0);
-            matrix.transform(819.2, 0, p1);
-            const radius = p1.distance(p0);
-            return ck.MakeTwoPointConicalGradientShader(
-                [p0.x, p0.y], 0,
-                [p0.x, p0.y], radius,
-                colors,
-                positions,
-                tileMode.value,
-                null,
-                0
-            );
-        }
+        case FillType.linear:
+            return ck.MakeLinearGradientShader([-819.2, 0], [819.2, 0],
+                colors, positions, (tileMode as any) as number, localMatrix, 0);
+        case FillType.radial:
+            return ck.MakeTwoPointConicalGradientShader([0, 0], 0, [0, 0], 819.2,
+                colors, positions, (tileMode as any) as number, localMatrix, 0);
         default:
-            throw "error";
+            throw ("error: " + fill.type);
     }
 }
 
 export class CKRenderer {
     readonly ck: CanvasKit;
+    readonly transform = new TransformModel();
+
+    fill_flag_ = false;
+    stroke_flag_ = false;
+    open_flag_ = false;
+
+    fill_style_: undefined | FillStyle = undefined;
+    stroke_style_: undefined | StrokeStyle = undefined;
+
+    blendMode: SkBlendMode;
+    paintStroke: SkPaint;
+    paintSolidFill: SkPaint;
+    paintShaderFill: SkPaint;
+    bitmapFillImage: undefined | SkBitmapFillInstance = undefined;
+
+    path: undefined | SkPath = undefined;
 
     constructor(readonly canvas: SkCanvas, aa: boolean) {
         this.ck = getCanvasKit();
@@ -122,6 +172,7 @@ export class CKRenderer {
         this.paintShaderFill = new this.ck.SkPaint();
         this.paintShaderFill.setAntiAlias(aa);
         this.paintShaderFill.setStyle(this.ck.PaintStyle.Fill);
+        this.blendMode = this.ck.BlendMode.SrcOver;
     }
 
     dispose() {
@@ -130,67 +181,136 @@ export class CKRenderer {
         this.paintShaderFill.delete();
         if (this.path !== undefined) {
             this.path.delete();
+            this.path = undefined;
+        }
+        if (this.bitmapFillImage) {
+            this.bitmapFillImage.dispose();
+            this.bitmapFillImage = undefined;
         }
     }
 
     set_transform(transform: TransformModel) {
         this.transform.copyFrom(transform);
-        // this.setBlendMode(transform.blend_mode);
-        // this.paint.setBlendMode(convertBlendMode(this.ck, mode));
+        this.blendMode = convertBlendMode(this.ck, transform.blendMode);
     }
 
     draw_bitmap(bitmap: Bitmap) {
-        if (bitmap.data !== undefined) {
-            const surf = makePMASurface(this.ck, bitmap.width, bitmap.height);
-            surf.getCanvas().writePixels(bitmap.data, bitmap.width, bitmap.height, 0, 0);
-            const img = surf.makeImageSnapshot();
-
-            this.canvas.save();
-            const m = this.transform.matrix;
-            this.canvas.concat([
-                m.a, m.b, m.x,
-                m.c, m.d, m.y,
-                0, 0, 1
-            ]);
-            const pnt = new this.ck.SkPaint();
-            pnt.setAntiAlias(true);
-            pnt.setFilterQuality(this.ck.FilterQuality.High);
-            this.canvas.drawImage(img, 0, 0, pnt);
-            this.canvas.flush();
-            pnt.delete();
-            img.delete();
-            surf.delete();
+        if (bitmap.data === undefined) {
+            return;
         }
-        // const int sx = 0;
-        // const int sy = 0;
-        // const int sw = bitmap->width;
-        // const int sh = bitmap->height;
+        const surface = makePMASurface(this.ck, bitmap.width, bitmap.height);
+        surface.getCanvas().writePixels(bitmap.data, bitmap.width, bitmap.height, 0, 0);
+        const image = surface.makeImageSnapshot();
+
+        this.canvas.save();
+        this.canvas.concat(convertMatrix(this.transform.matrix));
+        const paint = new this.ck.SkPaint();
+        paint.setBlendMode(this.blendMode);
+        paint.setAntiAlias(true);
+        paint.setFilterQuality(this.ck.FilterQuality.None);
+        this.canvas.drawImage(image, 0, 0, paint);
+        this.canvas.flush();
+        paint.delete();
+        image.delete();
+        destroyPMASurface(this.ck, surface);
+    }
+
+    private createOvalPath(cmd: RenderCommand, matrix: Matrix2D): SkPath {
+        const a0 = cmd.v[4];
+        let a1 = cmd.v[5];
+        if (a1 <= a0) {
+            a1 += 360;
+        }
+
+        let sweep = a1 - a0;
+        let close = cmd.v[6] > 0;
+        if (a1 === 360 && a0 === 0) {
+            sweep = 360;
+            close = false;
+        }
+        const l = cmd.v[0];
+        const t = cmd.v[1];
+        const r = cmd.v[2];
+        const b = cmd.v[3];
+        const cx = l + (r - l) / 2;
+        const cy = t + (b - t) / 2;
+        const inner = cmd.v[7];
+        const path = new this.ck.SkPath();
+
+        // if (close) {
+        //     path.moveTo(cx, cy);
+        // }
         //
-        // auto source_surface = cairo_image_surface_create_for_data(
-        //     const_cast<uint8_t*>(bitmap->data.data()),
-        //     CAIRO_FORMAT_ARGB32, sw, sh, sw * 4);
-        // auto source_pattern = cairo_pattern_create_for_surface(source_surface);
-        //
-        // cairo_save(ctx_);
-        //
-        // cairo_matrix_t transform_matrix;
-        // transform_matrix.xx = transform_.matrix.a;
-        // transform_matrix.yx = transform_.matrix.b;
-        // transform_matrix.xy = transform_.matrix.c;
-        // transform_matrix.yy = transform_.matrix.d;
-        // transform_matrix.x0 = transform_.matrix.tx;
-        // transform_matrix.y0 = transform_.matrix.ty;
-        // cairo_transform(ctx_, &transform_matrix);
-        //
-        // cairo_set_source(ctx_, source_pattern);
-        //
-        // cairo_rectangle(ctx_, sx, sy, sw, sh);
-        // cairo_fill(ctx_);
-        //
-        // cairo_restore(ctx_);
-        //
-        // cairo_pattern_destroy(source_pattern);
-        // cairo_surface_destroy(source_surface);
+        path.arcTo({fLeft: l, fTop: t, fRight: r, fBottom: b}, a0, sweep, true);
+        if (inner > 0) {
+            const rx = inner * (r - l) / 2;
+            const ry = inner * (b - t) / 2;
+            path.arcTo({
+                fLeft: cx - rx, fTop: cy - ry, fRight: cx + rx, fBottom: cy + ry
+            }, a0 + sweep, -sweep, !close);
+
+            if (close) {
+                path.arcTo({fLeft: l, fTop: t, fRight: r, fBottom: b}, a0, 0, false);
+                path.close();
+            }
+        } else {
+            if (close) {
+                path.lineTo(cx, cy);
+                path.close();
+            }
+        }
+
+        // if (close) {
+        //     path.lineTo(cx, cy);
+        //     path.close();
+        // }
+        path.transform([
+            matrix.a, matrix.c, matrix.x,
+            matrix.b, matrix.d, matrix.y,
+            0, 0, 1
+        ]);
+        return path;
+    }
+
+    private createRectanglePath(cmd: RenderCommand, matrix: Matrix2D): SkPath {
+        const l = cmd.v[0];
+        const t = cmd.v[1];
+        const r = cmd.v[2];
+        const b = cmd.v[3];
+        const path = new this.ck.SkPath();
+        const maxRadius = Math.min((b - t) / 2, (r - l) / 2);
+        const r1 = Math.min(maxRadius, cmd.v[4]);
+        const r2 = Math.min(maxRadius, cmd.v[5]);
+        const r3 = Math.min(maxRadius, cmd.v[6]);
+        const r4 = Math.min(maxRadius, cmd.v[7]);
+        path.moveTo(l, t + r1);
+        path.arcTo({fLeft: l, fTop: t, fRight: l + r1 * 2, fBottom: t + r1 * 2}, -180, 90, false);
+        path.lineTo(r - r2, t);
+        path.arcTo({fLeft: r - r2 * 2, fTop: t, fRight: r, fBottom: t + r2 * 2}, -90, 90, false);
+        path.lineTo(r, b - r3);
+        path.arcTo({fLeft: r - r3 * 2, fTop: b - r3 * 2, fRight: r, fBottom: b}, 0, 90, false);
+        path.lineTo(l + r4, b);
+        path.arcTo({fLeft: l, fTop: b - r4 * 2, fRight: l + r4 * 2, fBottom: b}, 90, 90, false);
+        path.close();
+        path.transform([
+            matrix.a, matrix.c, matrix.x,
+            matrix.b, matrix.d, matrix.y,
+            0, 0, 1
+        ]);
+        return path;
+    }
+
+    drawCmdPath(cmd: RenderCommand, path: SkPath) {
+        let paint = this.setFillStyle(cmd.fill);
+        if (paint) {
+            paint.setStyle(this.ck.PaintStyle.Fill);
+            this.canvas.drawPath(path, paint);
+        }
+        paint = this.setStrokeStyle(cmd.stroke);
+        if (paint) {
+            paint.setStyle(this.ck.PaintStyle.Stroke);
+            this.canvas.drawPath(path, paint);
+        }
     }
 
     execute(cmd: RenderCommand) {
@@ -242,23 +362,39 @@ export class CKRenderer {
                 }
                 // cairo_move_to(ctx_, cmd.v[0], cmd.v[1]);
                 break;
+            case RenderOp.oval: {
+                const path = this.createOvalPath(cmd, this.transform.matrix);
+                this.drawCmdPath(cmd, path);
+                path.delete();
+            }
+                break;
+
+            case RenderOp.Rectangle: {
+                const path = this.createRectanglePath(cmd, this.transform.matrix);
+                this.drawCmdPath(cmd, path);
+                path.delete();
+                // const m = this.transform.matrix;
+                // this.canvas.save();
+                // this.canvas.concat([m.a, m.c, m.x,
+                //     m.b, m.d, m.y,
+                //     0, 0, 1]);
+                // if (cmd.fill) {
+                //     this.drawRectangle(cmd, this.setFillStyle(cmd.fill, false));
+                // }
+                // if (cmd.stroke) {
+                //     this.drawRectangle(cmd, this.setStrokeStyle(cmd.stroke));
+                // }
+                // this.canvas.restore();
+            }
+                break;
+
+            case RenderOp.bitmap:
+                if (cmd.bitmap !== undefined) {
+                    this.draw_bitmap(cmd.bitmap);
+                }
+                break;
         }
     }
-
-    readonly transform = new TransformModel();
-
-    fill_flag_ = false;
-    stroke_flag_ = false;
-    open_flag_ = false;
-
-    fill_style_: undefined | FillStyle = undefined;
-    stroke_style_: undefined | StrokeStyle = undefined;
-
-    paintStroke: SkPaint;
-    paintSolidFill: SkPaint;
-    paintShaderFill: SkPaint;
-
-    path: undefined | SkPath = undefined;
 
     private open() {
         if (!this.open_flag_) {
@@ -271,13 +407,13 @@ export class CKRenderer {
         }
     }
 
-    private fill() {
-        let paint = this.paintSolidFill;
-        if (this.fill_style_) {
-            // this.paint.setColorf(1, 0, 0, 1);
-            if (this.fill_style_.type === FillType.solid) {
-                if (this.fill_style_.entries && this.fill_style_.entries.length > 0) {
-                    const c = this.fill_style_.entries[0].color.copy();
+    private setFillStyle(fillStyle?: FillStyle): SkPaint | undefined {
+        let paint: SkPaint | undefined = undefined;
+        if (fillStyle) {
+            paint = this.paintSolidFill;
+            if (fillStyle.type === FillType.solid) {
+                if (fillStyle.entries && fillStyle.entries.length > 0) {
+                    const c = fillStyle.entries[0].color.copy();
                     this.transform.transformColor(c);
                     paint.setColorf(c.r, c.g, c.b, c.a);
                 } else {
@@ -285,89 +421,94 @@ export class CKRenderer {
                 }
             } else {
                 paint = this.paintShaderFill;
-                paint.setShader(create_fill_pattern(this.ck, this.fill_style_, this.transform));
+                if (fillStyle.type === FillType.Bitmap) {
+                    if (fillStyle.bitmap) {
+                        if (this.bitmapFillImage) {
+                            this.bitmapFillImage.dispose();
+                        }
+                        this.bitmapFillImage = new SkBitmapFillInstance(this.ck, fillStyle.bitmap);
+                        paint.setShader(this.bitmapFillImage.makeShader(fillStyle, this.transform));
+                        // paint = this.paintSolidFill;
+                        // paint.setColorf(1, 0, 0, 1);
+                    } else {
+                        paint = this.paintSolidFill;
+                        paint.setColorf(0, 0, 0, 0);
+                    }
+                } else {
+                    paint.setShader(create_fill_pattern(this.ck, fillStyle, this.transform));
+                }
             }
+            paint.setBlendMode(this.blendMode);
+        }
+        return paint;
+    }
 
-            if (this.path !== undefined) {
-                // this.paint.setStyle(this.ck.PaintStyle.Stroke);
-                this.canvas.drawPath(this.path, paint);
-            }
+    private setStrokeStyle(strokeStyle?: StrokeStyle): SkPaint | undefined {
+        if (!strokeStyle) {
+            return undefined;
+        }
+        let paint: SkPaint | undefined = this.setFillStyle(strokeStyle.solid.fill);
+        if (!paint) {
+            return;
         }
 
-        // todo:
-        // if (pattern) {
-        //     cairo_set_source(ctx_, pattern);
-        // }
+        const solid = strokeStyle.solid;
+        switch (solid.caps) {
+            case LineCaps.none:
+                paint.setStrokeCap(this.ck.StrokeCap.Butt);
+                break;
+            case LineCaps.round:
+                paint.setStrokeCap(this.ck.StrokeCap.Round);
+                break;
+            case LineCaps.square:
+                paint.setStrokeCap(this.ck.StrokeCap.Square);
+                break;
+        }
 
-        // cairo_set_fill_rule(ctx_, CAIRO_FILL_RULE_EVEN_ODD);
+        switch (solid.joints) {
+            case LineJoints.miter:
+                paint.setStrokeJoin(this.ck.StrokeJoin.Miter);
+                break;
+            case LineJoints.round:
+                paint.setStrokeJoin(this.ck.StrokeJoin.Round);
+                break;
+            case LineJoints.bevel:
+                paint.setStrokeJoin(this.ck.StrokeJoin.Bevel);
+                break;
+        }
 
+        paint.setStrokeWidth(solid.weight);
+        paint.setStrokeMiter(solid.miterLimit);
+        paint.setBlendMode(this.blendMode);
 
-        // cairo_fill_preserve(ctx_);
+        return paint;
+    }
 
-        // todo:
-        // if (pattern) {
-        //     cairo_pattern_destroy(pattern);
-        // }
+    private fill() {
+
     }
 
     private close() {
         if (this.open_flag_) {
-            //cairo_close_path(ctx_);
             if (this.path !== undefined) {
                 this.path.close();
-            }
 
-            if (this.fill_flag_) {
-                // set fill style color
-                this.fill();
-            }
-            const paint = this.paintStroke;
-
-            if (this.stroke_flag_ && this.stroke_style_) {
-                const solid = this.stroke_style_.solid;
-                switch (solid.caps) {
-                    case LineCaps.none:
-                        paint.setStrokeCap(this.ck.StrokeCap.Butt);
-                        break;
-                    case LineCaps.round:
-                        paint.setStrokeCap(this.ck.StrokeCap.Round);
-                        break;
-                    case LineCaps.square:
-                        paint.setStrokeCap(this.ck.StrokeCap.Square);
-                        break;
+                if (this.fill_flag_) {
+                    const paint = this.setFillStyle(this.fill_style_);
+                    if (paint) {
+                        paint.setStyle(this.ck.PaintStyle.Fill);
+                        this.canvas.drawPath(this.path, paint);
+                    }
                 }
 
-                switch (solid.joints) {
-                    case LineJoints.miter:
-                        paint.setStrokeJoin(this.ck.StrokeJoin.Miter);
-                        break;
-                    case LineJoints.round:
-                        paint.setStrokeJoin(this.ck.StrokeJoin.Round);
-                        break;
-                    case LineJoints.bevel:
-                        paint.setStrokeJoin(this.ck.StrokeJoin.Bevel);
-                        break;
-                }
-
-                paint.setStrokeWidth(solid.weight);
-                paint.setStrokeMiter(solid.miterLimit);
-
-                const c = solid.fill.copy();
-                this.transform.transformColor(c);
-                paint.setColorf(c.r, c.g, c.b, c.a);
-                // this.paint.setColorf(1,0,0,1);
-                // todo: cairo_stroke_preserve(ctx_);
-                if (this.path !== undefined) {
-                    this.canvas.drawPath(this.path, paint);
+                if (this.stroke_flag_) {
+                    const paint = this.setStrokeStyle(this.stroke_style_);
+                    if (paint) {
+                        paint.setStyle(this.ck.PaintStyle.Stroke);
+                        this.canvas.drawPath(this.path, paint);
+                    }
                 }
             }
-//        else if (fill_flag_) {
-//            static solid_stroke hairline{};
-//            hairline.fill = transform_.color.transform(fill_style_->entries[0].color);
-//            hairline.weight = 0.15f;
-//            set_solid_stroke(ctx_, hairline);
-//            cairo_stroke(ctx_);
-//        }
 
             this.stroke_flag_ = false;
             this.fill_flag_ = false;

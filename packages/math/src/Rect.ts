@@ -27,6 +27,14 @@ export class Rect {
         return this;
     }
 
+    setBounds(l: number, t: number, r: number, b: number): this {
+        this.x = Math.min(l, r);
+        this.y = Math.min(t, b);
+        this.width = Math.abs(l - r);
+        this.height = Math.abs(t - b);
+        return this;
+    }
+
     setTuple(values: [number, number, number, number]) {
         this.x = values[0];
         this.y = values[1];

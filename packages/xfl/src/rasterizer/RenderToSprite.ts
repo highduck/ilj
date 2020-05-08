@@ -1,12 +1,12 @@
 import {Sprite, SpriteImage} from "../spritepack/SpritePack";
 import {RenderBatch} from "../render/RenderBatch";
-import {Rect, Vec2} from "@highduck/math";
+import {Rect} from "@highduck/math";
 import {FlashFile} from "../xfl/FlashFile";
 import {Element} from "../xfl/types";
 import {DomScanner} from "../render/DomScanner";
-import {getCanvasKit, makePMASurface} from "./CanvasKitHelpers";
+import {destroyPMASurface, getCanvasKit, makePMASurface} from "./CanvasKitHelpers";
 import {CKRenderer, convertBlendMode} from "./CKRenderer";
-import {SkCanvas, SkSurface} from "canvaskit-wasm";
+import {SkSurface} from "canvaskit-wasm";
 import {BlendMode} from "../xfl/dom";
 
 export interface RenderOptions {
@@ -17,30 +17,27 @@ export interface RenderOptions {
     trim?: boolean,// = false;
 }
 
-function blit_downsample(canvas: SkCanvas, sub_surf: SkSurface, x: number, y: number, upscale: number, blendMode: BlendMode) {
+// start from x8 super-sampling
+function findMultiSampleScale(width: number, height: number, ss: number = 8): number {
+    const LIMIT = 8000;
+    while (ss > 1 && (width * ss > LIMIT || height * ss > LIMIT)) {
+        ss /= 2;
+    }
+    return ss;
+}
+
+function blitDownSample(destSurface: SkSurface, srcSurface: SkSurface, x: number, y: number, upscale: number, blendMode: BlendMode) {
     const ck = getCanvasKit();
     const paint = new ck.SkPaint();
     paint.setAntiAlias(false);
     paint.setBlendMode(convertBlendMode(ck, blendMode));
     paint.setFilterQuality(ck.FilterQuality.High);
-    const image = sub_surf.makeImageSnapshot();
+    const image = srcSurface.makeImageSnapshot();
+    const canvas = destSurface.getCanvas();
     canvas.save();
     canvas.scale(1 / upscale, 1 / upscale);
     canvas.drawImage(image, 0, 0, paint);
     canvas.restore();
-//     auto* pattern = cairo_pattern_create_for_surface(source);
-//     cairo_pattern_set_filter(pattern, CAIRO_FILTER_BEST);
-//     cairo_save(ctx);
-//     cairo_identity_matrix(ctx);
-//     const double downscale = 1.0 / upscale;
-//     cairo_scale(ctx, downscale, downscale);
-//     cairo_set_source(ctx, pattern);
-// //    cairo_set_source_surface(ctx, source, 0, 0);
-//     cairo_rectangle(ctx, 0, 0, w, h);
-//     cairo_fill(ctx);
-//     cairo_restore(ctx);
-//     cairo_pattern_destroy(pattern);
-
     paint.delete();
     image.delete();
 }
@@ -49,8 +46,6 @@ export function renderBatch(bounds: Rect,
                             batches: RenderBatch[],
                             options: RenderOptions,
                             name: string): Sprite {
-    // x4 super-sampling
-    const upscale = 4;
 
     const opts = {
         scale: options.scale ?? 1,
@@ -77,75 +72,44 @@ export function renderBatch(bounds: Rect,
     const h = fixed ? opts.height : Math.ceil(rc.height * scale);
 
     if (w > 0 && h > 0) {
-        img = new SpriteImage(w, h);
+        const upscale = findMultiSampleScale(w, h);
+        const ssw = Math.trunc(w * upscale);
+        const ssh = Math.trunc(h * upscale);
 
         const ck = getCanvasKit();
 
-        const surf = ck.MakeSurface(w, h);
-//         const surf = cairo_image_surface_create_for_data(img->data(),
-//             CAIRO_FORMAT_ARGB32,
-//             w, h, stride);
-//         auto cr = cairo_create(surf);
-        const canvas = surf.getCanvas();
-        //canvas.clear(ck.RED);
-//         cairo_set_antialias(cr, CAIRO_ANTIALIAS_BEST);
-//         cairo_set_source_surface(cr, surf, 0, 0);
-
-        const up_scaled_size = new Vec2(
-            Math.trunc(w * upscale),
-            Math.trunc(h * upscale)
-        );
-
-        const sub_surf = makePMASurface(ck, up_scaled_size.x, up_scaled_size.y);
-        const sub_canvas = sub_surf.getCanvas();
-
+        const surface = makePMASurface(ck, ssw, ssh);
+        const canvas = surface.getCanvas();
 
         // BEGIN
-        const renderer = new CKRenderer(canvas, true);
-        const sub_renderer = new CKRenderer(sub_canvas, false);
+        const renderer = new CKRenderer(canvas, false);
+        canvas.save();
+        canvas.scale(scale * upscale, scale * upscale);
+        if (!fixed) {
+            canvas.translate(-rc.x, -rc.y);
+        }
 
         for (const batch of batches) {
             renderer.set_transform(batch.transform);
-
-            canvas.save();
-            sub_canvas.save();
-            canvas.scale(scale, scale);
-            sub_canvas.scale(scale * upscale, scale * upscale);
-            if (!fixed) {
-                canvas.translate(-rc.x, -rc.y);
-                sub_canvas.translate(-rc.x, -rc.y);
-            }
-
-            if (batch.bitmap) {
-                renderer.draw_bitmap(batch.bitmap);
-                canvas.flush();
-            }
-
-            // for (const cmd of batch.commands) {
-            //     renderer.execute(cmd);
-            // }
-
-            sub_canvas.clear(ck.TRANSPARENT);
-            sub_renderer.set_transform(batch.transform);
             for (const cmd of batch.commands) {
-                sub_renderer.execute(cmd);
+                renderer.execute(cmd);
             }
-            sub_surf.flush();
-
-            canvas.restore();
-            sub_canvas.restore();
-
-            blit_downsample(canvas, sub_surf, up_scaled_size.x, up_scaled_size.y, upscale, batch.transform.blendMode);
-            surf.flush();
         }
 
-        sub_renderer.dispose();
+        surface.flush();
+        canvas.restore();
+
+        const imageSurface = ck.MakeSurface(w, h);
+        blitDownSample(imageSurface, surface, ssw, ssh, upscale, BlendMode.normal);
+        imageSurface.flush();
+
         renderer.dispose();
+
+        destroyPMASurface(ck, surface);
         // END
 
-        sub_surf.delete();
-
-        img.data = canvas.readPixels(
+        img = new SpriteImage(w, h);
+        img.data = imageSurface.getCanvas().readPixels(
             0, 0, w, h,
             ck.AlphaType.Unpremul,
             ck.ColorType.RGBA_8888,
@@ -156,7 +120,7 @@ export function renderBatch(bounds: Rect,
             throw "Error canvas.readPixels ";
         }
 
-        surf.delete();
+        imageSurface.dispose();
     }
 
     const data = new Sprite();

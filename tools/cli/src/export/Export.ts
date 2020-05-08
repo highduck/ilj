@@ -5,7 +5,7 @@ import pngquant from "pngquant-bin";
 import console from "../common/log";
 import * as glob from "glob";
 import fs from 'fs';
-import {createAtlas, exportAtlases, exportFlashAsset} from "@highduck/xfl";
+import {createAtlas, exportFlashAsset} from "@highduck/xfl";
 import {BundleDef} from "./BundleDef";
 import {BundleItem, BundleItemType} from "@highduck/anijson";
 
@@ -61,6 +61,8 @@ export async function exportAssets(input: string, output: string) {
     const bundle = JSON.parse(fs.readFileSync(path.join(input, "bundle.json"), 'utf8')) as BundleDef;
 
     const list: BundleItem[] = [];
+    const atlases = [];
+    const atlasMetas = [];
 
     if (bundle.items === undefined) {
         console.warn('empty "items"');
@@ -69,11 +71,9 @@ export async function exportAssets(input: string, output: string) {
 
     for (const def of bundle.items) {
         if (def.type === 'atlas') {
-            createAtlas(def.id);
-            list.push({
-                type: BundleItemType.Atlas,
-                id: def.id
-            });
+            atlases.push(createAtlas(def.id));
+            atlasMetas.push(def);
+            // will add item at the end
         }
     }
 
@@ -125,12 +125,24 @@ export async function exportAssets(input: string, output: string) {
         }
     }
 
-    exportAtlases(output);
+    for (let i = 0; i < atlasMetas.length; ++i) {
+        const meta = atlasMetas[i];
+        const atlas = atlases[i];
+        atlas.pack();
+        atlas.save(output, meta.format ?? 'png', meta.jpeg?.quality);
+        atlas.dispose();
 
-    for (const item of bundle.items) {
-        if (item.type === 'atlas' && item.pngquant) {
-            pngQuantGlob(path.join(output, item.id + "*.png"));
+        if (meta.format === 'png' && meta.png?.quant) {
+            pngQuantGlob(path.join(output, meta.id + "*.png"));
+        } else if (meta.format === 'jpeg') {
+            // quant png alpha mask
+            pngQuantGlob(path.join(output, meta.id + "*_.png"));
         }
+
+        list.push({
+            type: BundleItemType.Atlas,
+            id: meta.id
+        });
     }
 
     fs.writeFileSync(path.join(output, 'bundle.json'), JSON.stringify({

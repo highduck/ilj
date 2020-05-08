@@ -4,7 +4,9 @@
     {
       "type": "atlas",
       "id": "main",
-      "pngquant": true
+      "png": {
+        "quant": true
+      }
     },
     {
       "type": "flash",

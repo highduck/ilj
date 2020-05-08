@@ -109,8 +109,11 @@ export class Texture {
         setupEnd(GL, this.target, this.hasMipMap);
     }
 
-    upload(source: TexImageSource) {
+    upload(source: TexImageSource, premultiply: boolean = true) {
         const GL = this.graphics.gl;
+        if(premultiply) {
+            GL.pixelStorei(GL.UNPACK_PREMULTIPLY_ALPHA_WEBGL, 1);
+        }
         setupBegin(GL, this.target, this.texture);
         GL.texImage2D(this.target, 0, GL.RGBA, GL.RGBA, GL.UNSIGNED_BYTE, source);
 
@@ -122,6 +125,10 @@ export class Texture {
         }
 
         setupEnd(GL, this.target, this.hasMipMap);
+
+        if(premultiply) {
+            GL.pixelStorei(GL.UNPACK_PREMULTIPLY_ALPHA_WEBGL, 0);
+        }
     }
 
     uploadCubeMap(sources: TexImageSource[]) {
@@ -165,20 +172,6 @@ export class Texture {
         } else if (this.target == GL.TEXTURE_2D) {
             prevBindingTexture2D = this.texture;
         }
-    }
-
-    async load(url: string): Promise<void> {
-        return new Promise<void>((resolve) => {
-            const image = new Image();
-            const GL = this.graphics.gl;
-            image.onload = () => {
-                GL.pixelStorei(GL.UNPACK_PREMULTIPLY_ALPHA_WEBGL, 1);
-                this.upload(image);
-                GL.pixelStorei(GL.UNPACK_PREMULTIPLY_ALPHA_WEBGL, 0);
-                resolve();
-            };
-            image.src = url;
-        });
     }
 
     // async loadBasis(url: string): Promise<void> {

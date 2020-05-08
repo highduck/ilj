@@ -1,10 +1,15 @@
 import {Bitmap} from "./types";
 import {Entry} from "./Entry";
 import zlib from 'zlib';
+import jpeg from 'jpeg-js';
+
+// thanks to https://github.com/charrea6/flash-hd-upscaler/blob/master/images.py
+const JPEG_MAGIC = 0xd8ff;
+const ARGB_MAGIC = 0x0503;
+const CLUT_MAGIC = 0x0303;
 
 class BitmapDataDesc {
-    tag1 = 0; // uint8
-    tag2 = 0; // uint8
+    magic = 0; // uint16
     stride = 0; // uint16_t
     width = 0; //uint16_t
     height = 0;//uint16_t
@@ -12,13 +17,13 @@ class BitmapDataDesc {
     widthTwips = 0; //uint32_t
     heightHigh = 0; //uint32_t
     heightTwips = 0; //uint32_t
-    alpha = 0; // flags , uint8_t
-    compressed = 0; // flags, uint8_t
+    private flags = 0; // flags , uint8_t
 
     read(reader: BufferReader) {
-        this.tag1 = reader.readU8();
-        this.tag2 = reader.readU8();
-        if (this.tag1 === 0x3 && this.tag2 === 0x5) {
+        this.magic = reader.readU16();
+        console.info('magic', '0x' + this.magic.toString(16));
+
+        if (this.magic === ARGB_MAGIC || this.magic === CLUT_MAGIC) {
             this.stride = reader.readU16();
             this.width = reader.readU16();
             this.height = reader.readU16();
@@ -32,15 +37,33 @@ class BitmapDataDesc {
             console.assert(this.heightTwips === this.height * 20,
                 `${this.heightTwips} | ${this.height}`);
 
-            this.alpha = reader.readU8();
-            this.compressed = reader.readU8();
+            this.flags = reader.readU8();
+            return true;
+        } else if (this.magic === JPEG_MAGIC) {
+            return true;
         } else {
-            console.error("unsupported dat");
+            console.error('Unknown DAT image header tag: ' + this.magic.toString(16));
         }
+        return false;
+    }
+
+    dump() {
+        console.info('stride', this.stride);
+        console.info('width', this.width);
+        console.info('height', this.height);
+        console.info('widthHigh', this.widthHigh);
+        console.info('widthTwips', this.widthTwips);
+        console.info('heightHigh', this.heightHigh);
+        console.info('heightTwips', this.heightTwips);
+        console.info('flags', '0x' + this.flags.toString(16));
+    }
+
+    get hasAlpha(): boolean {
+        return (this.flags & 0x01) !== 0;
     }
 }
 
-// to A-B-G-R for Google Skia default surface format
+// to ARGB to RGBA for Google Skia default surface format
 function convertColors(data: Uint8Array) {
     for (let i = 0; i < data.length; i += 4) {
         const a = data[i];
@@ -116,29 +139,75 @@ function uncompress(reader: BufferReader, dest: Uint8Array): number {
 }
 
 export function loadBitmap(entry: Entry): Bitmap {
-    const bitmap = new Bitmap();
     const data = entry.buffer().buffer;
-    const desc = new BitmapDataDesc();
     const reader = new BufferReader(data);
-    desc.read(reader);
-
-    bitmap.width = desc.width;
-    bitmap.height = desc.height;
-    bitmap.bpp = Math.trunc(desc.stride / bitmap.width);
-    bitmap.alpha = desc.alpha !== 0;
-    bitmap.data = new Uint8Array(bitmap.width * bitmap.height * bitmap.bpp);
-    const bitmapBytesLength = bitmap.data.length;
-    if (desc.compressed !== 0) {
-        const written = uncompress(reader, bitmap.data);
-        if (written !== bitmapBytesLength) {
-            console.error("bitmap decompress error");
-        }
-    } else {
-        bitmap.data.set(new Uint8Array(reader.buf, reader.pos, bitmapBytesLength));
-        reader.pos += bitmapBytesLength;
+    const desc = new BitmapDataDesc();
+    const success = desc.read(reader);
+    if (!success) {
+        console.error(`Bitmap data loading error`, '0x' + desc.magic.toString(16), entry.path);
     }
 
-    convertColors(bitmap.data);
+    const bitmap = new Bitmap();
+    bitmap.width = desc.width;
+    bitmap.height = desc.height;
+    bitmap.bpp = 4;
+    bitmap.alpha = true;
+
+    if (desc.magic === ARGB_MAGIC) {
+        const bitmapBytesLength = desc.stride * desc.height;
+        bitmap.data = new Uint8Array(bitmap.width * bitmap.height * 4);
+        // compressed or not?
+        const compressed = (reader.readU8() & 1) !== 0;
+        if (compressed) {
+            const written = uncompress(reader, bitmap.data);
+            if (written !== bitmapBytesLength) {
+                console.error("bitmap decompress error");
+            }
+        } else {
+            bitmap.data.set(new Uint8Array(reader.buf, reader.pos, bitmapBytesLength));
+            reader.pos += bitmapBytesLength;
+        }
+        convertColors(bitmap.data);
+
+    } else if (desc.magic === CLUT_MAGIC) {
+        let nColors = reader.readU8();
+        if (nColors === 0) {
+            nColors = 0xFF;
+        }
+        reader.readU16(); // read align space
+        //console.info(entry.path);
+        const colorTable = new Uint32Array(nColors);
+        for (let i = 0; i < nColors; ++i) {
+            colorTable[i] = reader.readU32();
+        }
+        if (colorTable.length > 0 && desc.hasAlpha) {
+            // transparent
+            colorTable[0] = 0x0;
+        }
+        const dataLength = desc.stride * desc.height;
+        const data = new Uint8Array(dataLength);
+        const written = uncompress(reader, data);
+        if (written !== dataLength) {
+            console.error("bitmap decompress error");
+        }
+
+        const buff = new Uint32Array(bitmap.width * bitmap.height);
+        for (let i = 0; i < dataLength; ++i) {
+            buff[i] = colorTable[data[i]];
+        }
+        bitmap.data = new Uint8Array(buff.buffer);
+    } else if (desc.magic === JPEG_MAGIC) {
+        console.warn('jpeg reading...');
+        const result = jpeg.decode(data, {useTArray: true, formatAsRGBA: true});
+        bitmap.width = result.width;
+        bitmap.height = result.height;
+        bitmap.data = result.data;
+    } else {
+        desc.dump();
+        throw 'Unknown bitmap format';
+    }
+
+    //savePNG('_' + entry.path + '.png', bitmap);
 
     return bitmap;
 }

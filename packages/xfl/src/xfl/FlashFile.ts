@@ -25,13 +25,15 @@ export class FlashFile {
             const el = new Element();
             el.parse(ElementType.bitmap_item, item);
             el.bitmap = loadBitmap(root.open('bin/' + item._bitmapDataHRef));
+            console.info(el.item.name);
+
             this.library.push(el);
         }
 
-        // for (const auto& item: node.child("media").children("DOMSoundItem")) {
-        //     auto sound = parse_xml_node<element_t>(item);
-        //     doc.library.push_back(std::move(sound));
-        // }
+        for (const item of oneOrMany(doc.media?.DOMSoundItem)) {
+            // auto sound = parse_xml_node<element_t>(item);
+            // doc.library.push_back(std::move(sound));
+        }
 
         const includes = oneOrMany(doc.symbols?.Include);
         for (const include of includes) {
@@ -41,10 +43,15 @@ export class FlashFile {
             el.parse(ElementType.symbol_item, libraryDoc.DOMSymbolItem as DOMSymbolItem);
             this.library.push(el);
         }
-        //
-        // for (const auto& item: node.child("timelines").children("DOMTimeline")) {
-        //     doc.timelines.push_back(parse_xml_node<timeline_t>(item));
-        // }
+
+        for (const item of oneOrMany(doc.timelines?.DOMTimeline)) {
+            const tl = new Element();
+            tl.elementType = ElementType.symbol_item;
+            tl.item.name = '_scene_' + item._name;
+            tl.item.linkageExportForAS = true;
+            tl.timeline.parse(item);
+            this.scenes.push(tl);
+        }
     }
 
     find(name: string, type: ElementType): Element | undefined {
@@ -67,4 +74,5 @@ export class FlashFile {
 
     readonly doc: DOMDocument;
     readonly library: Element[] = [];
+    readonly scenes: Element[] = [];
 }

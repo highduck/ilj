@@ -14,7 +14,7 @@ import {ProjectConfig} from "../config/loadConfig";
 // common
 
 function getTsModuleSrc(id: string, from: string): string {
-    return path.join(getPackagePath(id, from), "src");
+    return path.join(getPackagePath(id, from), "src/index.ts");
 }
 
 /// pnp handling

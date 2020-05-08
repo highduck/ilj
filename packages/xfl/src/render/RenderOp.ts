@@ -5,5 +5,8 @@ export const enum RenderOp {
     fill_end,
     fill_begin,
     line_style_reset,
-    line_style_setup
+    line_style_setup,
+    oval,
+    Rectangle,
+    bitmap
 }

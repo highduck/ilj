@@ -1,0 +1,15 @@
+{
+  "id": "main",
+  "items": [
+    {
+      "type": "atlas",
+      "id": "test",
+      "format": "jpeg"
+    },
+    {
+      "type": "flash",
+      "id": "test",
+      "path": "GAF/ufo-monster"
+    }
+  ]
+}

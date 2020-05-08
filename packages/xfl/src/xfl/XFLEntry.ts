@@ -21,7 +21,9 @@ export class XFLEntry extends Entry {
 
     buffer(): Uint8Array {
         if (this._buffer === undefined) {
-            this._buffer = new Uint8Array(fs.readFileSync(this.path, null).buffer);
+            const result = fs.readFileSync(this.path, null);
+            // slice read buffer
+            this._buffer = new Uint8Array(result);
         }
         return this._buffer;
     }

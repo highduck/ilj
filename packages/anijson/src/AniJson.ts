@@ -66,6 +66,7 @@ export interface MovieLayerJson {
 export interface MovieJson {
     frames: number;
     layers: MovieLayerJson[];
+    fps?: number;
 }
 
 export interface NodeJson {
@@ -102,10 +103,9 @@ export interface NodeJson {
     lk?: number; // `layerKey`
 }
 
-export type LinkagesMap = { [key: string]: string | undefined };
-
 export interface AniJson {
-    linkages: LinkagesMap;
+    linkages: { [key: string]: string };
+    scenes: { [key: string]: string };
     library: NodeJson;
 }
 

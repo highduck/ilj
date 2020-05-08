@@ -86,6 +86,7 @@ export class AniFactory {
             } else {
                 mov.data = data.movie;
             }
+            mov.fps = data.movie.fps ?? 24;
         }
 
         let sprite: DisplaySprite | undefined;
@@ -186,6 +187,21 @@ export class AniFactory {
             return this.createAndMerge(library, data);
         }
         console.warn(`SG Object ${path} not found in library ${library}`);
+        return undefined;
+    }
+
+    createScene(library: string, index: number = 0): Entity | undefined {
+        const asset = Resources.get(Ani, library);
+        if (asset.data !== undefined) {
+            const scenes = asset.data.json.scenes;
+            const ids = Object.keys(scenes);
+            const sceneId = ids[index % ids.length];
+            console.log(sceneId);
+            const libraryName = scenes[sceneId];
+            console.log(libraryName);
+            return this.createFromAni(asset.data, libraryName);
+        }
+        console.warn(`SG not found: ${library}`);
         return undefined;
     }
 

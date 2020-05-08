@@ -5,10 +5,21 @@ export interface BundleDef {
 
 export type AnyItem = AtlasDef | FlashDef | AudioDef | FontDef;
 
+export const enum ImageFormatType {
+    PNG = 'png',
+    JPEG = 'jpeg'
+}
+
 export interface AtlasDef {
     type: 'atlas'
     id: string,
-    pngquant?: boolean
+    format?: ImageFormatType,
+    png?: {
+        quant?: boolean // false
+    },
+    jpeg?: {
+        quality?: number // 90
+    }
 }
 
 export interface FlashDef {

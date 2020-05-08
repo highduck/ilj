@@ -8,6 +8,9 @@
       ],
       "@highduck/xfl": [
         "../../packages/xfl/src/index.ts"
+      ],
+      "@highduck/anijson": [
+        "../../packages/anijson/src/index.ts"
       ]
     }
   }

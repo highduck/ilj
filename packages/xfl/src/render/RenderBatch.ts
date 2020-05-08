@@ -7,6 +7,5 @@ export class RenderBatch {
     readonly transform = new TransformModel();
     commands: RenderCommand[] = [];
     bounds = new BoundsBuilder();
-    bitmap: Bitmap | undefined = undefined;
     total = 0;
 }

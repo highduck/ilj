@@ -22,29 +22,40 @@ export const enum EdgeSelectionBit {
 
 /**
  explanation:
-    https://stackoverflow.com/questions/4077200/whats-the-meaning-of-the-non-numerical-values-in-the-xfls-edge-definition
+ https://stackoverflow.com/questions/4077200/whats-the-meaning-of-the-non-numerical-values-in-the-xfls-edge-definition
  */
 
 function readDoubleHex(str: string): number {
     if (str[0] === '#') {
         const parts = str.substr(1).split('.');
-        let m = parts[0];
-        if (parts.length === 1) {
-            m += "00";
-        } else {
-            const x = parts[1];
-            m += x;
-            if (x.length === 0) {
-                m += "00";
-            } else if (x.length === 1) {
-                m += "0";
+        let i = parseInt(parts[0], 16) << 8;
+        let sign = 1;
+        if ((i & 0x80000000) !== 0) {
+            //i = i & 0x7FFFFFFF;
+            sign = -1;
+        }
+        let f = 0;
+        if (parts.length > 1) {
+            let sf = parts[1];
+            while (sf.length < 2) {
+                sf += '0';
             }
+            i = i | parseInt(sf, 16);
         }
-        let hex = parseInt(m, 16);
-        if ((hex & 0x80000000) !== 0) {
-            hex = -(~hex) - 1;
+
+        if ((i & 0x80000000) !== 0) {
+            i = (-(~i)) - 1;
         }
-        return hex / 255.0;
+
+        return i / (1 << 8);
+        // let hex = parseInt(m, 16);
+
+        // let v = (hex & 0x7FFFFFFF) / (1 << 8);
+        // const sign =
+        // if ((hex & 0x80000000) !== 0) {
+        //     hex = -(~hex) - 1;
+        // }
+        // return hex / (1 << 8);
     }
 
     // default floating point format

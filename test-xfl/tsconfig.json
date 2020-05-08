@@ -1,26 +1,23 @@
 {
   "compilerOptions": {
-    "module": "es6",
-    "target": "es6",
+    "module": "esnext",
+    "target": "es5",
     "moduleResolution": "node",
     "sourceMap": true,
     "incremental": true,
     "strict": true,
-    "outDir": "_build/ts",
+    "outDir": "dist/esm",
 //    "allowJs": true,
 //    "noEmitHelpers": true,
 //    "importHelpers": true,
     "allowSyntheticDefaultImports": true,
 //    "esModuleInterop": true,
-    "downlevelIteration": true,
     "experimentalDecorators": true,
+    "downlevelIteration": true,
     "baseUrl": "./",
     "paths": {
       "@highduck/math": [
         "../packages/math/src/index.ts"
-      ],
-      "@highduck/polykit": [
-        "../packages/polykit/src/index.ts"
       ],
       "@highduck/anijson": [
         "../packages/anijson/src/index.ts"

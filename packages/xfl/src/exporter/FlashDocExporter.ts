@@ -1,6 +1,6 @@
 import {FlashFile} from "../xfl/FlashFile";
 import {ExportItem} from "./ExportItem";
-import {Element, Frame} from "../xfl/types";
+import {Element, FillStyle, Frame} from "../xfl/types";
 import {DOMFilterKind, ElementType, LayerType, RotationDirection, SymbolType, TweenTarget, TweenType} from "../xfl/dom";
 import {SgDynamicText, SgEasing, SgFile, SgFilterData, SgMovie, SgMovieFrame, SgMovieLayer} from "../anif/SgModel";
 import {Matrix2D, Rect} from "@highduck/math";
@@ -41,6 +41,7 @@ function processElementCommons(el: Element, item: ExportItem) {
     item.node.matrix.copyFrom(el.matrix as Matrix2D);
     item.node.colorMultiplier.copyFrom(el.colorMultiplier);
     item.node.colorOffset.copyFrom(el.colorOffset);
+    item.node.visible = el.isVisible;
 }
 
 function processFilters(el: Element, item: ExportItem) {
@@ -125,6 +126,7 @@ function addRotation(layer: SgMovieLayer, frames: Frame[]) {
 export class FlashDocExporter {
     readonly library = new ExportItem();
     readonly linkages = new Map<string, string>();
+    readonly scenes = new Map<string, string>();
 
     constructor(readonly doc: FlashFile) {
 
@@ -137,6 +139,16 @@ export class FlashDocExporter {
     buildLibrary() {
         for (const item of this.doc.library) {
             this.processElement(item, this.library);
+        }
+
+        for (const item of this.doc.scenes) {
+            this.processElement(item, this.library);
+            const sceneName = item.timeline.name;
+            const libraryName = item.item.name;
+            console.log('SCENE: ', sceneName, libraryName);
+            if (sceneName && libraryName.length > 0) {
+                this.scenes.set(sceneName, libraryName);
+            }
         }
 
         for (const item of this.library.children) {
@@ -181,7 +193,25 @@ export class FlashDocExporter {
         }
     }
 
+    private initFill(fill: FillStyle) {
+        if (fill.bitmapPath === undefined) {
+            return;
+        }
+        fill.bitmap = this.doc.find(fill.bitmapPath, ElementType.bitmap_item)?.bitmap;
+        if (fill.bitmap === undefined) {
+            console.warn('[BitmapFill] bitmap item not found: ', fill.bitmapPath);
+        }
+    }
+
     processElement(el: Element, parent: ExportItem) {
+        for (const fill of el.fills) {
+            this.initFill(fill);
+        }
+
+        for (const stroke of el.strokes) {
+            this.initFill(stroke.solid.fill);
+        }
+
         const type = el.elementType;
         switch (type) {
             case ElementType.symbol_instance:
@@ -202,8 +232,13 @@ export class FlashDocExporter {
             case ElementType.group:
                 this.processGroup(el, parent);
                 break;
+
             case ElementType.shape:
                 this.processShape(el, parent);
+                break;
+            case ElementType.OvalObject:
+            case ElementType.RectangleObject:
+                ++parent.shapes;
                 break;
 
             case ElementType.static_text:
@@ -219,7 +254,7 @@ export class FlashDocExporter {
     }
 
     processSymbolInstance(el: Element, parent: ExportItem) {
-        console.assert(el.elementType === ElementType.symbol_instance);
+        console.assert(el.elementType === ElementType.symbol_instance, `wrong type ${el.elementType} symbol instance`);
 
         const item = new ExportItem();
         item.ref = el;
@@ -228,7 +263,6 @@ export class FlashDocExporter {
         item.node.libraryName = el.libraryItemName ?? "";
         item.node.button = el.symbolType === SymbolType.button;
         item.node.touchable = !el.silent;
-        item.node.visible = el.isVisible;
 
         processFilters(el, item);
 
@@ -236,17 +270,17 @@ export class FlashDocExporter {
     }
 
     processSymbolItem(el: Element, parent: ExportItem) {
-        console.assert(el.elementType === ElementType.symbol_item);
+        console.assert(el.elementType === ElementType.symbol_item, `wrong type ${el.elementType} symbol item`);
 
         const item = new ExportItem();
         item.ref = el;
         processElementCommons(el, item);
         item.node.libraryName = el.item.name;
-        console.assert(el.libraryItemName === undefined || el.libraryItemName.length === 0);
+        console.assert(el.libraryItemName === undefined || el.libraryItemName.length === 0, `symbol item has no libraryItemName! ${el.item.name}`);
         item.node.scaleGrid.copyFrom(el.scaleGrid);
 
-        const timeline_frames_total = el.timeline.getTotalFrames();
-        const is_static = timeline_frames_total === 1
+        const timelineFramesTotal = el.timeline.getTotalFrames();
+        const timelineIsStatic = timelineFramesTotal === 1
             && (el.symbolType === SymbolType.graphic
                 || !el.scaleGrid.empty
                 || el.item.linkageBaseClass === "flash.display.Sprite");
@@ -255,13 +289,14 @@ export class FlashDocExporter {
             console.debug("== Button symbol ==");
         }
 
-        if (is_static) {
+        if (timelineIsStatic) {
             ++item.shapes;
         }
 
-        if (timeline_frames_total > 1) {
+        if (timelineFramesTotal > 1) {
             item.node.movie = new SgMovie();
-            item.node.movie.frames = timeline_frames_total;
+            item.node.movie.frames = timelineFramesTotal;
+            item.node.movie.fps = this.doc.doc._frameRate ?? 24;
         }
 
         let layer_key = 1;
@@ -289,7 +324,7 @@ export class FlashDocExporter {
 
                 switch (layer.layerType) {
                     case LayerType.normal:
-                        if (frame_data.elements.length !== 0 && !is_static) {
+                        if (frame_data.elements.length !== 0 && !timelineIsStatic) {
                             for (const frame_element of frame_data.elements) {
                                 this.processElement(frame_element, item);
                             }
@@ -360,7 +395,7 @@ export class FlashDocExporter {
     }
 
     processBitmapInstance(el: Element, parent: ExportItem) {
-        console.assert(el.elementType === ElementType.bitmap_instance);
+        console.assert(el.elementType === ElementType.bitmap_instance, `wrong type ${el.elementType} bitmap instance`);
 
         const item = new ExportItem();
         item.ref = el;
@@ -382,7 +417,7 @@ export class FlashDocExporter {
     }
 
     processDynamicText(el: Element, parent: ExportItem) {
-        console.assert(el.elementType === ElementType.dynamic_text);
+        console.assert(el.elementType === ElementType.dynamic_text, `wrong type ${el.elementType} dynamic text`);
 
         const item = new ExportItem();
         item.ref = el;
@@ -421,14 +456,14 @@ export class FlashDocExporter {
     }
 
     processGroup(el: Element, parent: ExportItem) {
-        console.assert(el.elementType === ElementType.group);
+        console.assert(el.elementType === ElementType.group, `wrong type ${el.elementType} group`);
         for (const member of el.members) {
             this.processElement(member, parent);
         }
     }
 
     processShape(el: Element, parent: ExportItem) {
-        console.assert(el.elementType === ElementType.shape);
+        console.assert(el.elementType === ElementType.shape, `wrong type ${el.elementType} shape`);
         //if (parent) {
         ++parent.shapes;
         //}
@@ -436,11 +471,11 @@ export class FlashDocExporter {
 
     render(item: ExportItem, to_atlas: Atlas) {
         const el = item.ref;
-        console.info("RENDER: " + item.node.libraryName);
         if (el === undefined) {
             console.warn('skip element with undefined ref');
             return;
         }
+        console.info("RENDER: ", item.node.libraryName, el.item.name, el.elementType);
         const options = {
             scale: 1
         };
@@ -458,7 +493,8 @@ export class FlashDocExporter {
     exportLibrary(): SgFile {
         return new SgFile(
             this.library.node,
-            this.linkages
+            this.linkages,
+            this.scenes
         );
     }
 

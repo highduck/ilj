@@ -9,6 +9,9 @@
   "references": [
     {
       "path": "../../packages/xfl/tsconfig.commonjs.json"
+    },
+    {
+      "path": "../../packages/anijson/tsconfig.commonjs.json"
     }
   ],
   "files": [

@@ -1,3 +1,10 @@
+// Graphic Symbol loop mode
+export const enum LoopMode {
+    Loop = 'loop',
+    PlayOnce = 'play once',
+    SingleFrame = 'single frame',
+}
+
 export const enum SpreadMethod {
     extend = 'extend',
     reflect = 'reflect',
@@ -25,7 +32,8 @@ export const enum BlendMode {
 export const enum ElementType {
     unknown = 'unknown',
     shape = 'DOMShape',
-    shape_oval = 'ShapeOval', // todo:
+    OvalObject = 'DOMOvalObject',
+    RectangleObject = 'DOMRectangleObject',
 
     group = 'DOMGroup',
     dynamic_text = 'DOMDynamicText',
@@ -95,14 +103,16 @@ export const enum FillType {
     unknown = 'unknown',
     solid = 'SolidColor',
     linear = 'LinearGradient',
-    radial = 'RadialGradient'
+    radial = 'RadialGradient',
+    Bitmap = 'BitmapFill'
 }
 
 export const enum LayerType {
     normal = 'normal',
     guide = 'guide',
     Folder = 'folder',
-    Camera = 'camera'
+    Camera = 'camera',
+    Mask = 'mask'
 }
 
 export const enum TweenType {
@@ -116,45 +126,67 @@ export const enum RotationDirection {
     cw = 'clockwise'
 }
 
-export interface DOMFolderItem {
-    _name: string,
-    _itemID: string,
-    _isExpanded?: boolean
+export interface ItemObject {
+    _name: string;
+    _itemID: string;
+
+    // these attributes are common
+    _linkageExportForAS?: boolean; // def: false
+    _linkageBaseClass?: string, // "flash.text.Font"
+    _linkageClassName?: string;
+
+    // "./LIBRARY/media_test/next_level.mp3"
+    // "./LIBRARY/flump/puppet parts/calf copy"
+    _sourceExternalFilepath?: string;
+    _sourcePlatform?: string; //"macintosh"
+    _sourceFlashFilepath?: string; // "../../parrot/parrot.xfl"
+    _sourceLibraryItemHRef?: string; // "parrot"
+    _sourceLastImported?: number; // 1536049774
+    _sourceLastModified?: number; // 1588510883
+    _sourceAutoUpdate?: boolean; // def: false
+    _lastModified?: number; // 1588760993
+    _sourceItemID?: string; // "5eaeba42-0000014e"
+
+    // scaling grid
+    _scaleGridLeft?: number;
+    _scaleGridTop?: number;
+    _scaleGridRight?: number;
+    _scaleGridBottom?: number;
+
+    timeline?: {
+        DOMTimeline?: DOMTimeline
+    };
 }
 
-export interface DOMFontItem {
-    _name: string,
-    _itemID: string,
-    _linkageExportForAS: boolean,
-    _linkageBaseClass: string, // "flash.text.Font"
-    _linkageClassName: string, // Font1
+export interface ElementObject {
+
+}
+
+// Element Object everything appears on the stage
+// Item Object for the Library
+
+
+export interface DOMFolderItem extends ItemObject {
+    _isExpanded?: boolean;
+}
+
+export interface DOMFontItem extends ItemObject {
     _font: string, //"mini",
     _size: number, // 0
     _id: number, // 1
-    _sourceLastImported: number, //1553239021,
     _embedRanges: string //"1|2|3|4|5"
 }
 
-export interface DOMBitmapItem {
-    _name: string,//"flump/puppet parts/calf copy",
-    _itemID: string,
-    _sourceExternalFilepath: string, //"./LIBRARY/flump/puppet parts/calf copy",
-    _sourceLastImported: number,
-    _sourcePlatform: string,
-    _originalCompressionType: string,// TODO: enum? "lossless",
-    _quality: number, //90,
-    _href: string,// "flump/puppet parts/calf copy",
-    _bitmapDataHRef: string,//"M 10 1552682487.dat",
-    _frameRight: number, //1300,
-    _frameBottom: number, //1780
+export interface DOMBitmapItem extends ItemObject {
+    _originalCompressionType: string; // TODO: enum? "lossless",
+    _quality: number; //90,
+    _href: string; // "flump/puppet parts/calf copy",
+    _bitmapDataHRef: string; //"M 10 1552682487.dat",
+    _frameRight: number; //1300,
+    _frameBottom: number; //1780
 }
 
-interface DOMSoundItem {
-    _name: "media_test/next_level.mp3",
-    _itemID: "5c938c07-0000034a",
-    _sourceExternalFilepath: "./LIBRARY/media_test/next_level.mp3",
-    _sourceLastImported: 1536049774,
-    _sourcePlatform: "macintosh",
+interface DOMSoundItem extends ItemObject {
     _externalFileCRC32: 4118010386,
     _externalFileSize: 18807,
     _href: "media_test/next_level.mp3",
@@ -184,18 +216,25 @@ export interface DOMGradientEntry {
 }
 
 export interface DOMGradientStyle extends DOMMatrix2DHolder {
-    _spreadMethod?: SpreadMethod,
-    GradientEntry?: DOMGradientEntry | DOMGradientEntry[]
+    _spreadMethod?: SpreadMethod;
+    // TODO: could be "linearRGB"
+    _interpolationMethod?: string;
+    GradientEntry?: DOMGradientEntry | DOMGradientEntry[];
+}
+
+export interface DOMBitmapFill extends DOMMatrix2DHolder {
+    _bitmapPath: string; // "import/bmp0305/Layer 30 copy"
 }
 
 export interface DOMFillStyle {
-    _index: number,
+    _index?: number,
     SolidColor?: DOMGradientEntry, // actually only color / alpha
     LinearGradient?: DOMGradientStyle,
-    RadialGradient?: DOMGradientStyle
+    RadialGradient?: DOMGradientStyle,
+    BitmapFill?: DOMBitmapFill
 }
 
-export interface DOMShape {
+export interface DOMShape extends ElementObject {
     _selected: true,
     _isDrawingObject: true,
     fills?: {
@@ -225,50 +264,94 @@ export interface DOMCustomEase {
     Point: FDOMPoint | FDOMPoint[]
 }
 
-export interface DOMElementAny {
-    unknown?: never,
-    ShapeOval?: never,
-    DOMShape?: any,
-    DOMGroup?: any,
-    DOMDynamicText?: any,
-    DOMStaticText?: any,
-    DOMSymbolInstance?: any,
-    DOMBitmapInstance?: any,
-    DOMSymbolItem?: any,
-    DOMBitmapItem?: any,
-    DOMFontItem?: any,
-    DOMSoundItem?: any
+export interface DOMSymbolInstance extends ElementObject, DOMMatrix2DHolder, DOMTransformationPointHolder, DOMColorHolder {
+    _isVisible?: boolean; // def: true
+    _libraryItemName?: string;
+    _symbolType?: SymbolType; // def: normal
+
+    // graphic symbol options
+    _loop?: LoopMode;
+    _firstFrame?: number; // def: 0 (zero-based index, in IDE displays from 1st)
+
+    // ignore
+    _centerPoint3DX?: number; // def: 0
+    _centerPoint3DY?: number; // def: 0
+    _selected?: boolean; // def: false
+}
+
+export type DOMAnyElement = DOMShape | DOMSymbolInstance | DOMSymbolItem | DOMOvalObject | DOMRectangleObject | any;
+
+
+export interface DOMElementObject {
+    unknown?: never;
+
+    DOMShape?: DOMShape;
+    DOMGroup?: any;
+    DOMDynamicText?: any;
+    DOMStaticText?: any;
+    DOMSymbolInstance?: DOMSymbolInstance;
+    DOMBitmapInstance?: any;
+    DOMSymbolItem?: DOMSymbolItem;
+    DOMBitmapItem?: any;
+    DOMFontItem?: any;
+    DOMSoundItem?: any;
+
+    DOMOvalObject?: DOMOvalObject;
+    DOMRectangleObject?: DOMRectangleObject;
+}
+
+export interface ElementsArray {
+    DOMShape?: DOMShape | DOMShape[];
+    DOMGroup?: any | any[];
+    DOMDynamicText?: any | any[];
+    DOMStaticText?: any | any[];
+    DOMSymbolInstance?: DOMSymbolInstance | DOMSymbolInstance[];
+    DOMBitmapInstance?: any | any[];
+    DOMOvalObject?: DOMOvalObject | DOMOvalObject[];
+    DOMRectangleObject?: DOMRectangleObject | DOMRectangleObject[];
 }
 
 export interface DOMFrame {
-    _name: string,
-    _index: number,//0,
-    _duration: number, // 1
-    _tweenType: TweenType,
-    _keyMode: number,//9728,
-    _acceleration?: number,
-    _hasCustomEase?: boolean,
-    _motionTweenRotateTimes?: number, // 0
-    _motionTweenRotate?: RotationDirection,
-    _motionTweenSnap?: boolean,
-    _motionTweenOrientToPath?: boolean,
+    _name: string;
+    _index: number;//0,
+    _duration: number; // 1
+    _tweenType: TweenType;
+    _keyMode: number;//9728,
+    _acceleration?: number;
+    _hasCustomEase?: boolean;
+    _motionTweenRotateTimes?: number; // 0
+    _motionTweenRotate?: RotationDirection;
+    _motionTweenSnap?: boolean;
+    _motionTweenOrientToPath?: boolean;
 
-    _parentLayerIndex?:number, // ?? todo:
+    _parentLayerIndex?: number; // ?? todo:
 
-    elements: DOMElementAny,
+    elements?: ElementsArray;
 
     tweens?: {
         Ease?: DOMEase | DOMEase[],
         CustomEase?: DOMCustomEase | DOMCustomEase[]
-    }
+    };
+
+    // sound properties
+    _soundName?: string; // "import/bgm_children.mp3"
+    _soundEffect?: string; // def: "none"
+    // "custom" / "left channel" / "right channel"
+    // "fade left to right" / "fade right to left" / "fade in" / "fade out"
+    _soundSync?: string; // def: "event" / "start" / "stop" / "stream"
+    _outPoint44?: number; // 2563200
+    _soundZoomLevel?: number; // 2
+    _soundLoopMode?: string; // def: "repeat" (other "loop")
+    _soundLoop?: number; // def: 1
+    SoundEnvelope?: SoundEnvelope;
 }
 
 export interface DOMLayer {
     _name: string,
     _layerType?: LayerType,
-    _attachedToCamera?:boolean, // default: false (means layer actually affected by camera)
-    _parentLayerIndex?:number, // ?? todo:
-    _layerRiggingIndex?:number, // ?? layers hierarchy, also propagated into the DOMFrame
+    _attachedToCamera?: boolean, // default: false (means layer actually affected by camera)
+    _parentLayerIndex?: number, // ?? todo:
+    _layerRiggingIndex?: number, // ?? layers hierarchy, also propagated into the DOMFrame
     frames?: {
         DOMFrame: DOMFrame | DOMFrame[]
     },
@@ -287,57 +370,68 @@ export interface DOMTimeline {
     }
 }
 
-export interface DOMSymbolItem {
-    _name: string, //"test_button/001.ai Assets/&amp;#060Path&amp;#062_6",
-    _itemID: string,
-    _lastModified: number,
-
-    // TODO: base type
-    _scaleGridLeft?: number,
-    _scaleGridTop?: number,
-    _scaleGridRight?: number,
-    _scaleGridBottom?: number,
-
-    timeline: {
-        DOMTimeline: DOMTimeline
-    },
+export interface DOMSymbolItem extends ItemObject {
 }
 
 
 export interface DOMDocument {
-    _currentTimeline: number,
-    _xflVersion: number,
-    _creatorInfo: string,
-    _platform: string,
-    _versionInfo: string,
-    _majorVersion: number,
-    _minorVersion: number,
-    _buildNumber: number,
-    _nextSceneIdentifier: number,
-    _playOptionsPlayLoop: boolean,
-    _playOptionsPlayPages: boolean,
-    _playOptionsPlayFrameActions: boolean,
-    _filetypeGUID: string,
-    _fileGUID: string,
+    _xflVersion: number;
+    _creatorInfo: string;
+    _platform: string;
+    _versionInfo: string;
+    _majorVersion: number;
+    _minorVersion: number;
+    _buildNumber: number;
+    _playOptionsPlayLoop: boolean;
+    _playOptionsPlayPages: boolean;
+    _playOptionsPlayFrameActions: boolean;
+    _filetypeGUID: string;
+    _fileGUID: string;
+
+    _currentTimeline: number;
+    _nextSceneIdentifier: number;
+
+    _width?: number;
+    _height?: number;
+    _frameRate?: number; // default: 24?
+    _backgroundColor?: string; // default: "#FFFFFF"
+
+    // document scenes
+    timelines?: {
+        DOMTimeline?: DOMTimeline | DOMTimeline[]
+    };
 
     folders?: {
         DOMFolderItem?: DOMFolderItem | DOMFolderItem[]
-    },
+    };
 
     fonts?: {
         DOMFontItem?: DOMFontItem | DOMFontItem[]
-    },
+    };
 
     media?: {
         DOMBitmapItem?: DOMBitmapItem | DOMBitmapItem[],
         DOMSoundItem?: DOMSoundItem | DOMSoundItem[]
-    },
+    };
 
     symbols?: {
         Include?: Include | Include[]
-    },
+    };
 
-    scripts?: string,
+    scripts?: string;
+
+    // todo:
+    // <PD n="ikTreeCount" t="i" v="6"/>
+    // <PD n="ikBoneCount" t="i" v="10"/>
+    // <PD n="ikNodeCount" t="i" v="16"/>
+    persistentData?: any;
+}
+
+export interface DOMScaleGrid {
+    _scaleGridLeft?: number;
+    _scaleGridTop?: number;
+    _scaleGridRight?: number;
+    _scaleGridBottom?: number;
 }
 
 export interface FDOMRect {
@@ -352,8 +446,10 @@ export interface FDOMPoint {
     _y?: number;
 }
 
-export interface FDOMTransformationPoint {
-    Point?: FDOMPoint
+export interface DOMColorHolder {
+    color?: {
+        Color?: FDOMColor
+    }
 }
 
 export interface FDOMMatrix2D {
@@ -378,6 +474,8 @@ export interface FDOMColor {
 
     _tintMultiplier?: number;
     _tintColor?: string;
+
+    _brightness?: number; // default: 0, values: -1 ... 1
 }
 
 export interface DOMTextAttributes {
@@ -409,13 +507,14 @@ export interface DOMEdges {
 
 export interface DOMSolidStroke {
     _weight?: number;
-    fill?: { SolidColor: { _color: string, _alpha: number } };
     _miterLimit?: number;
     _pixelHinting?: boolean;
     _scaleMode?: ScaleMode;
     _caps?: LineCaps;
     _joints?: LineJoints;
     _solidStyle?: SolidStyleType;
+
+    fill?: DOMFillStyle;
 }
 
 export interface DOMStrokeStyle {
@@ -426,15 +525,49 @@ export interface DOMStrokeStyle {
 export interface DOMMatrix2DHolder {
     matrix?: {
         Matrix?: FDOMMatrix2D
-    }
+    };
 }
 
-// TODO:
-export interface DOMOvalObject extends DOMMatrix2DHolder {
+export interface DOMTransformationPointHolder {
+    transformationPoint?: {
+        Point?: FDOMPoint
+    };
+}
+
+export interface DOMOvalObject extends DOMMatrix2DHolder, DOMTransformationPointHolder {
     _objectWidth?: number; // 58
     _objectHeight?: number; // 58
     _x?: number;
     _y?: number;
-    endAngle?: number; // 0
+    _endAngle?: number; // 0
+    _startAngle?: number; // 0
+    _innerRadius?: number; // 0
+    _closePath?: boolean; // true
     fill?: DOMFillStyle;
+    stroke?: DOMStrokeStyle;
 }
+
+export interface DOMRectangleObject extends DOMMatrix2DHolder, DOMTransformationPointHolder {
+    _objectWidth?: number; // 58
+    _objectHeight?: number; // 58
+    _x?: number;
+    _y?: number;
+    _lockFlag?: boolean; // false
+    _topLeftRadius?: number; // 0
+    _topRightRadius?: number; // 0
+    _bottomLeftRadius?: number; // 0
+    _bottomRightRadius?: number; // 0
+    fill?: DOMFillStyle;
+    stroke?: DOMStrokeStyle;
+}
+
+interface SoundEnvelopePoint {
+    _level0?: number; // 32768
+    _level1?: number; // 32768
+    _mark44?: number; //
+}
+
+export interface SoundEnvelope {
+    SoundEnvelopePoint?: SoundEnvelopePoint | SoundEnvelopePoint[];
+}
+

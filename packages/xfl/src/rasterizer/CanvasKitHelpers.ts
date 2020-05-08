@@ -1,5 +1,5 @@
 import CanvasKitInit from 'canvaskit-wasm/bin/canvaskit.js';
-import {CanvasKit} from 'canvaskit-wasm';
+import {CanvasKit, SkSurface} from 'canvaskit-wasm';
 
 let LIB: CanvasKit | undefined = undefined;
 
@@ -48,4 +48,7 @@ export function makePMASurface(ck: CanvasKit, width: number, height: number) {
     return surface;
 }
 
-
+export function destroyPMASurface(ck: CanvasKit, pmaSurface: SkSurface) {
+    pmaSurface.dispose();
+    (ck as any)._free((pmaSurface as any)._pixelPtr);
+}

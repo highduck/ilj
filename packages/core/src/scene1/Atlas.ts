@@ -6,7 +6,8 @@ import {Sprite} from "./Sprite";
 import {loadJSON} from "../util/load";
 import {declTypeID} from "../util/TypeID";
 import {Vec2} from "@highduck/math";
-import {AtlasJson} from "@highduck/anijson";
+import {AtlasJson, SpriteFlag} from "@highduck/anijson";
+import {destroyCanvas, destroyImage, loadImage, loadSplitAlpha} from "../util/loadImage";
 
 function pathDir(path: string): string {
     const i = path.lastIndexOf("/");
@@ -78,29 +79,39 @@ export class Atlas implements Disposable {
         console.debug("Atlas Base Path: ", basePath);
 
         for (const page of meta.pages) {
-            const textureAsset = Resources.get(Texture, page.image_path);
+            const textureAsset = Resources.get(Texture, page.img);
             this.pages.push(textureAsset);
-            for (const spriteData of page.sprites) {
-                const sprite = new Sprite(textureAsset);
-                sprite.flags = spriteData.flags;
-                sprite.rect.setTuple(spriteData.rc);
-                sprite.tex.setTuple(spriteData.uv);
+            for (const id of Object.keys(page.sprites)) {
+                const data = page.sprites[id];
+                const sprite = new Sprite(textureAsset, data[8] as SpriteFlag);
+                sprite.rect.readFromArray(data, 0);
+                sprite.tex.readFromArray(data, 4);
 
-                const assetSprite = Resources.get(Sprite, spriteData.name);
+                const assetSprite = Resources.get(Sprite, id);
                 assetSprite.reset(sprite);
-                this.sprites.set(spriteData.name, assetSprite);
+                this.sprites.set(id, assetSprite);
             }
         }
 
         for (const page of meta.pages) {
             const texture = new Texture(engine.graphics);
-            texture.generateMipMaps = true;
-            const pageImagePath = page.image_path;
-            const atlasPagePath = pathJoin(basePath, pageImagePath);
-            console.debug("Load atlas page ", atlasPagePath);
-            await texture.load(atlasPagePath);
+            texture.generateMipMaps = page.mipmap ?? true;
+            if (page.mask === undefined) {
+                const atlasPagePath = pathJoin(basePath, page.img);
+                console.debug("Load atlas page ", atlasPagePath);
+                const image = await loadImage(atlasPagePath);
+                texture.upload(image);
+                destroyImage(image);
+            } else {
+                const atlasPagePath = pathJoin(basePath, page.img);
+                const maskPagePath = pathJoin(basePath, page.mask);
+                console.debug("Load atlas page with alpha mask ", atlasPagePath, maskPagePath);
+                const canvas = await loadSplitAlpha(atlasPagePath, maskPagePath);
+                texture.upload(canvas);
+                destroyCanvas(canvas);
+            }
             // await texture.loadBasis(atlasPagePath.replace('.png', '.basis'));
-            Resources.reset(Texture, pageImagePath, texture);
+            Resources.reset(Texture, page.img, texture);
 
             const white: Sprite | undefined = this.sprites.get('old/rect')?.get();
             if (white !== undefined && white.texture.data === texture) {

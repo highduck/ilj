@@ -179,6 +179,8 @@ export class MovieClip2D {
     dirty = false;
     fps = 24.0;
 
+    discreteMode = true;
+
     get timeMax(): number {
         const data = this.getMovieClipData();
         return data ? data.frames : 0;
@@ -197,8 +199,10 @@ export class MovieClip2D {
     }
 
     truncTime(data: MovieJson) {
-        if (this._time >= data.frames) {
-            this._time -= data.frames * Math.trunc(this._time / data.frames);
+        const t = this._time;
+        const max = data.frames;
+        if (t >= max) {
+            this._time -= max * Math.trunc(t / max);
         }
     }
 
@@ -222,7 +226,7 @@ export class MovieClip2D {
     }
 
     applyFrameData(data: MovieJson) {
-        const time = this._time;
+        const time = this.discreteMode ? Math.trunc(this._time) : this._time;
         for (const layer of data.layers) {
             let keyframe_index = 0;
             let animation_key = 0;

@@ -2,12 +2,12 @@ import {FlashFile} from "../xfl/FlashFile";
 import {Element} from "../xfl/types";
 import {Rect} from "@highduck/math";
 import {TransformModel} from "./TransformModel";
-import {ShapeRenderer} from "./ShapeRenderer";
+import {ShapeProcessor} from "./ShapeProcessor";
 import {ElementType, LayerType} from "../xfl/dom";
 
 export class DomScanner {
     name?: string;
-    readonly output = new ShapeRenderer();
+    readonly output = new ShapeProcessor();
     stack: TransformModel[] = [];
 
     constructor(readonly doc: FlashFile) {
@@ -30,6 +30,10 @@ export class DomScanner {
                 break;
             case ElementType.shape:
                 this.scan_shape(element);
+                break;
+            case ElementType.OvalObject:
+            case ElementType.RectangleObject:
+                this.scanPrimitive(element);
                 break;
             case ElementType.symbol_item:
                 this.scan_symbol_item(element);
@@ -120,6 +124,16 @@ export class DomScanner {
 
     pop_transform() {
         this.stack.pop();
+    }
+
+    private scanPrimitive(element: Element) {
+        this.push_transform(element);
+        if (element.elementType === ElementType.OvalObject && element.oval) {
+            this.output.addOval(element.oval, this.getTopTransform());
+        } else if (element.elementType === ElementType.RectangleObject && element.rectangle) {
+            this.output.addRectangle(element.rectangle, this.getTopTransform());
+        }
+        this.pop_transform();
     }
 }
 

@@ -25,14 +25,14 @@
   "author": "eliasku",
   "license": "MIT",
   "dependencies": {
-    "@capacitor/core": "^2.0.2",
-    "firebase": "^7.14.2"
+    "@capacitor/core": "^2.1.0",
+    "firebase": "^7.14.3"
   },
   "devDependencies": {
-    "@capacitor/android": "^2.0.2",
-    "@capacitor/ios": "^2.0.2",
+    "@capacitor/android": "^2.1.0",
+    "@capacitor/ios": "^2.1.0",
     "rimraf": "^3.0.2",
-    "rollup": "^2.7.6",
+    "rollup": "^2.8.2",
     "rollup-plugin-node-resolve": "^5.2.0",
     "typescript": "^3.8.3"
   },

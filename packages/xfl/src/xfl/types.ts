@@ -1,6 +1,7 @@
 import {Color32_ARGB, Color4, Matrix2D, Rect, Vec2} from "@highduck/math";
 import {
     BlendMode,
+    DOMAnyElement,
     DOMAnyFilter,
     DOMEdges,
     DOMFillStyle,
@@ -8,6 +9,8 @@ import {
     DOMFrame,
     DOMGradientEntry,
     DOMLayer,
+    DOMOvalObject,
+    DOMRectangleObject,
     DOMSolidStroke,
     DOMStrokeStyle,
     DOMTextAttributes,
@@ -132,7 +135,7 @@ class MotionObject {
 }
 
 class SolidStroke {
-    readonly fill = new Color4();
+    readonly fill = new FillStyle();
     scaleMode = ScaleMode.none;
     solidStyle = SolidStyleType.hairline;
     weight = 1.0;
@@ -144,7 +147,7 @@ class SolidStroke {
     parse(data: DOMSolidStroke) {
         this.weight = data._weight ?? 1;
         if (data.fill) {
-            readColor(this.fill, data.fill.SolidColor);
+            this.fill.parse(data.fill);
         }
         this.miterLimit = data._miterLimit ?? 3;
         this.pixelHinting = data._pixelHinting ?? false;
@@ -170,11 +173,13 @@ export class FillStyle {
     type = FillType.unknown;
     spreadMethod = SpreadMethod.extend;
     entries: GradientEntry[] = [];
+    bitmapPath: string | undefined = undefined;
+    bitmap: Bitmap | undefined = undefined;
     readonly matrix = new Matrix2D();
 
     parse(data: DOMFillStyle) {
         // TODO:
-        this.index = data._index;
+        this.index = data._index ?? 0;
         for (const fillData of oneOrMany(data.SolidColor)) {
             this.type = FillType.solid;
             const entry = new GradientEntry();
@@ -203,12 +208,20 @@ export class FillStyle {
                 this.entries.push(entry);
             }
         }
+
+        for (const fillData of oneOrMany(data.BitmapFill)) {
+            this.type = FillType.Bitmap;
+            this.spreadMethod = SpreadMethod.repeat;
+            this.bitmapPath = he.decode(String(fillData._bitmapPath));
+            parseMatrix2D(this.matrix, fillData);
+            this.matrix.scale(1 / 20, 1 / 20);
+        }
     }
 }
 
 export class StrokeStyle {
     index = 0;
-    solid = new SolidStroke();
+    readonly solid = new SolidStroke();
     isSolid = false;
 
     parse(data: DOMStrokeStyle) {
@@ -255,7 +268,7 @@ export class Frame {
         this.duration = data._duration ?? 1;
         this.tweenType = data._tweenType ?? TweenType.none;
         if (data._name) {
-            this.name = he.decode(data._name);
+            this.name = he.decode(String(data._name));
         }
 
         this.motionTweenSnap = data._motionTweenSnap ?? false;
@@ -272,7 +285,9 @@ export class Frame {
         for (const tag in data.elements) {
             // if (data.elements.hasOwnProperty(tag)) {
             const ttag = tag as ElementType;
-            for (const elData of oneOrMany(data.elements[ttag])) {
+            for (const elData of oneOrMany(
+                (data.elements as any)[ttag] as undefined | DOMAnyElement | DOMAnyElement[]
+            )) {
                 const el = new Element();
                 el.parse(ttag, elData);
                 this.elements.push(el);
@@ -324,7 +339,7 @@ class Layer {
     }
 
     parse(data: DOMLayer) {
-        this.name = he.decode(data._name);
+        this.name = he.decode(String(data._name));
         this.color = parseColorCSS(data._color);
         if (data._layerType) {
             this.layerType = data._layerType as LayerType;
@@ -354,7 +369,7 @@ export class Timeline {
     }
 
     parse(data: DOMTimeline) {
-        this.name = he.decode(data._name);
+        this.name = he.decode(String(data._name));
         for (const layerData of oneOrMany(data.layers?.DOMLayer)) {
             const layer = new Layer();
             layer.parse(layerData);
@@ -377,7 +392,7 @@ class ItemProperties {
 
     parse(data: any) {
         if (data._name) {
-            this.name = he.decode(data._name);
+            this.name = he.decode(String(data._name));
         }
         if (data._itemID) {
             this.itemID = data._itemID;
@@ -489,7 +504,11 @@ export class Element {
     // cacheFormat="5kHz 8bit Stereo"
     // cachedSampleCount="6480"
 
-    parse(tag: ElementType, data: any) {
+    // primitive objects
+    oval?: DOMOvalObject;
+    rectangle?: DOMRectangleObject;
+
+    parse(tag: ElementType, data: DOMAnyElement) {
         this.item.parse(data);
         this.elementType = tag;
 
@@ -526,7 +545,7 @@ export class Element {
 
         /// instances ref
         if (data._libraryItemName != null) {
-            this.libraryItemName = he.decode(data._libraryItemName);
+            this.libraryItemName = he.decode(String(data._libraryItemName));
         }
 
         /////   SymbolInstance
@@ -559,9 +578,7 @@ export class Element {
             }
         }
 
-        if (data._isVisible != null) {
-            this.isVisible = data._isVisible;
-        }
+        this.isVisible = data._isVisible ?? true;
 
         /// text
 
@@ -592,7 +609,7 @@ export class Element {
             for (const tag in data.members) {
                 for (const elData of oneOrMany(data.members[tag])) {
                     const el = new Element();
-                    el.parse(tag as ElementType, elData);
+                    el.parse(tag as ElementType, elData as DOMAnyElement);
                     this.members.push(el);
                 }
             }
@@ -630,10 +647,10 @@ export class Element {
             this.quality = data._quality;
         }
         if (data._href != null) {
-            this.href = he.decode(data._href);
+            this.href = he.decode(String(data._href));
         }
         if (data._bitmapDataHRef != null) {
-            this.bitmapDataHRef = he.decode(data._bitmapDataHRef);
+            this.bitmapDataHRef = he.decode(String(data._bitmapDataHRef));
         }
         if (data._isJPEG != null) {
             this.isJPEG = data._isJPEG;
@@ -655,5 +672,11 @@ export class Element {
 
         // sound item
         ////  todo:
+
+        if (this.elementType === ElementType.OvalObject) {
+            this.oval = data;
+        } else if (this.elementType === ElementType.RectangleObject) {
+            this.rectangle = data;
+        }
     }
 }

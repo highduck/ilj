@@ -30,7 +30,7 @@ export class FLAEntry extends Entry {
     buffer(): Uint8Array {
         if (this._buffer === undefined) {
             const entry = this.zipFile.getEntry(this.path);
-            this._buffer = new Uint8Array(entry.getData().buffer);
+            this._buffer = new Uint8Array(entry.getData());
         }
         return this._buffer;
     }

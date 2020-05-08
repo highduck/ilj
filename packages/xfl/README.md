@@ -30,14 +30,25 @@ Purpose of rewriting C/C++ codebase to TypeScript:
 
 ### 1. MVP
 
-- [x] Bitmap parsing
+- [x] Bitmap reading (ARGB, CLUT, JPEG)
 - [x] Bitmap rendering
 - [x] Ani files export
 - [x] Atlas packing
-- [ ] Support for shapes drawing objects: Oval, Rectangle, etc
+- [x] Support for Oval and Rectangle objects
+- [x] Strokes: Gradient and Bitmap fills
+- [x] Bitmap Fills
+- [x] JPEG export support
+- [x] Split-alpha export support
+
+### 2. Features
+- [ ] Masks (Alpha/Color)
+- [ ] Graphic symbol control
+- [ ] Visibility timeline animation
+- [ ] Motion tween / Classic tween
+- [ ] Stroke styles - not solid
 - [ ] Bitmap font export
 
-### 2. Library
+### 3. Library
 
 - [ ] Edge SELECTION commands `Sn` processing
 - [ ] Complete typings for XML data
@@ -46,7 +57,7 @@ Purpose of rewriting C/C++ codebase to TypeScript:
 - [ ] Tests
 - [ ] Documentation
 
-### 3. Future
+### 4. Future
 
 - [ ] Font processing
 - [ ] Sounds processing

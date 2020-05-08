@@ -5,6 +5,10 @@ export const lerp = (begin: number, end: number, t: number): number =>
 export const saturate = (x: number): number =>
     x < 0 ? 0 : (x > 1 ? 1 : x);
 
+export function clamp(x: number, min: number, max: number): number {
+    return x < min ? min : (x > max ? max : x);
+}
+
 export function reach(current: number, target: number, step: number): number {
     if (current < target) {
         current += Math.abs(step);

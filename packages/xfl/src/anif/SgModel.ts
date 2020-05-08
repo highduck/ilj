@@ -11,7 +11,7 @@ import {
     NodeJson,
     TweenTargetType
 } from "@highduck/anijson";
-import {fixPrecision, tupleColor4, tupleRect, tupleVec2} from "./Serialize";
+import {fixPrecision, tupleColor4, tupleRect, tupleVec2, mapToDict} from "./Serialize";
 
 export class SgFilterData {
     type = FilterType.None;
@@ -157,11 +157,13 @@ export class SgMovieLayer {
 export class SgMovie {
     frames = 1;
     readonly layers: SgMovieLayer[] = [];
+    fps = 24;
 
     serialize(): MovieJson {
         return {
             frames: this.frames,
-            layers: this.layers.map((v) => v.serialize())
+            layers: this.layers.map((v) => v.serialize()),
+            fps: this.fps
         }
     }
 }
@@ -276,19 +278,17 @@ export class SgNode {
 export class SgFile {
     constructor(
         readonly library: SgNode,
-        readonly linkages: Map<string, string>
+        readonly linkages: Map<string, string>,
+        readonly scenes: Map<string, string>
     ) {
 
     }
 
     serialize(): AniJson {
-        const r: AniJson = {
+        return {
             library: this.library.serialize(),
-            linkages: {}
+            linkages: mapToDict(this.linkages),
+            scenes: mapToDict(this.scenes)
         };
-        for (const key of this.linkages.keys()) {
-            r.linkages[key] = this.linkages.get(key);
-        }
-        return r;
     }
 }

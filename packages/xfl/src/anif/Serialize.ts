@@ -30,3 +30,11 @@ export function tupleVec2(v: Vec2, precision = 4): [number, number] {
         fixPrecision(v.y, precision)
     ];
 }
+
+export function mapToDict<T>(map: Map<string, T>) {
+    const result: { [key: string]: T; } = {};
+    for (const key of map.keys()) {
+        result[key] = map.get(key)!;
+    }
+    return result;
+}
