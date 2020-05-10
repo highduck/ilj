@@ -28,6 +28,10 @@ export class AniFactory {
         if (data.lk !== undefined) {
             targetKeys.keyLayer = data.lk;
         }
+        if (data.l !== undefined) {
+            targetKeys.loop = data.l;
+            targetKeys.ff = data.ff!;
+        }
 
         const transform = entity.get(Transform2D);
         if (data.p !== undefined) {

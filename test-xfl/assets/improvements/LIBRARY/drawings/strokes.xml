@@ -1,0 +1,96 @@
+<DOMSymbolItem xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://ns.adobe.com/xfl/2008/" name="drawings/strokes" itemID="5eb54c0c-00000133" lastModified="1588942851">
+  <timeline>
+    <DOMTimeline name="strokes" layerDepthEnabled="true">
+      <layers>
+        <DOMLayer name="Layer_1" color="#00FFFF" current="true" isSelected="true">
+          <frames>
+            <DOMFrame index="0" keyMode="9728">
+              <elements>
+                <DOMShape>
+                  <fills>
+                    <FillStyle index="1">
+                      <LinearGradient interpolationMethod="linearRGB">
+                        <matrix>
+                          <Matrix a="0.037017822265625" d="0.022552490234375" tx="44.1" ty="18.45"/>
+                        </matrix>
+                        <GradientEntry color="#589B34" ratio="0"/>
+                        <GradientEntry ratio="1"/>
+                      </LinearGradient>
+                    </FillStyle>
+                    <FillStyle index="2">
+                      <LinearGradient interpolationMethod="linearRGB">
+                        <matrix>
+                          <Matrix a="0.023101806640625" d="0.037109375" tx="93.3" ty="48.65"/>
+                        </matrix>
+                        <GradientEntry color="#589B34" ratio="0"/>
+                        <GradientEntry ratio="1"/>
+                      </LinearGradient>
+                    </FillStyle>
+                    <FillStyle index="3">
+                      <LinearGradient interpolationMethod="linearRGB">
+                        <matrix>
+                          <Matrix a="0.037017822265625" d="0.022552490234375" tx="34.1" ty="62"/>
+                        </matrix>
+                        <GradientEntry color="#589B34" ratio="0"/>
+                        <GradientEntry ratio="1"/>
+                      </LinearGradient>
+                    </FillStyle>
+                  </fills>
+                  <strokes>
+                    <StrokeStyle index="1">
+                      <SolidStroke scaleMode="normal" weight="5">
+                        <fill>
+                          <RadialGradient spreadMethod="reflect">
+                            <matrix>
+                              <Matrix a="0" b="0.0101776123046875" c="-0.0057373046875" d="0" tx="37.7" ty="12.6"/>
+                            </matrix>
+                            <GradientEntry color="#589B34" ratio="0"/>
+                            <GradientEntry ratio="1"/>
+                          </RadialGradient>
+                        </fill>
+                      </SolidStroke>
+                    </StrokeStyle>
+                    <StrokeStyle index="2">
+                      <SolidStroke scaleMode="normal" weight="5">
+                        <fill>
+                          <LinearGradient spreadMethod="repeat">
+                            <matrix>
+                              <Matrix a="0.00970458984375" d="0.0598907470703125" tx="34.05" ty="35.2"/>
+                            </matrix>
+                            <GradientEntry color="#589B34" ratio="0"/>
+                            <GradientEntry ratio="1"/>
+                          </LinearGradient>
+                        </fill>
+                      </SolidStroke>
+                    </StrokeStyle>
+                    <StrokeStyle index="3">
+                      <SolidStroke scaleMode="normal" weight="5">
+                        <fill>
+                          <BitmapFill bitmapPath="import/8.jpg">
+                            <matrix>
+                              <Matrix a="1.86552429199219" b="-2.56773376464844" c="1.63645935058594" d="1.18893432617188" tx="70.1" ty="51.55"/>
+                            </matrix>
+                          </BitmapFill>
+                        </fill>
+                      </SolidStroke>
+                    </StrokeStyle>
+                  </strokes>
+                  <edges>
+                    <Edge fillStyle1="2" strokeStyle="3" edges="!1899 1167[1888 1305 1858 1437!1858 1437[1847 1489 1809 1527!1809 1527[1785 1549 1757 1571!1757 1571[1682 1594 1610 1565!1610 1565[1555 1540 1540 1480!1540 1480[1515 1370 1568 1277!1568 1277|1488 1035!1488 1035[1552 1014 1622 994!1622
+ 994[1746 957 1741 818!1741 818[1738 591 1694 365!1694 365[1789 368 1884 427!1884 427[2063 536 2182 708!2182 708[2298 883 2200 1058!2200 1058[2105 1223 1941 1298!1941 1298|1944 1264!1944 1264|1899 1167"/>
+                    <Edge fillStyle1="1" strokeStyle="1" edges="
+!711 422[573 425 438 410!438 410[386 404 343 370!343 370[319 349 294 324!294 324[264 251 285 177!285 177[304 119 362 98!362 98[469 61 567 104!567 104|799 0!799 0[827 61 854 129!854 129[903 248 1041 229!1041 229[1267 202 1488 135!1488
+ 135[1494 229 1445 330!1445 330[1356 520 1197 655!1197 655[1035 789 851 710!851 710[677 633 585 477!585 477|619 477!619 477|711 422"/>
+                    <Edge fillStyle1="3" strokeStyle="2" edges="
+!511 1293[373 1296 238 1281!238 1281[186 1275 143 1241!143 1241[119 1220 94 1195!94 1195[64 1122 85 1048!85 1048[104 990 162 969!162 969[269 932 367 975!367 975|599 871!599 871[627 932 654 1000!654 1000[703 1119 841 1100!841 1100[1067
+ 1073 1288 1006!1288 1006[1294 1100 1245 1201!1245 1201[1156 1391 997 1526!997 1526[835 1660 651 1581!651 1581[477 1504 385 1348!385 1348|419 1348!419 1348|511 1293"/>
+                  </edges>
+                </DOMShape>
+              </elements>
+            </DOMFrame>
+          </frames>
+        </DOMLayer>
+      </layers>
+    </DOMTimeline>
+  </timeline>
+</DOMSymbolItem>

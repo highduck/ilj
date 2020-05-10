@@ -164,6 +164,9 @@ export class MovieClipTarget {
 
     keyAnimation = 0;
     keyLayer = 0;
+
+    loop = -1;
+    ff = 0;
 }
 
 export class MovieClip2D {
@@ -247,6 +250,21 @@ export class MovieClip2D {
                     if (animation_key === targetData.keyAnimation) {
                         target = it;
                         it.visible = true;
+
+                        if (targetData.loop >= 0) {
+                            const k1 = layer.frames[keyframe_index];
+                            const mc = it.components.get(MovieClip2D.TYPE_ID) as MovieClip2D | undefined;
+                            if (mc && k1) {
+                                if (targetData.loop === 0) {
+                                    mc.gotoAndStop(time - k1.i);
+                                } else if (targetData.loop === 1) {
+                                    mc.gotoAndStop(targetData.ff);
+                                } else if (targetData.loop === 2) {
+                                    mc.gotoAndStop(Math.min(time - k1.i, k1.len));
+                                }
+                            }
+                        }
+
                     } else {
                         it.visible = false;
                     }

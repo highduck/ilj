@@ -17,6 +17,10 @@ export class ExportItem {
     usage = 0;
     shapes = 0;
 
+    drawingLayer: boolean = false;
+    animationSpan0 = 0;
+    animationSpan1 = 0;
+
     constructor() {
     }
 

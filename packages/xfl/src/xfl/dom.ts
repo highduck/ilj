@@ -313,10 +313,10 @@ export interface ElementsArray {
 
 export interface DOMFrame {
     _name: string;
-    _index: number;//0,
-    _duration: number; // 1
+    _index: number; // def: 0
+    _duration: number; // def: 1
     _tweenType: TweenType;
-    _keyMode: number;//9728,
+    _keyMode: number; // think bitmask with flags, TODO:
     _acceleration?: number;
     _hasCustomEase?: boolean;
     _motionTweenRotateTimes?: number; // 0

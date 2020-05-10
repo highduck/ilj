@@ -21,6 +21,7 @@ import {
     LayerType,
     LineCaps,
     LineJoints,
+    LoopMode,
     RotationDirection,
     ScaleMode,
     SolidStyleType,
@@ -43,6 +44,10 @@ import {
 } from "./parsing";
 import {parseEdges} from "./parseEdges";
 import he from 'he';
+
+function decode(v: any): string {
+    return he.decode(String(v));
+}
 
 export class Bitmap {
     path?: string;
@@ -124,7 +129,7 @@ class TextRun {
     attributes = new TextAttributes();
 
     parse(data: DOMTextRun) {
-        this.characters = he.decode(String(data.characters ?? ""));
+        this.characters = decode(data.characters ?? '');
         this.attributes.parse(oneOrMany(data.textAttrs?.DOMTextAttrs)[0]);
     }
 }
@@ -212,7 +217,7 @@ export class FillStyle {
         for (const fillData of oneOrMany(data.BitmapFill)) {
             this.type = FillType.Bitmap;
             this.spreadMethod = SpreadMethod.repeat;
-            this.bitmapPath = he.decode(String(fillData._bitmapPath));
+            this.bitmapPath = decode(fillData._bitmapPath);
             parseMatrix2D(this.matrix, fillData);
             this.matrix.scale(1 / 20, 1 / 20);
         }
@@ -263,12 +268,18 @@ export class Frame {
     script?: string;
     motionObject?: MotionObject;
 
+    static create(data: DOMFrame): Frame {
+        const frame = new Frame();
+        frame.parse(data);
+        return frame;
+    }
+
     parse(data: DOMFrame) {
         this.index = data._index;
         this.duration = data._duration ?? 1;
         this.tweenType = data._tweenType ?? TweenType.none;
         if (data._name) {
-            this.name = he.decode(String(data._name));
+            this.name = decode(data._name);
         }
 
         this.motionTweenSnap = data._motionTweenSnap ?? false;
@@ -339,18 +350,14 @@ class Layer {
     }
 
     parse(data: DOMLayer) {
-        this.name = he.decode(String(data._name));
+        this.name = decode(data._name);
         this.color = parseColorCSS(data._color);
         if (data._layerType) {
             this.layerType = data._layerType as LayerType;
         }
 
-        if (data.frames !== undefined) {
-            for (const frameData of oneOrMany(data.frames.DOMFrame)) {
-                const frame = new Frame();
-                frame.parse(frameData);
-                this.frames.push(frame);
-            }
+        for (const frameData of oneOrMany(data.frames?.DOMFrame)) {
+            this.frames.push(Frame.create(frameData));
         }
     }
 }
@@ -369,7 +376,7 @@ export class Timeline {
     }
 
     parse(data: DOMTimeline) {
-        this.name = he.decode(String(data._name));
+        this.name = decode(data._name);
         for (const layerData of oneOrMany(data.layers?.DOMLayer)) {
             const layer = new Layer();
             layer.parse(layerData);
@@ -392,7 +399,7 @@ class ItemProperties {
 
     parse(data: any) {
         if (data._name) {
-            this.name = he.decode(String(data._name));
+            this.name = decode(data._name);
         }
         if (data._itemID) {
             this.itemID = data._itemID;
@@ -453,7 +460,9 @@ export class Element {
     centerPoint3DY?: number;
     cacheAsBitmap = false;
     exportAsBitmap = false;
-    loop?: string;
+    // graphic symbol mode instance
+    loop = LoopMode.Loop;
+    firstFrame: number = 0;
 
     silent = false;
     forceSimple = false;
@@ -545,7 +554,7 @@ export class Element {
 
         /// instances ref
         if (data._libraryItemName != null) {
-            this.libraryItemName = he.decode(String(data._libraryItemName));
+            this.libraryItemName = decode(data._libraryItemName);
         }
 
         /////   SymbolInstance
@@ -579,6 +588,10 @@ export class Element {
         }
 
         this.isVisible = data._isVisible ?? true;
+
+        // graphic symbol
+        this.loop = data._loop ?? LoopMode.Loop;
+        this.firstFrame = data._firstFrame ?? 0;
 
         /// text
 
@@ -647,10 +660,10 @@ export class Element {
             this.quality = data._quality;
         }
         if (data._href != null) {
-            this.href = he.decode(String(data._href));
+            this.href = decode(data._href);
         }
         if (data._bitmapDataHRef != null) {
-            this.bitmapDataHRef = he.decode(String(data._bitmapDataHRef));
+            this.bitmapDataHRef = decode(data._bitmapDataHRef);
         }
         if (data._isJPEG != null) {
             this.isJPEG = data._isJPEG;

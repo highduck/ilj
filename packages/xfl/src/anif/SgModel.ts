@@ -11,7 +11,8 @@ import {
     NodeJson,
     TweenTargetType
 } from "@highduck/anijson";
-import {fixPrecision, tupleColor4, tupleRect, tupleVec2, mapToDict} from "./Serialize";
+import {fixPrecision, mapToDict, tupleColor4, tupleRect, tupleVec2} from "./Serialize";
+import {LoopMode} from "../xfl/dom";
 
 export class SgFilterData {
     type = FilterType.None;
@@ -101,6 +102,10 @@ export class SgMovieFrame {
     readonly pivot = new Vec2();
     readonly colorMultiplier = new Color4(1, 1, 1, 1);
     readonly colorOffset = new Color4(0, 0, 0, 0);
+
+    // graphic frame control
+    loopMode: LoopMode | undefined = undefined;
+    firstFrame = 0;
 
     serialize(): MovieFrameJson {
         const r: MovieFrameJson = {
@@ -197,6 +202,9 @@ export class SgNode {
     animationKey = 0;
     layerKey = 0;
 
+    loop: LoopMode | undefined = undefined;
+    firstFrame: undefined | number = undefined;
+
     serialize(): NodeJson {
         const pos = new Vec2(this.matrix.x, this.matrix.y);
         const scale = new Vec2();
@@ -244,6 +252,21 @@ export class SgNode {
         if (this.layerKey !== 0) {
             res.lk = this.layerKey;
         }
+        if (this.loop !== undefined) {
+            switch (this.loop) {
+                case LoopMode.Loop:
+                    res.l = 0;
+                    break;
+                case LoopMode.SingleFrame:
+                    res.l = 1;
+                    break;
+                case LoopMode.PlayOnce:
+                    res.l = 2;
+                    break;
+            }
+            res.ff = this.firstFrame!;
+        }
+
         if (this.sprite !== undefined && this.sprite.length > 0) {
             res.spr = this.sprite;
         }

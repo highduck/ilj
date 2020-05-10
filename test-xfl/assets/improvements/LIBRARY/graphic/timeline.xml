@@ -1,0 +1,128 @@
+<DOMSymbolItem xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://ns.adobe.com/xfl/2008/" name="graphic/timeline" itemID="5eb28c75-00000284" lastModified="1588765710">
+  <timeline>
+    <DOMTimeline name="timeline" layerDepthEnabled="true">
+      <layers>
+        <DOMLayer name="Layer_1_copy_copy" color="#00FFFF" current="true" isSelected="true" autoNamed="false">
+          <frames>
+            <DOMFrame index="0" duration="4" keyMode="9728">
+              <elements>
+                <DOMSymbolInstance libraryItemName="graphic/mc" symbolType="graphic" loop="single frame">
+                  <matrix>
+                    <Matrix tx="73" ty="22.05"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point/>
+                  </transformationPoint>
+                  <color>
+                    <Color alphaMultiplier="0.48828125"/>
+                  </color>
+                </DOMSymbolInstance>
+              </elements>
+            </DOMFrame>
+            <DOMFrame index="4" duration="13" keyMode="9728">
+              <elements>
+                <DOMSymbolInstance libraryItemName="graphic/mc" symbolType="graphic" centerPoint3DX="73" centerPoint3DY="22.05" loop="play once">
+                  <matrix>
+                    <Matrix tx="73" ty="22.05"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+              </elements>
+            </DOMFrame>
+            <DOMFrame index="17" duration="13" keyMode="9728">
+              <elements>
+                <DOMSymbolInstance libraryItemName="graphic/mc" symbolType="graphic" centerPoint3DX="73" centerPoint3DY="22.05" loop="single frame">
+                  <matrix>
+                    <Matrix tx="73" ty="22.05"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point/>
+                  </transformationPoint>
+                  <color>
+                    <Color alphaMultiplier="0.5"/>
+                  </color>
+                </DOMSymbolInstance>
+              </elements>
+            </DOMFrame>
+          </frames>
+        </DOMLayer>
+        <DOMLayer name="Layer_1_copy" color="#00FFFF" autoNamed="false">
+          <frames>
+            <DOMFrame index="0" duration="4" keyMode="9728">
+              <elements>
+                <DOMSymbolInstance libraryItemName="graphic/mc" symbolType="graphic" loop="play once">
+                  <matrix>
+                    <Matrix tx="23" ty="72.05"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+              </elements>
+            </DOMFrame>
+            <DOMFrame index="4" duration="9" keyMode="9728">
+              <elements>
+                <DOMSymbolInstance libraryItemName="graphic/mc" symbolType="graphic" firstFrame="3" centerPoint3DX="23" centerPoint3DY="72.05" loop="single frame">
+                  <matrix>
+                    <Matrix tx="23" ty="72.05"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point/>
+                  </transformationPoint>
+                  <color>
+                    <Color tintMultiplier="0.61"/>
+                  </color>
+                </DOMSymbolInstance>
+              </elements>
+            </DOMFrame>
+            <DOMFrame index="13" duration="17" keyMode="9728">
+              <elements>
+                <DOMSymbolInstance libraryItemName="graphic/mc" symbolType="graphic" firstFrame="3" centerPoint3DX="23" centerPoint3DY="72.05" loop="play once">
+                  <matrix>
+                    <Matrix tx="23" ty="72.05"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+              </elements>
+            </DOMFrame>
+          </frames>
+        </DOMLayer>
+        <DOMLayer name="Layer_1" color="#00FFFF">
+          <frames>
+            <DOMFrame index="0" duration="13" keyMode="9728">
+              <elements>
+                <DOMSymbolInstance libraryItemName="graphic/mc" symbolType="graphic" loop="loop">
+                  <matrix>
+                    <Matrix tx="23" ty="22.05"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+              </elements>
+            </DOMFrame>
+            <DOMFrame index="13" duration="17" keyMode="9728">
+              <elements>
+                <DOMSymbolInstance libraryItemName="graphic/mc" symbolType="graphic" centerPoint3DX="23" centerPoint3DY="22.05" loop="single frame">
+                  <matrix>
+                    <Matrix tx="23" ty="22.05"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point/>
+                  </transformationPoint>
+                  <color>
+                    <Color brightness="0.41"/>
+                  </color>
+                </DOMSymbolInstance>
+              </elements>
+            </DOMFrame>
+          </frames>
+        </DOMLayer>
+      </layers>
+    </DOMTimeline>
+  </timeline>
+</DOMSymbolItem>

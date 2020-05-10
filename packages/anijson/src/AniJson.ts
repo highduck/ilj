@@ -99,8 +99,12 @@ export interface NodeJson {
     script?: string;
     dynamicText?: DynamicTextJson;
     movie?: MovieJson;
+
     ak?: number; // `animationKey`
     lk?: number; // `layerKey`
+
+    l?:number; // loop mode
+    ff?:number; // first frame
 }
 
 export interface AniJson {

@@ -1,0 +1,254 @@
+<DOMDocument xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://ns.adobe.com/xfl/2008/" backgroundColor="#666666" width="480" height="320" frameRate="30" currentTimeline="1" xflVersion="2.971" creatorInfo="Adobe Animate" platform="Macintosh" versionInfo="Saved by Animate Macintosh 20.0 build 25487" majorVersion="20" buildNumber="25487" viewAngle3D="48.8658374504694" vanishingPoint3DX="240" vanishingPoint3DY="160" nextSceneIdentifier="4" playOptionsPlayLoop="false" playOptionsPlayPages="false" playOptionsPlayFrameActions="false" filetypeGUID="DD0DDBBF-5BEF-45B2-9F24-A3048D2A676F" fileGUID="967D3F0EE88C4745B14CE22408CC83F7">
+     <folders>
+          <DOMFolderItem name="drawings" itemID="5eb292ab-000002cf"/>
+          <DOMFolderItem name="graphic" itemID="5eb28c61-00000280" isExpanded="true"/>
+          <DOMFolderItem name="import" itemID="5eb2b025-000002f6"/>
+          <DOMFolderItem name="import/bmp0305" itemID="5eb2bd42-00000404" isExpanded="true"/>
+          <DOMFolderItem name="import/preview" itemID="5eb2b128-0000031b" isExpanded="true"/>
+          <DOMFolderItem name="sharing" itemID="5eb2914f-000002ab"/>
+     </folders>
+     <fonts>
+          <DOMFontItem name="import/Font 1" itemID="5eb2b07a-000002fa" font="Arial-Black" size="0" id="1" sourceLastImported="1588768890" embedRanges="1"/>
+     </fonts>
+     <media>
+          <DOMBitmapItem name="import/8.jpg" itemID="5eb3b8a7-00000061" sourceExternalFilepath="../improvements/LIBRARY/import/8.jpg" sourceLastImported="1581826391" sourcePlatform="macintosh" externalFileSize="5971" allowSmoothing="true" quality="50" href="import/8.jpg" bitmapDataHRef="M 10 1588836499.dat" frameRight="2640" frameBottom="3660" isJPEG="true"/>
+          <DOMSoundItem name="import/bgm_children.mp3" itemID="5eb2b0b7-00000301" sourceExternalFilepath="../improvements/LIBRARY/import/bgm_children.mp3" sourceLastImported="1585952920" sourcePlatform="macintosh" externalFileSize="697514" href="import/bgm_children.mp3" soundDataHRef="M 1 1588768948.dat" format="44kHz 16bit Stereo" sampleCount="2563200" exportFormat="1" exportBits="7" dataLength="697469" exportNative="true" cacheFormat="5kHz 8bit Stereo" cachedSampleCount="320400"/>
+          <DOMSoundItem name="import/chipquest.wav" itemID="5eb2b0d3-0000030a" sourceExternalFilepath="../improvements/LIBRARY/import/chipquest.wav" sourceLastImported="1396091464" sourcePlatform="macintosh" externalFileSize="350434" href="import/chipquest.wav" soundDataHRef="M 3 1588768977.dat" format="44kHz 16bit Stereo" sampleCount="87564" dataLength="350256"/>
+          <DOMBitmapItem name="import/bmp0305/Layer 30 copy" itemID="4fb254dc-00000272" sourceExternalFilepath="../tests/LIBRARY/flump/puppet parts/Layer 30 copy" sourceLastImported="1337087196" originalCompressionType="lossless" quality="90" href="import/bmp0305/Layer 30 copy" bitmapDataHRef="M 9 1588772166.dat" frameRight="5420" frameBottom="5140" maxScaleUsed="0.24"/>
+          <DOMSoundItem name="import/preview.ogg" itemID="5eb2b0d3-0000030b" sourceExternalFilepath="../improvements/LIBRARY/import/preview.ogg" sourceLastImported="1396092964" sourcePlatform="macintosh" externalFileSize="415800" href="import/preview.ogg" soundDataHRef="M 2 1588768962.dat" format="44kHz 16bit Stereo" sampleCount="756485" dataLength="3025940"/>
+          <DOMBitmapItem name="import/preview.png" itemID="5eb2d805-0000040f" sourceExternalFilepath="../improvements/LIBRARY/import/preview.png" sourceLastImported="1572783772" sourcePlatform="macintosh" useImportedJPEGData="false" compressionType="lossless" originalCompressionType="lossless" quality="50" href="import/preview.png" bitmapDataHRef="M 8 1588769078.dat" frameRight="1920" frameBottom="1760"/>
+          <DOMBitmapItem name="import/preview/preview_0" itemID="5eb2b14e-00000324" sourceExternalFilepath="../improvements/LIBRARY/import/preview/preview_0.gif" sourceLastImported="1572783306" sourcePlatform="macintosh" externalFileSize="5239" useImportedJPEGData="false" compressionType="lossless" originalCompressionType="lossless" quality="50" href="import/preview/preview_0.gif" bitmapDataHRef="M 4 1588769064.dat" frameRight="2880" frameBottom="1920"/>
+          <DOMBitmapItem name="import/preview/preview_1" itemID="5eb2b14e-00000325" sourceExternalFilepath="../improvements/LIBRARY/import/preview/preview_1" sourceLastImported="1588769064" sourcePlatform="macintosh" externalFileSize="5239" useImportedJPEGData="false" compressionType="lossless" originalCompressionType="lossless" quality="50" href="import/preview/preview_1" bitmapDataHRef="M 5 1588769064.dat" frameRight="2880" frameBottom="1920"/>
+          <DOMBitmapItem name="import/preview/preview_2" itemID="5eb2b14e-00000326" sourceExternalFilepath="../improvements/LIBRARY/import/preview/preview_2" sourceLastImported="1588769064" sourcePlatform="macintosh" externalFileSize="5239" useImportedJPEGData="false" compressionType="lossless" originalCompressionType="lossless" quality="50" href="import/preview/preview_2" bitmapDataHRef="M 6 1588769064.dat" frameRight="2880" frameBottom="1920"/>
+          <DOMBitmapItem name="import/preview/preview_3" itemID="5eb2b14e-00000327" sourceExternalFilepath="../improvements/LIBRARY/import/preview/preview_3" sourceLastImported="1588769064" sourcePlatform="macintosh" externalFileSize="5239" useImportedJPEGData="false" compressionType="lossless" originalCompressionType="lossless" quality="50" href="import/preview/preview_3" bitmapDataHRef="M 7 1588769064.dat" frameRight="2880" frameBottom="1920"/>
+     </media>
+     <symbols>
+          <Include href="bones.xml" loadImmediate="false" itemID="5eb27cc3-00000272" lastModified="1588755980"/>
+          <Include href="drawings/bitmap_fill.xml" loadImmediate="false" itemID="5eb4fd96-00000063" lastModified="1588929694"/>
+          <Include href="drawings/pixi_test.xml" loadImmediate="false" itemID="5eb29d9f-000002e3" lastModified="1588764115"/>
+          <Include href="drawings/primitive_objects.xml" loadImmediate="false" itemID="5eb2929b-000002c9" lastModified="1588761251"/>
+          <Include href="drawings/strokes.xml" loadImmediate="false" itemID="5eb54c0c-00000133" lastModified="1588942851"/>
+          <Include href="graphic/mc.xml" loadImmediate="false" itemID="5eb28c6d-00000282" lastModified="1588759941"/>
+          <Include href="graphic/Symbol 1.xml" loadImmediate="false" itemID="5eb28cf4-0000028d" lastModified="1588759796"/>
+          <Include href="graphic/timeline.xml" loadImmediate="false" itemID="5eb28c75-00000284" lastModified="1588765710"/>
+          <Include href="import/preview_gif.xml" loadImmediate="false" itemID="5eb2b128-0000031c" lastModified="1588779067"/>
+          <Include href="lsd_1.xml" itemIcon="3" itemID="5eb27d23-00000275" lastModified="1588755747"/>
+          <Include href="lsd_2.xml" itemIcon="3" itemID="5eb27d78-00000279" lastModified="1588755832"/>
+          <Include href="sharing/shared_parrot.xml" itemID="5eb4ff1b-000000b5" lastModified="1588920097"/>
+     </symbols>
+     <timelines>
+          <DOMTimeline name="Scene 1" layerDepthEnabled="true">
+               <layers>
+                    <DOMLayer name="Layer_1" color="#9933CC" current="true" isSelected="true">
+                         <frames>
+                              <DOMFrame index="0" keyMode="9728">
+                                   <elements>
+                                        <DOMSymbolInstance libraryItemName="drawings/primitive_objects">
+                                             <matrix>
+                                                  <Matrix tx="6.05" ty="7.75"/>
+                                             </matrix>
+                                             <transformationPoint>
+                                                  <Point x="102.75" y="80.45"/>
+                                             </transformationPoint>
+                                        </DOMSymbolInstance>
+                                        <DOMSymbolInstance libraryItemName="sharing/shared_parrot" centerPoint3DX="250" centerPoint3DY="60.4">
+                                             <matrix>
+                                                  <Matrix a="0.319992065429688" d="0.319992065429688" tx="222.25" ty="15.4"/>
+                                             </matrix>
+                                             <transformationPoint>
+                                                  <Point x="86.7" y="140.65"/>
+                                             </transformationPoint>
+                                        </DOMSymbolInstance>
+                                        <DOMSymbolInstance libraryItemName="drawings/pixi_test" centerPoint3DX="55.8" centerPoint3DY="209">
+                                             <matrix>
+                                                  <Matrix a="0.499984741210938" d="0.499984741210938" tx="9.35" ty="180.4"/>
+                                             </matrix>
+                                             <transformationPoint>
+                                                  <Point x="406.3" y="260.3"/>
+                                             </transformationPoint>
+                                        </DOMSymbolInstance>
+                                        <DOMSymbolInstance libraryItemName="drawings/bitmap_fill">
+                                             <matrix>
+                                                  <Matrix tx="222.25" ty="127.05"/>
+                                             </matrix>
+                                             <transformationPoint>
+                                                  <Point x="148.5" y="66"/>
+                                             </transformationPoint>
+                                        </DOMSymbolInstance>
+                                        <DOMSymbolInstance libraryItemName="drawings/strokes">
+                                             <matrix>
+                                                  <Matrix tx="105.5" ty="171.4"/>
+                                             </matrix>
+                                             <transformationPoint>
+                                                  <Point x="53.15" y="29.55"/>
+                                             </transformationPoint>
+                                        </DOMSymbolInstance>
+                                   </elements>
+                              </DOMFrame>
+                         </frames>
+                    </DOMLayer>
+               </layers>
+          </DOMTimeline>
+          <DOMTimeline name="Scene 3" layerDepthEnabled="true">
+               <layers>
+                    <DOMLayer name="Layer_1" color="#00FFFF">
+                         <frames>
+                              <DOMFrame index="0" duration="9" keyMode="9728">
+                                   <elements/>
+                              </DOMFrame>
+                              <DOMFrame index="9" duration="29" keyMode="9728" soundEffect="custom" soundName="import/bgm_children.mp3" soundSync="stream" soundLoop="9" outPoint44="992938" soundZoomLevel="8">
+                                   <SoundEnvelope>
+                                        <SoundEnvelopePoint mark44="66594" level0="20761" level1="29266"/>
+                                        <SoundEnvelopePoint mark44="115026" level0="5753" level1="9255"/>
+                                        <SoundEnvelopePoint mark44="115026" level0="5753" level1="22012"/>
+                                        <SoundEnvelopePoint mark44="211890" level0="10506" level1="6003"/>
+                                        <SoundEnvelopePoint mark44="339024" level0="16759" level1="24764"/>
+                                        <SoundEnvelopePoint mark44="357186" level0="17510" level1="15008"/>
+                                        <SoundEnvelopePoint mark44="423780" level0="21262" level1="25764"/>
+                                        <SoundEnvelopePoint mark44="640800" level0="32768" level1="32768"/>
+                                   </SoundEnvelope>
+                                   <elements/>
+                              </DOMFrame>
+                         </frames>
+                    </DOMLayer>
+                    <DOMLayer name="Layer_3" color="#FF800A">
+                         <frames>
+                              <DOMFrame index="0" duration="38" keyMode="9728">
+                                   <elements>
+                                        <DOMSymbolInstance libraryItemName="import/preview_gif">
+                                             <matrix>
+                                                  <Matrix tx="28" ty="29"/>
+                                             </matrix>
+                                             <transformationPoint>
+                                                  <Point x="72" y="48"/>
+                                             </transformationPoint>
+                                        </DOMSymbolInstance>
+                                   </elements>
+                              </DOMFrame>
+                         </frames>
+                    </DOMLayer>
+                    <DOMLayer name="Layer_4" color="#FF4FFF">
+                         <frames>
+                              <DOMFrame index="0" duration="38" keyMode="9728">
+                                   <elements>
+                                        <DOMBitmapInstance libraryItemName="import/preview.png">
+                                             <matrix>
+                                                  <Matrix tx="176" ty="29"/>
+                                             </matrix>
+                                        </DOMBitmapInstance>
+                                   </elements>
+                              </DOMFrame>
+                         </frames>
+                    </DOMLayer>
+                    <DOMLayer name="Layer_5" color="#009999">
+                         <frames>
+                              <DOMFrame index="0" duration="38" keyMode="9728">
+                                   <elements>
+                                        <DOMBitmapInstance libraryItemName="import/bmp0305/Layer 30 copy">
+                                             <matrix>
+                                                  <Matrix a="0.239990234375" d="0.239990234375" tx="119" ty="5"/>
+                                             </matrix>
+                                             <transformationPoint>
+                                                  <Point x="135.2" y="127.1"/>
+                                             </transformationPoint>
+                                        </DOMBitmapInstance>
+                                   </elements>
+                              </DOMFrame>
+                         </frames>
+                    </DOMLayer>
+                    <DOMLayer name="Layer_2" color="#9933CC" current="true" isSelected="true">
+                         <frames>
+                              <DOMFrame index="0" duration="38" keyMode="9728">
+                                   <elements>
+                                        <DOMBitmapInstance libraryItemName="import/8.jpg">
+                                             <matrix>
+                                                  <Matrix tx="287" ty="14"/>
+                                             </matrix>
+                                        </DOMBitmapInstance>
+                                   </elements>
+                              </DOMFrame>
+                         </frames>
+                    </DOMLayer>
+               </layers>
+          </DOMTimeline>
+          <DOMTimeline name="Scene 2" layerDepthEnabled="true">
+               <layers>
+                    <DOMLayer name="Layer_1" color="#00FFFF" current="true" isSelected="true">
+                         <frames>
+                              <DOMFrame index="0" keyMode="9728">
+                                   <elements>
+                                        <DOMSymbolInstance libraryItemName="graphic/timeline">
+                                             <matrix>
+                                                  <Matrix tx="11.05" ty="18"/>
+                                             </matrix>
+                                             <transformationPoint>
+                                                  <Point x="48" y="47.05"/>
+                                             </transformationPoint>
+                                        </DOMSymbolInstance>
+                                   </elements>
+                              </DOMFrame>
+                         </frames>
+                    </DOMLayer>
+               </layers>
+          </DOMTimeline>
+     </timelines>
+     <scripts/>
+     <extendedSwatchLists>
+          <swatchList>
+               <swatchListInfo name="Default Swatches"/>
+
+               <swatches>
+                    <swatchListInfo name="Default Swatches"/>
+
+                    <LinearGradientSwatchItem>
+                         <GradientEntry color="#FFFFFF" ratio="0"/>
+                         <GradientEntry ratio="1"/>
+                    </LinearGradientSwatchItem>
+                    <RadialGradientSwatchItem>
+                         <GradientEntry color="#FFFFFF" ratio="0"/>
+                         <GradientEntry ratio="1"/>
+                    </RadialGradientSwatchItem>
+                    <RadialGradientSwatchItem>
+                         <GradientEntry color="#FF0000" ratio="0"/>
+                         <GradientEntry ratio="1"/>
+                    </RadialGradientSwatchItem>
+                    <RadialGradientSwatchItem>
+                         <GradientEntry color="#00FF00" ratio="0"/>
+                         <GradientEntry ratio="1"/>
+                    </RadialGradientSwatchItem>
+                    <RadialGradientSwatchItem>
+                         <GradientEntry color="#0000FF" ratio="0"/>
+                         <GradientEntry ratio="1"/>
+                    </RadialGradientSwatchItem>
+                    <LinearGradientSwatchItem>
+                         <GradientEntry color="#0066FD" ratio="0"/>
+                         <GradientEntry color="#FFFFFF" ratio="0.376470588235294"/>
+                         <GradientEntry color="#FFFFFF" ratio="0.47843137254902"/>
+                         <GradientEntry color="#996600" ratio="0.501960784313725"/>
+                         <GradientEntry color="#FFCC00" ratio="0.666666666666667"/>
+                         <GradientEntry color="#FFFFFF" ratio="1"/>
+                    </LinearGradientSwatchItem>
+                    <LinearGradientSwatchItem>
+                         <GradientEntry color="#FF0000" ratio="0"/>
+                         <GradientEntry color="#FFFF00" ratio="0.164705882352941"/>
+                         <GradientEntry color="#00FF00" ratio="0.364705882352941"/>
+                         <GradientEntry color="#00FFFF" ratio="0.498039215686275"/>
+                         <GradientEntry color="#0000FF" ratio="0.666666666666667"/>
+                         <GradientEntry color="#FF00FF" ratio="0.831372549019608"/>
+                         <GradientEntry color="#FF0000" ratio="1"/>
+                    </LinearGradientSwatchItem>
+                    <RadialGradientSwatchItem spreadMethod="reflect">
+                         <GradientEntry color="#589B34" ratio="0"/>
+                         <GradientEntry ratio="1"/>
+                    </RadialGradientSwatchItem>
+               </swatches>
+          </swatchList>
+     </extendedSwatchLists>
+     <persistentData>
+          <PD n="ikBoneCount" t="i" v="10"/>
+          <PD n="ikTreeCount" t="i" v="6"/>
+          <PD n="ikNodeCount" t="i" v="16"/>
+     </persistentData>
+     <PrinterSettings platform="macintosh"/>
+     <publishHistory/>
+</DOMDocument>

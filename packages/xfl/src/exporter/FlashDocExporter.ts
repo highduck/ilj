@@ -9,6 +9,26 @@ import {Atlas} from "../spritepack/SpritePack";
 import {renderElement} from "../rasterizer/RenderToSprite";
 import {FilterType, TweenTargetType} from "@highduck/anijson";
 
+function initFill(doc: FlashFile, fill: FillStyle) {
+    if (fill.bitmapPath === undefined) {
+        return;
+    }
+    fill.bitmap = doc.find(fill.bitmapPath, ElementType.bitmap_item)?.bitmap;
+    if (fill.bitmap === undefined) {
+        console.warn('[BitmapFill] bitmap item not found: ', fill.bitmapPath);
+    }
+}
+
+function initElementFills(doc: FlashFile, el: Element) {
+    for (const fill of el.fills) {
+        initFill(doc, fill);
+    }
+
+    for (const stroke of el.strokes) {
+        initFill(doc, stroke.solid.fill);
+    }
+}
+
 function convertTweenTarget(target: TweenTarget): TweenTargetType {
     switch (target) {
         case TweenTarget.all:
@@ -123,10 +143,23 @@ function addRotation(layer: SgMovieLayer, frames: Frame[]) {
     }
 }
 
+function log(msg: string) {
+    console.warn(msg);
+}
+
+const SHAPE_ID = '$';
+
 export class FlashDocExporter {
     readonly library = new ExportItem();
     readonly linkages = new Map<string, string>();
     readonly scenes = new Map<string, string>();
+
+    private _animationSpan0: number = 0;
+    private _animationSpan1: number = 0;
+    // private _currentKeyFrame: number = 0;
+    // private _currentLayer: number = 0;
+
+    private _nextShapeIndex: number = 0;
 
     constructor(readonly doc: FlashFile) {
 
@@ -175,11 +208,17 @@ export class FlashDocExporter {
         for (const item of this.library.children) {
             if (item.ref !== undefined && (item.shapes > 0 || item.ref.bitmap !== undefined)) {
                 item.node.sprite = item.node.libraryName;
+                // just strip symbol from global table
+                item.node.libraryName = "";
             }
             for (const child of item.children) {
                 item.node.children.push(child.node);
             }
-            this.library.node.children.push(item.node);
+
+            // if item should be in global registry, but if it's inline sprite - it's ok to throw it away
+            if (item.node.libraryName.length > 0) {
+                this.library.node.children.push(item.node);
+            }
         }
     }
 
@@ -193,52 +232,34 @@ export class FlashDocExporter {
         }
     }
 
-    private initFill(fill: FillStyle) {
-        if (fill.bitmapPath === undefined) {
-            return;
-        }
-        fill.bitmap = this.doc.find(fill.bitmapPath, ElementType.bitmap_item)?.bitmap;
-        if (fill.bitmap === undefined) {
-            console.warn('[BitmapFill] bitmap item not found: ', fill.bitmapPath);
-        }
-    }
-
-    processElement(el: Element, parent: ExportItem) {
-        for (const fill of el.fills) {
-            this.initFill(fill);
-        }
-
-        for (const stroke of el.strokes) {
-            this.initFill(stroke.solid.fill);
-        }
+    processElement(el: Element, parent: ExportItem, bag?: ExportItem[]) {
+        initElementFills(this.doc, el);
 
         const type = el.elementType;
         switch (type) {
             case ElementType.symbol_instance:
-                this.processSymbolInstance(el, parent);
+                this.processSymbolInstance(el, parent, bag);
                 break;
             case ElementType.bitmap_instance:
-                this.processBitmapInstance(el, parent);
+                this.processBitmapInstance(el, parent, bag);
                 break;
             case ElementType.bitmap_item:
-                this.processBitmapItem(el, parent);
+                this.processBitmapItem(el, parent, bag);
                 break;
             case ElementType.symbol_item:
-                this.processSymbolItem(el, parent);
+                this.processSymbolItem(el, parent, bag);
                 break;
             case ElementType.dynamic_text:
-                this.processDynamicText(el, parent);
+                this.processDynamicText(el, parent, bag);
                 break;
             case ElementType.group:
-                this.processGroup(el, parent);
+                this.processGroup(el, parent, bag);
                 break;
 
             case ElementType.shape:
-                this.processShape(el, parent);
-                break;
             case ElementType.OvalObject:
             case ElementType.RectangleObject:
-                ++parent.shapes;
+                this.processShape(el, parent, bag);
                 break;
 
             case ElementType.static_text:
@@ -253,7 +274,7 @@ export class FlashDocExporter {
         }
     }
 
-    processSymbolInstance(el: Element, parent: ExportItem) {
+    processSymbolInstance(el: Element, parent: ExportItem, bag?: ExportItem[]) {
         console.assert(el.elementType === ElementType.symbol_instance, `wrong type ${el.elementType} symbol instance`);
 
         const item = new ExportItem();
@@ -263,15 +284,21 @@ export class FlashDocExporter {
         item.node.libraryName = el.libraryItemName ?? "";
         item.node.button = el.symbolType === SymbolType.button;
         item.node.touchable = !el.silent;
+        if (el.symbolType === SymbolType.graphic) {
+            item.node.loop = el.loop;
+            item.node.firstFrame = el.firstFrame;
+        }
 
         processFilters(el, item);
 
         item.appendTo(parent);
+        bag?.push(item);
     }
 
-    processSymbolItem(el: Element, parent: ExportItem) {
+    processSymbolItem(el: Element, parent: ExportItem, bag?: ExportItem[]) {
         console.assert(el.elementType === ElementType.symbol_item, `wrong type ${el.elementType} symbol item`);
 
+        log(`Process _SymbolItem_ "${el.item.name}"`);
         const item = new ExportItem();
         item.ref = el;
         processElementCommons(el, item);
@@ -289,9 +316,9 @@ export class FlashDocExporter {
             console.debug("== Button symbol ==");
         }
 
-        if (timelineIsStatic) {
-            ++item.shapes;
-        }
+        // if (timelineIsStatic) {
+        //     ++item.shapes;
+        // }
 
         if (timelineFramesTotal > 1) {
             item.node.movie = new SgMovie();
@@ -303,98 +330,128 @@ export class FlashDocExporter {
         const layers = el.timeline.layers;
         for (let i = layers.length - 1; i >= 0; --i) {
             const layer = layers[i];
-            const layer_data = new SgMovieLayer();
-            layer_data.key = layer_key;
-            let animation_key = 1;
-            for (const frame_data of layer.frames) {
+            // this._currentLayer = layer_key;
+            log(` = Layer #${i} : ${layer.name}`);
+
+            const layerData = new SgMovieLayer();
+            layerData.key = layer_key;
+            let animationKey = 1;
+            let usedAnimationKey = 0;
+            this._animationSpan0 = 0;
+            for (let frameIndex = 0; frameIndex < layer.frames.length; ++frameIndex) {
+                const frameData = layer.frames[frameIndex];
+
+                // this._currentKeyFrame = animationKey;
+                this._animationSpan1 = this._animationSpan0 + frameData.duration - 1;
+                log(` == Frame #${frameData.index}`);
                 if (isHitRect(layer.name)) {
                     item.node.hitRect.copyFrom(
-                        estimateBounds(this.doc, frame_data.elements) as Rect
+                        estimateBounds(this.doc, frameData.elements) as Rect
                     );
                 } else if (isClipRect(layer.name)) {
                     item.node.clipRect.copyFrom(
-                        estimateBounds(this.doc, frame_data.elements) as Rect
+                        estimateBounds(this.doc, frameData.elements) as Rect
                     );
                 }
 
-                item.node.script = frame_data.script;
+                item.node.script = frameData.script;
                 if (item.node.script !== undefined && item.node.script.length !== 0) {
                     console.trace("== SCRIPT: ", item.node.script);
                 }
 
-                switch (layer.layerType) {
-                    case LayerType.normal:
-                        if (frame_data.elements.length !== 0 && !timelineIsStatic) {
-                            for (const frame_element of frame_data.elements) {
-                                this.processElement(frame_element, item);
-                            }
-                            if (item.node.movie
-                                // if we don't have added children there is nothing to animate
-                                && item.children.length !== 0) {
-
-                                const ef = new SgMovieFrame();
-                                ef.index = frame_data.index;
-                                ef.duration = frame_data.duration;
-                                ef.key = animation_key;
-                                if (frame_data.tweenType === TweenType.none) {
-                                    ef.motion_type = 0;
-                                } else {
-                                    ef.motion_type = 1;
-                                    for (const fd of frame_data.tweens) {
-                                        ef.tweens.push(new SgEasing(
-                                            convertTweenTarget(fd.target),
-                                            fd.intensity / 100,
-                                            fd.custom_ease
-                                        ));
-                                    }
-                                    if (ef.tweens.length === 0) {
-                                        ef.tweens.push(new SgEasing(
-                                            TweenTargetType.All,
-                                            frame_data.acceleration / 100
-                                        ));
-                                    }
-                                }
-
-                                const el0 = frame_data.elements[0];
-                                const m = el0.matrix;
-                                const p = el0.transformationPoint;
-                                ef.pivot.copyFrom(p);
-                                p.transform(m);
-                                ef.position.copyFrom(p);
-                                m.extractScale(ef.scale);
-                                m.extractSkew(ef.skew);
-
-                                ef.colorMultiplier.copyFrom(el0.colorMultiplier);
-                                ef.colorOffset.copyFrom(el0.colorOffset);
-
-                                layer_data.frames.push(ef);
-
-                                const child = item.children[item.children.length - 1];
-                                child.node.animationKey = animation_key;
-                                child.node.layerKey = layer_key;
+                // ignore other layers.
+                // TODO: mask layer
+                if (layer.layerType === LayerType.normal) {
+                    usedAnimationKey = animationKey;
+                    const items: ExportItem[] = [];
+                    for (const frameElement of frameData.elements) {
+                        let animationTarget: undefined | ExportItem = undefined;
+                        for (const prevItem of item.children) {
+                            if (prevItem.ref &&
+                                prevItem.ref.libraryItemName === frameElement.libraryItemName &&
+                                prevItem.node.layerKey === layer_key) {
+                                animationTarget = prevItem;
+                                usedAnimationKey = prevItem.node.animationKey;
+                                items.push(animationTarget);
+                                break;
                             }
                         }
-                        break;
-                    default:
-                        break;
+                        if (animationTarget === undefined) {
+                            this.processElement(frameElement, item, items);
+                        }
+                    }
+                    if (item.node.movie
+                        // if we don't have added children there is nothing to animate
+                        && items.length !== 0) {
+                        const ef = new SgMovieFrame();
+
+                        ef.index = frameData.index;
+                        ef.duration = frameData.duration;
+                        ef.key = usedAnimationKey;
+                        if (frameData.tweenType === TweenType.none) {
+                            ef.motion_type = 0;
+                        } else {
+                            ef.motion_type = 1;
+                            for (const fd of frameData.tweens) {
+                                ef.tweens.push(new SgEasing(
+                                    convertTweenTarget(fd.target),
+                                    fd.intensity / 100,
+                                    fd.custom_ease
+                                ));
+                            }
+                            if (ef.tweens.length === 0) {
+                                ef.tweens.push(new SgEasing(
+                                    TweenTargetType.All,
+                                    frameData.acceleration / 100
+                                ));
+                            }
+                        }
+
+                        const el0 = frameData.elements[0];
+                        const m = el0.matrix;
+                        const p = el0.transformationPoint;
+                        ef.pivot.copyFrom(p);
+                        p.transform(m);
+                        ef.position.copyFrom(p);
+                        m.extractScale(ef.scale);
+                        m.extractSkew(ef.skew);
+
+                        ef.colorMultiplier.copyFrom(el0.colorMultiplier);
+                        ef.colorOffset.copyFrom(el0.colorOffset);
+
+                        layerData.frames.push(ef);
+
+                        for (const child of items) {
+                            child.node.animationKey = usedAnimationKey;
+                            child.node.layerKey = layer_key;
+                        }
+                    }
                 }
-                ++animation_key;
+                ++animationKey;
+
+                this._animationSpan0 += frameData.duration;
             }
-            const keyframe_count = layer_data.frames.length;
+            const keyframe_count = layerData.frames.length;
             if (keyframe_count > 1) {
-                normalizeRotation(layer_data);
-                addRotation(layer_data, layer.frames);
+                normalizeRotation(layerData);
+                addRotation(layerData, layer.frames);
             }
             if (item.node.movie !== undefined) {
-                item.node.movie.layers.push(layer_data);
+                item.node.movie.layers.push(layerData);
             }
             ++layer_key;
         }
 
         item.appendTo(parent);
+        bag?.push(item);
+
+        // this._currentKeyFrame = 0;
+        // this._currentLayer = 0;
+        this._animationSpan0 = 0;
+        this._animationSpan1 = 0;
     }
 
-    processBitmapInstance(el: Element, parent: ExportItem) {
+    processBitmapInstance(el: Element, parent: ExportItem, bag?: ExportItem[]) {
         console.assert(el.elementType === ElementType.bitmap_instance, `wrong type ${el.elementType} bitmap instance`);
 
         const item = new ExportItem();
@@ -407,16 +464,18 @@ export class FlashDocExporter {
         processFilters(el, item);
 
         item.appendTo(parent);
+        bag?.push(item);
     }
 
-    processBitmapItem(el: Element, library: ExportItem) {
+    processBitmapItem(el: Element, library: ExportItem, bag?: ExportItem[]) {
         const item = new ExportItem();
         item.ref = el;
         item.node.libraryName = el.item.name;
         item.appendTo(library);
+        bag?.push(item);
     }
 
-    processDynamicText(el: Element, parent: ExportItem) {
+    processDynamicText(el: Element, parent: ExportItem, bag?: ExportItem[]) {
         console.assert(el.elementType === ElementType.dynamic_text, `wrong type ${el.elementType} dynamic text`);
 
         const item = new ExportItem();
@@ -453,20 +512,66 @@ export class FlashDocExporter {
         processFilters(el, item);
 
         item.appendTo(parent);
+        bag?.push(item);
     }
 
-    processGroup(el: Element, parent: ExportItem) {
+    processGroup(el: Element, parent: ExportItem, bag?: ExportItem[]) {
         console.assert(el.elementType === ElementType.group, `wrong type ${el.elementType} group`);
         for (const member of el.members) {
-            this.processElement(member, parent);
+            this.processElement(member, parent, bag);
         }
     }
 
-    processShape(el: Element, parent: ExportItem) {
-        console.assert(el.elementType === ElementType.shape, `wrong type ${el.elementType} shape`);
-        //if (parent) {
-        ++parent.shapes;
-        //}
+    addElementToDrawingLayer(item: ExportItem, element: Element): ExportItem {
+        // for (let i = item.children.length - 1; i >= 0; --i) {
+        //     const child = item.children[i];
+        //     if (child.drawingLayer) {
+        //         return child;
+        //     }
+        // }
+        if (item.children.length > 0) {
+            const child = item.children[item.children.length - 1];
+            if (child.drawingLayer && child.ref &&
+                child.animationSpan0 === this._animationSpan0 &&
+                child.animationSpan1 === this._animationSpan1
+            ) {
+                log(`  Found drawing layer ${child.ref.item.name}`);
+                child.ref.members.push(element);
+                ++child.shapes;
+                return child;
+            }
+        }
+        const layer = new ExportItem();
+        layer.ref = new Element();
+        const name = SHAPE_ID + (++this._nextShapeIndex);
+        layer.ref.libraryItemName = name;
+        layer.ref.item.name = name;
+        layer.ref.elementType = ElementType.group;
+        layer.node.libraryName = name;
+        layer.node.sprite = name;
+        layer.drawingLayer = true;
+        layer.animationSpan0 = this._animationSpan0;
+        layer.animationSpan1 = this._animationSpan1;
+        item.add(layer);
+        this.library.add(layer);
+
+        log(`  Created drawing layer ${layer.ref.item.name}`);
+
+        layer.ref.members.push(element);
+        ++layer.shapes;
+        return layer;
+    }
+
+    processShape(el: Element, parent: ExportItem, bag?: ExportItem[]) {
+        console.assert(
+            el.elementType === ElementType.shape
+            || el.elementType === ElementType.OvalObject
+            || el.elementType === ElementType.RectangleObject,
+            `Wrong shape type: ${el.elementType}`
+        );
+        log(`  Process Shape ${el.item.name}`);
+        const affectedItems = this.addElementToDrawingLayer(parent, el);
+        bag?.push(affectedItems);
     }
 
     render(item: ExportItem, to_atlas: Atlas) {

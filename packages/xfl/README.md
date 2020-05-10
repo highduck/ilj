@@ -41,8 +41,8 @@ Purpose of rewriting C/C++ codebase to TypeScript:
 - [x] Split-alpha export support
 
 ### 2. Features
+- [ ] Graphic symbol frame control
 - [ ] Masks (Alpha/Color)
-- [ ] Graphic symbol control
 - [ ] Visibility timeline animation
 - [ ] Motion tween / Classic tween
 - [ ] Stroke styles - not solid
