@@ -24,46 +24,31 @@ export const enum EdgeSelectionBit {
  explanation:
  https://stackoverflow.com/questions/4077200/whats-the-meaning-of-the-non-numerical-values-in-the-xfls-edge-definition
  */
-
-function readDoubleHex(str: string): number {
-    if (str[0] === '#') {
-        const parts = str.substr(1).split('.');
-        let i = parseInt(parts[0], 16) << 8;
-        let sign = 1;
-        if ((i & 0x80000000) !== 0) {
-            //i = i & 0x7FFFFFFF;
-            sign = -1;
+function parseFixedFloat24_8(str: string): number {
+    const parts = str.split('.');
+    let i = parseInt(parts[0], 16) << 8;
+    if (parts.length > 1) {
+        let sf = parts[1];
+        while (sf.length < 2) {
+            sf += '0';
         }
-        let f = 0;
-        if (parts.length > 1) {
-            let sf = parts[1];
-            while (sf.length < 2) {
-                sf += '0';
-            }
-            i = i | parseInt(sf, 16);
-        }
-
-        if ((i & 0x80000000) !== 0) {
-            i = (-(~i)) - 1;
-        }
-
-        return i / (1 << 8);
-        // let hex = parseInt(m, 16);
-
-        // let v = (hex & 0x7FFFFFFF) / (1 << 8);
-        // const sign =
-        // if ((hex & 0x80000000) !== 0) {
-        //     hex = -(~hex) - 1;
-        // }
-        // return hex / (1 << 8);
+        i = i | parseInt(sf, 16);
     }
-
-    // default floating point format
-    return parseFloat(str);
+    if ((i & 0x80000000) !== 0) {
+        i = (-(~i)) - 1;
+    }
+    return i / (1 << 8);
 }
 
-function readTwips(str: string): number {
-    return readDoubleHex(str) / 20.0;
+function parseValue(str: string): number {
+    if (str.length === 0) {
+        return 0.0;
+    }
+    if (str[0] === '#') {
+        return parseFixedFloat24_8(str.substr(1));
+    }
+    // default floating point format
+    return parseFloat(str);
 }
 
 function getValueLength(str: string, start: number): number {
@@ -78,11 +63,7 @@ function getValueLength(str: string, start: number): number {
     return len;
 }
 
-export function parseEdges(data: string, out_commands: Array<number>, out_values: Array<number>) {
-    if (!data) {
-        return;
-    }
-
+export function parseEdges(data: string, outCommands: number[], outValues: number[]) {
     for (let i = 0; i < data.length; ++i) {
         const c = data.charCodeAt(i);
         if (WHITESPACE.indexOf(c) >= 0) {
@@ -90,10 +71,11 @@ export function parseEdges(data: string, out_commands: Array<number>, out_values
         }
         const cmd = CMD.indexOf(c);
         if (cmd >= 0) {
-            out_commands.push(cmd);
+            outCommands.push(cmd);
         } else {
             const len = getValueLength(data, i);
-            out_values.push(readTwips(data.substr(i, len)));
+            const twips = parseValue(data.substr(i, len))
+            outValues.push(twips / 20);
             i += len - 1;
         }
     }

@@ -9,7 +9,8 @@
     "rootDir": "./src",
     "allowSyntheticDefaultImports": true,
     "downlevelIteration": true,
-    "noEmitOnError": true
+    "noEmitOnError": true,
+    "declarationDir": "dist/types"
   },
   "exclude": [
     "**/node_modules",

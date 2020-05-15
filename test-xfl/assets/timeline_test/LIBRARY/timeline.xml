@@ -1,0 +1,151 @@
+<DOMSymbolItem xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://ns.adobe.com/xfl/2008/" name="timeline" itemID="5ebaa888-00000627" lastModified="1589549896" lastUniqueIdentifier="2">
+  <timeline>
+    <DOMTimeline name="timeline" layerDepthEnabled="true">
+      <layers>
+        <DOMLayer name="Layer_2" color="#9933CC">
+          <frames>
+            <DOMFrame index="0" duration="5" name="start" labelType="name" keyMode="9728">
+              <elements/>
+            </DOMFrame>
+            <DOMFrame index="5" duration="7" name="comment?" labelType="comment" keyMode="9728">
+              <elements/>
+            </DOMFrame>
+            <DOMFrame index="12" duration="11" name="what is anchor?" labelType="anchor" bookmark="true" keyMode="9728">
+              <elements/>
+            </DOMFrame>
+            <DOMFrame index="23" duration="13" name="ha2" labelType="anchor" bookmark="true" keyMode="9728">
+              <elements/>
+            </DOMFrame>
+          </frames>
+        </DOMLayer>
+        <DOMLayer name="Layer_1" color="#00FFFF" current="true" isSelected="true">
+          <frames>
+            <DOMFrame index="0" duration="23" tweenType="motion" motionTweenSnap="true" keyMode="22017">
+              <elements>
+                <DOMShape>
+                  <strokes>
+                    <StrokeStyle index="1">
+                      <SolidStroke scaleMode="normal" weight="2">
+                        <fill>
+                          <SolidColor/>
+                        </fill>
+                      </SolidStroke>
+                    </StrokeStyle>
+                    <StrokeStyle index="2">
+                      <SolidStroke scaleMode="normal" weight="2">
+                        <fill>
+                          <SolidColor color="#0066FF"/>
+                        </fill>
+                      </SolidStroke>
+                    </StrokeStyle>
+                  </strokes>
+                  <edges>
+                    <Edge strokeStyle="2" edges="!83 -154S4|68 -154!68 -154[74 -163 73 -169!73 -169|123 -169"/>
+                    <Edge strokeStyle="1" edges="!98 -134S4|83 -134!83 -134[89 -143 88 -149!88 -149|138 -149"/>
+                    <Edge strokeStyle="2" edges="!-7 -131S4|-7 9!-7 9|8 9!8 9|23 9!23 9|23 -1!23 -1[33 -6 37 -8!-117 -109[-129 -108 -132 -116!-132 -116[-127 -127 -114 -126!-114 -126[-107 -126 -107 -119"/>
+                    <Edge strokeStyle="1" edges="!-102 -89S4[-114 -88 -117 -96!-117 -96[-112 -107 -99 -106!-99 -106[-92 -106 -92 -99!-112 -34|-112 9!-112 9|-112 29!-112 29|-59 29!-59 29|-59 11"/>
+                    <Edge strokeStyle="2" edges="!-127 -54S4|-127 9!-127 9|-112 9!-112 9|-74 9!-74 9|-74 -9"/>
+                    <Edge strokeStyle="1" edges="!8 -111S4|8 9!8 9|8 29!8 29|38 29!38 29|38 19!38 19[48 14 52 12!106 -66|106 96!106 96|56 124!56 124|36 124!36 124[29 123 25 120!25 120[19 116 12 112"/>
+                    <Edge strokeStyle="2" edges="!91 -86S4|91 76!91 76|41 104!41 104|21 104!21 104[14 103 10 100!10 100[4 96 -3 92"/>
+                    <Edge cubics="!88 -149(;88,-149 138,-149 138,-149q88 -149 138 -149);"/>
+                    <Edge cubics="!98 -134(;98,-134 83,-134 83,-134q98 -134 83 -134);"/>
+                    <Edge cubics="!83 -134(;87,-140 89,-145 88,-149q83 -134Q89 -143q88 -149);"/>
+                    <Edge cubics="!-112 29(;-112,29 -59,29 -59,29q-112 29 -59 29);"/>
+                    <Edge cubics="!-59 29(;-59,29 -59,11 -59,11q-59 29 -59 11);"/>
+                    <Edge cubics="!-99 -106(;-94,-106 -92,-104 -92,-99q-99 -106Q-92 -106q-92 -99);"/>
+                    <Edge cubics="!-117 -96(;-114,-103 -108,-107 -99,-106q-117 -96Q-112 -107q-99 -106);"/>
+                    <Edge cubics="!-102 -89(;-110,-88 -115,-91 -117,-96q-102 -89Q-114 -88q-117 -96);"/>
+                    <Edge cubics="!38 19(;45,16 49,13 52,12q38 19Q48 14q52 12);"/>
+                    <Edge cubics="!8 29(;8,29 38,29 38,29q8 29 38 29);"/>
+                    <Edge cubics="!38 29(;38,29 38,19 38,19q38 29 38 19);"/>
+                    <Edge cubics="!106 -66(;106,-66 106,96 106,96q106 -66 106 96);"/>
+                    <Edge cubics="!25 120(;21,117 17,115 12,112q25 120Q19 116q12 112);"/>
+                    <Edge cubics="!56 124(;56,124 36,124 36,124q56 124 36 124);"/>
+                    <Edge cubics="!36 124(;31,123 28,122 25,120q36 124Q29 123q25 120);"/>
+                    <Edge cubics="!106 96(;106,96 56,124 56,124q106 96 56 124);"/>
+                    <Edge cubics="!73 -169(;73,-169 123,-169 123,-169q73 -169 123 -169);"/>
+                    <Edge cubics="!83 -154(;83,-154 68,-154 68,-154q83 -154 68 -154);"/>
+                    <Edge cubics="!68 -154(;72,-160 74,-165 73,-169q68 -154Q74 -163q73 -169);"/>
+                    <Edge cubics="!-127 -54(;-127,-54 -127,9 -127,9q-127 -54 -127 9);"/>
+                    <Edge cubics="!-74 9(;-74,9 -74,-9 -74,-9q-74 9 -74 -9);"/>
+                    <Edge cubics="!-114 -126(;-109,-126 -107,-124 -107,-119q-114 -126Q-107 -126q-107 -119);"/>
+                    <Edge cubics="!-132 -116(;-129,-123 -123,-127 -114,-126q-132 -116Q-127 -127q-114 -126);"/>
+                    <Edge cubics="!-117 -109(;-125,-108 -130,-111 -132,-116q-117 -109Q-129 -108q-132 -116);"/>
+                    <Edge cubics="!23 -1(;30,-4 34,-7 37,-8q23 -1Q33 -6q37 -8);"/>
+                    <Edge cubics="!-7 -131(;-7,-131 -7,9 -7,9q-7 -131 -7 9);"/>
+                    <Edge cubics="!23 9(;23,9 23,-1 23,-1q23 9 23 -1);"/>
+                    <Edge cubics="!91 -86(;91,-86 91,76 91,76q91 -86 91 76);"/>
+                    <Edge cubics="!10 100(;6,97 2,95 -3,92q10 100Q4 96q-3 92);"/>
+                    <Edge cubics="!41 104(;41,104 21,104 21,104q41 104 21 104);"/>
+                    <Edge cubics="!21 104(;16,103 13,102 10,100q21 104Q14 103q10 100);"/>
+                    <Edge cubics="!91 76(;91,76 41,104 41,104q91 76 41 104);"/>
+                    <Edge cubics="!-127 9(;-127,9 -112,9 -112,9q-127 9 -112 9);"/>
+                    <Edge cubics="!-112 -34(;-112,-34 -112,9 -112,9q-112 -34 -112 9);"/>
+                    <Edge cubics="!-112 9(;-112,9 -74,9 -74,9q-112 9 -74 9);"/>
+                    <Edge cubics="!-112 9(;-112,9 -112,29 -112,29q-112 9 -112 29);"/>
+                    <Edge cubics="!8 9(;8,9 23,9 23,9q8 9 23 9);"/>
+                    <Edge cubics="!8 9(;8,9 8,29 8,29q8 9 8 29);"/>
+                    <Edge cubics="!8 -111(;8,-111 8,9 8,9q8 -111 8 9);"/>
+                    <Edge cubics="!-7 9(;-7,9 8,9 8,9q-7 9 8 9);"/>
+                  </edges>
+                </DOMShape>
+                <DOMSymbolInstance libraryItemName="Tween 2" selected="true" symbolType="graphic" loop="loop">
+                  <matrix>
+                    <Matrix tx="59.25"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+                <DOMSymbolInstance libraryItemName="Tween 1" selected="true" symbolType="graphic" loop="loop">
+                  <matrix>
+                    <Matrix a="0.707107543945312" b="0.707107543945312" c="-0.70709228515625" d="0.707107543945312" tx="-5.6" ty="4"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+              </elements>
+            </DOMFrame>
+            <DOMFrame index="23" duration="13" name="s" labelType="anchor" bookmark="true" keyMode="9728">
+              <elements>
+                <DOMShape>
+                  <strokes>
+                    <StrokeStyle index="1">
+                      <SolidStroke scaleMode="normal" weight="2">
+                        <fill>
+                          <SolidColor color="#0066FF"/>
+                        </fill>
+                      </SolidStroke>
+                    </StrokeStyle>
+                  </strokes>
+                  <edges>
+                    <Edge strokeStyle="1" edges="!21 104[14 103 10 100!10 100[4 96 -3 92"/>
+                    <Edge cubics="!10 100(;6,97 2,95 -3,92q10 100Q4 96q-3 92);"/>
+                    <Edge cubics="!21 104(;16,103 13,102 10,100q21 104Q14 103q10 100);"/>
+                  </edges>
+                </DOMShape>
+                <DOMSymbolInstance libraryItemName="Tween 2" symbolType="graphic" centerPoint3DX="71.1" centerPoint3DY="-6.45" loop="loop">
+                  <matrix>
+                    <Matrix a="0.777099609375" b="0.6292724609375" c="-0.6292724609375" d="0.777099609375" tx="71.55" ty="-6"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="-46.35" y="64.4"/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+                <DOMSymbolInstance libraryItemName="Tween 2" symbolType="graphic" centerPoint3DX="40.75" centerPoint3DY="-35.4" loop="loop">
+                  <matrix>
+                    <Matrix a="0.999908447265625" d="0.999908447265625" tx="41.3" ty="-35.3"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point x="-46.35" y="64.45"/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+              </elements>
+            </DOMFrame>
+          </frames>
+        </DOMLayer>
+      </layers>
+    </DOMTimeline>
+  </timeline>
+</DOMSymbolItem>

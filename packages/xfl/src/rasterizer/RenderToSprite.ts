@@ -4,10 +4,11 @@ import {Rect} from "@highduck/math";
 import {FlashFile} from "../xfl/FlashFile";
 import {Element} from "../xfl/types";
 import {DomScanner} from "../render/DomScanner";
-import {destroyPMASurface, getCanvasKit, makePMASurface} from "./CanvasKitHelpers";
-import {CKRenderer, convertBlendMode} from "./CKRenderer";
-import {SkSurface} from "canvaskit-wasm";
+import {destroyPMASurface, getCanvasKit, makePMASurface} from "./SkiaHelpers";
+import {SkiaRenderer} from "./SkiaRenderer";
 import {BlendMode} from "../xfl/dom";
+import {logDebug} from "../debug";
+import {blitDownSample} from "./SkiaFunctions";
 
 export interface RenderOptions {
     scale?: number, //= 1
@@ -24,22 +25,6 @@ function findMultiSampleScale(width: number, height: number, ss: number = 8): nu
         ss /= 2;
     }
     return ss;
-}
-
-function blitDownSample(destSurface: SkSurface, srcSurface: SkSurface, x: number, y: number, upscale: number, blendMode: BlendMode) {
-    const ck = getCanvasKit();
-    const paint = new ck.SkPaint();
-    paint.setAntiAlias(false);
-    paint.setBlendMode(convertBlendMode(ck, blendMode));
-    paint.setFilterQuality(ck.FilterQuality.High);
-    const image = srcSurface.makeImageSnapshot();
-    const canvas = destSurface.getCanvas();
-    canvas.save();
-    canvas.scale(1 / upscale, 1 / upscale);
-    canvas.drawImage(image, 0, 0, paint);
-    canvas.restore();
-    paint.delete();
-    image.delete();
 }
 
 export function renderBatch(bounds: Rect,
@@ -82,7 +67,7 @@ export function renderBatch(bounds: Rect,
         const canvas = surface.getCanvas();
 
         // BEGIN
-        const renderer = new CKRenderer(canvas, false);
+        const renderer = new SkiaRenderer(canvas, false);
         canvas.save();
         canvas.scale(scale * upscale, scale * upscale);
         if (!fixed) {
@@ -132,10 +117,14 @@ export function renderBatch(bounds: Rect,
 }
 
 export function renderElement(doc: FlashFile, el: Element, options: RenderOptions): Sprite {
+    logDebug("render resolution x" + (options.scale ?? 1));
     const scanner = new DomScanner(doc);
     scanner.scan(el);
+
+    const bounds = scanner.output.bounds.getResultRect();
+    logDebug("render batch: " + bounds.width + " x " + bounds.height);
     return renderBatch(
-        scanner.output.bounds.getResultRect(),
+        bounds,
         scanner.output.batches,
         options,
         el.item.name

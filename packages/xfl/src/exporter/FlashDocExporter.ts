@@ -1,33 +1,24 @@
 import {FlashFile} from "../xfl/FlashFile";
 import {ExportItem} from "./ExportItem";
-import {Element, FillStyle, Frame} from "../xfl/types";
-import {DOMFilterKind, ElementType, LayerType, RotationDirection, SymbolType, TweenTarget, TweenType} from "../xfl/dom";
-import {SgDynamicText, SgEasing, SgFile, SgFilterData, SgMovie, SgMovieFrame, SgMovieLayer} from "../anif/SgModel";
+import {Element, Frame, Layer} from "../xfl/types";
+import {DOMFilterKind, ElementType, LayerType, SymbolType, TweenTarget, TweenType} from "../xfl/dom";
+import {
+    SgDynamicText,
+    SgEasing,
+    SgFile,
+    SgFilterData,
+    SgMovie,
+    SgMovieFrame,
+    SgMovieLayer,
+    SgNode
+} from "../anif/SgModel";
 import {Matrix2D, Rect} from "@highduck/math";
 import {estimateBounds} from "../render/DomScanner";
 import {Atlas} from "../spritepack/SpritePack";
 import {renderElement} from "../rasterizer/RenderToSprite";
 import {FilterType, TweenTargetType} from "@highduck/anijson";
-
-function initFill(doc: FlashFile, fill: FillStyle) {
-    if (fill.bitmapPath === undefined) {
-        return;
-    }
-    fill.bitmap = doc.find(fill.bitmapPath, ElementType.bitmap_item)?.bitmap;
-    if (fill.bitmap === undefined) {
-        console.warn('[BitmapFill] bitmap item not found: ', fill.bitmapPath);
-    }
-}
-
-function initElementFills(doc: FlashFile, el: Element) {
-    for (const fill of el.fills) {
-        initFill(doc, fill);
-    }
-
-    for (const stroke of el.strokes) {
-        initFill(doc, stroke.solid.fill);
-    }
-}
+import {extractTweenDelta, KeyframeTransform, setupFrameFromElement} from "./AnimationUtils";
+import {logAssert, logDebug, logWarning} from "../debug";
 
 function convertTweenTarget(target: TweenTarget): TweenTargetType {
     switch (target) {
@@ -43,10 +34,6 @@ function convertTweenTarget(target: TweenTarget): TweenTargetType {
             return TweenTargetType.Color;
     }
     return TweenTargetType.All;
-}
-
-function sign(a: number): number {
-    return a > 0 ? 1 : (a < 0 ? -1 : 0);
 }
 
 function isHitRect(str?: string): boolean {
@@ -87,67 +74,34 @@ function processFilters(el: Element, item: ExportItem) {
     }
 }
 
-function normalizeRotation(layer: SgMovieLayer) {
-    // normalize skews, so that we always skew the shortest distance between
-    // two angles (we don't want to skew more than Math.PI)
-    const end = layer.frames.length - 1;
-    for (let i = 0; i < end; ++i) {
-        const kf = layer.frames[i];
-        const nextKf = layer.frames[i + 1];
-
-        if (kf.skew.x + Math.PI < nextKf.skew.x) {
-            nextKf.skew.x -= 2 * Math.PI;
-        } else if (kf.skew.x - Math.PI > nextKf.skew.x) {
-            nextKf.skew.x += 2 * Math.PI;
-        }
-        if (kf.skew.y + Math.PI < nextKf.skew.y) {
-            nextKf.skew.y -= 2 * Math.PI;
-        } else if (kf.skew.y - Math.PI > nextKf.skew.y) {
-            nextKf.skew.y += 2 * Math.PI;
-        }
-    }
-}
-
-function addRotation(layer: SgMovieLayer, frames: Frame[]) {
-    let additionalRotation = 0;
-    const end = layer.frames.length - 1;
-    for (let i = 0; i < end; ++i) {
-        const kf = layer.frames[i];
-        const nextKf = layer.frames[i + 1];
-        // reverse
-        const f1 = frames[i];
-        // If a direction is specified, take it into account
-        if (f1.motionTweenRotate !== RotationDirection.none) {
-            let direction = (f1.motionTweenRotate === RotationDirection.cw ? 1 : -1);
-            // negative scales affect rotation direction
-            direction *= sign(nextKf.scale.x) * sign(nextKf.scale.y);
-
-            while (direction < 0 && kf.skew.x < nextKf.skew.x) {
-                nextKf.skew.x -= 2 * Math.PI;
-            }
-            while (direction > 0 && kf.skew.x > nextKf.skew.x) {
-                nextKf.skew.x += 2 * Math.PI;
-            }
-            while (direction < 0 && kf.skew.y < nextKf.skew.y) {
-                nextKf.skew.y -= 2 * Math.PI;
-            }
-            while (direction > 0 && kf.skew.y > nextKf.skew.y) {
-                nextKf.skew.y += 2 * Math.PI;
-            }
-
-            // additional rotations specified?
-            additionalRotation += f1.motionTweenRotateTimes * 2 * Math.PI * direction;
-        }
-
-        nextKf.skew.add2(additionalRotation, additionalRotation);
-    }
-}
-
-function log(msg: string) {
-    console.warn(msg);
-}
-
 const SHAPE_ID = '$';
+
+function createFrameModel(frame: Frame): SgMovieFrame {
+    const ef = new SgMovieFrame();
+    ef.index = frame.index;
+    ef.duration = frame.duration;
+    if (frame.tweenType === TweenType.Classic) {
+        ef.motionType = 1;
+        for (const fd of frame.tweens) {
+            ef.easing.push(new SgEasing(
+                convertTweenTarget(fd.target),
+                fd.intensity / 100,
+                fd.customEase
+            ));
+        }
+        if (ef.easing.length === 0) {
+            ef.easing.push(new SgEasing(
+                TweenTargetType.All,
+                frame.acceleration / 100
+            ));
+        }
+        ef.rotate = frame.motionTweenRotate;
+        ef.rotateTimes = frame.motionTweenRotateTimes;
+    } else if (frame.tweenType === TweenType.MotionObject) {
+        logWarning('motion object is not supported');
+    }
+    return ef;
+}
 
 export class FlashDocExporter {
     readonly library = new ExportItem();
@@ -156,8 +110,6 @@ export class FlashDocExporter {
 
     private _animationSpan0: number = 0;
     private _animationSpan1: number = 0;
-    // private _currentKeyFrame: number = 0;
-    // private _currentLayer: number = 0;
 
     private _nextShapeIndex: number = 0;
 
@@ -171,14 +123,13 @@ export class FlashDocExporter {
 
     buildLibrary() {
         for (const item of this.doc.library) {
-            this.processElement(item, this.library);
+            this.process(item, this.library);
         }
 
         for (const item of this.doc.scenes) {
-            this.processElement(item, this.library);
             const sceneName = item.timeline.name;
             const libraryName = item.item.name;
-            console.log('SCENE: ', sceneName, libraryName);
+            logDebug('SCENE: ', sceneName, libraryName);
             if (sceneName && libraryName.length > 0) {
                 this.scenes.set(sceneName, libraryName);
             }
@@ -187,7 +138,7 @@ export class FlashDocExporter {
         for (const item of this.library.children) {
             if (item.ref !== undefined && item.ref.item.linkageExportForAS) {
                 const linkageName = item.ref.item.linkageClassName;
-                if (linkageName !== undefined && linkageName.length !== 0) {
+                if (linkageName !== undefined && linkageName.length > 0) {
                     this.linkages.set(linkageName, item.ref.item.name);
                 }
                 item.inc_ref(this.library);
@@ -206,16 +157,28 @@ export class FlashDocExporter {
         this.library.children = chi;
 
         for (const item of this.library.children) {
-            if (item.ref !== undefined && (item.shapes > 0 || item.ref.bitmap !== undefined)) {
-                item.node.sprite = item.node.libraryName;
-                // just strip symbol from global table
-                item.node.libraryName = "";
-            }
+            // if (item.node.sprite !== undefined && item.node.scaleGrid.empty) {
+            // if (item.ref !== undefined && (item.shapes > 0 || item.ref.bitmap !== undefined)) {
+            // item.node.sprite = item.node.libraryName;
+            // just strip symbol from global table
+            // item.node.libraryName = "";
+            // }
             for (const child of item.children) {
                 item.node.children.push(child.node);
+                // if (child.node.sprite) {
+                // clear refs from sprite objects
+                // child.node.libraryName = "";
+                // }
             }
 
-            // if item should be in global registry, but if it's inline sprite - it's ok to throw it away
+            // if (item.node.children.length === 1
+            //     && item.node.children[0].sprite) {
+            //     item.node.sprite = item.node.children[0].sprite;
+            //     item.node.children.length = 0;
+            // }
+
+            // if item should be in global registry,
+            // but if it's inline sprite - it's ok to throw it away
             if (item.node.libraryName.length > 0) {
                 this.library.node.children.push(item.node);
             }
@@ -224,58 +187,54 @@ export class FlashDocExporter {
 
     buildSprites(toAtlas: Atlas) {
         for (const item of this.library.children) {
-            // todo: check `node.sprite` instead of these checkings?
-            if (item.ref !== undefined && (item.shapes > 0 || item.ref.bitmap !== undefined)) {
+            if (item.renderThis) {
                 this.render(item, toAtlas);
-                //item->node.sprite = item->node.libraryName;
             }
         }
     }
 
-    processElement(el: Element, parent: ExportItem, bag?: ExportItem[]) {
-        initElementFills(this.doc, el);
-
+    process(el: Element, parent: ExportItem, bag?: ExportItem[]) {
         const type = el.elementType;
         switch (type) {
             case ElementType.symbol_instance:
-                this.processSymbolInstance(el, parent, bag);
+                this.onSymbolInstance(el, parent, bag);
                 break;
             case ElementType.bitmap_instance:
-                this.processBitmapInstance(el, parent, bag);
+                this.onBitmapInstance(el, parent, bag);
                 break;
             case ElementType.bitmap_item:
-                this.processBitmapItem(el, parent, bag);
+                this.onBitmapItem(el, parent, bag);
                 break;
+            case ElementType.SceneTimeline:
             case ElementType.symbol_item:
-                this.processSymbolItem(el, parent, bag);
+                this.onSymbolItem(el, parent, bag);
                 break;
             case ElementType.dynamic_text:
-                this.processDynamicText(el, parent, bag);
+                this.onDynamicText(el, parent, bag);
                 break;
             case ElementType.group:
-                this.processGroup(el, parent, bag);
+                this.onGroup(el, parent, bag);
                 break;
 
             case ElementType.shape:
             case ElementType.OvalObject:
             case ElementType.RectangleObject:
-                this.processShape(el, parent, bag);
+                this.onShape(el, parent, bag);
                 break;
 
             case ElementType.static_text:
             case ElementType.font_item:
             case ElementType.sound_item:
-                console.warn('element type is not supported yet: ' + type);
+                logWarning('element type is not supported yet:', type);
                 break;
-            case ElementType.unknown:
-                console.warn('unknown element type')
-                // TODO:
+            default:
+                logWarning('unknown element type:', type)
                 break;
         }
     }
 
-    processSymbolInstance(el: Element, parent: ExportItem, bag?: ExportItem[]) {
-        console.assert(el.elementType === ElementType.symbol_instance, `wrong type ${el.elementType} symbol instance`);
+    onSymbolInstance(el: Element, parent: ExportItem, bag?: ExportItem[]) {
+        logAssert(el.elementType === ElementType.symbol_instance, `wrong type ${el.elementType} symbol instance`);
 
         const item = new ExportItem();
         item.ref = el;
@@ -284,10 +243,6 @@ export class FlashDocExporter {
         item.node.libraryName = el.libraryItemName ?? "";
         item.node.button = el.symbolType === SymbolType.button;
         item.node.touchable = !el.silent;
-        if (el.symbolType === SymbolType.graphic) {
-            item.node.loop = el.loop;
-            item.node.firstFrame = el.firstFrame;
-        }
 
         processFilters(el, item);
 
@@ -295,171 +250,176 @@ export class FlashDocExporter {
         bag?.push(item);
     }
 
-    processSymbolItem(el: Element, parent: ExportItem, bag?: ExportItem[]) {
-        console.assert(el.elementType === ElementType.symbol_item, `wrong type ${el.elementType} symbol item`);
-
-        log(`Process _SymbolItem_ "${el.item.name}"`);
+    onSymbolItem(el: Element, parent: ExportItem, bag?: ExportItem[]) {
+        logDebug(`Process _SymbolItem_ "${el.item.name}"`);
         const item = new ExportItem();
         item.ref = el;
         processElementCommons(el, item);
         item.node.libraryName = el.item.name;
-        console.assert(el.libraryItemName === undefined || el.libraryItemName.length === 0, `symbol item has no libraryItemName! ${el.item.name}`);
+        logAssert(el.libraryItemName === undefined || el.libraryItemName.length === 0, `symbol item has no libraryItemName! ${el.item.name}`);
         item.node.scaleGrid.copyFrom(el.scaleGrid);
 
-        const timelineFramesTotal = el.timeline.getTotalFrames();
-        const timelineIsStatic = timelineFramesTotal === 1
-            && (el.symbolType === SymbolType.graphic
-                || !el.scaleGrid.empty
-                || el.item.linkageBaseClass === "flash.display.Sprite");
+        this.collectFramesMetaInfo(item);
 
-        if (el.symbolType === SymbolType.button) {
-            console.debug("== Button symbol ==");
-        }
+        const movie = new SgMovie();
+        movie.frames = el.timeline.getTotalFrames();
+        movie.fps = this.doc.fps;
 
-        // if (timelineIsStatic) {
-        //     ++item.shapes;
-        // }
-
-        if (timelineFramesTotal > 1) {
-            item.node.movie = new SgMovie();
-            item.node.movie.frames = timelineFramesTotal;
-            item.node.movie.fps = this.doc.doc._frameRate ?? 24;
-        }
-
-        let layer_key = 1;
+        let nextTargetId = 1;
         const layers = el.timeline.layers;
-        for (let i = layers.length - 1; i >= 0; --i) {
-            const layer = layers[i];
-            // this._currentLayer = layer_key;
-            log(` = Layer #${i} : ${layer.name}`);
+        for (let layerIndex = layers.length - 1; layerIndex >= 0; --layerIndex) {
+            const layer = layers[layerIndex];
+            logDebug(` = Layer #${layerIndex} : ${layer.name}`);
 
-            const layerData = new SgMovieLayer();
-            layerData.key = layer_key;
-            let animationKey = 1;
-            let usedAnimationKey = 0;
-            this._animationSpan0 = 0;
             for (let frameIndex = 0; frameIndex < layer.frames.length; ++frameIndex) {
-                const frameData = layer.frames[frameIndex];
-
-                // this._currentKeyFrame = animationKey;
-                this._animationSpan1 = this._animationSpan0 + frameData.duration - 1;
-                log(` == Frame #${frameData.index}`);
-                if (isHitRect(layer.name)) {
-                    item.node.hitRect.copyFrom(
-                        estimateBounds(this.doc, frameData.elements) as Rect
-                    );
-                } else if (isClipRect(layer.name)) {
-                    item.node.clipRect.copyFrom(
-                        estimateBounds(this.doc, frameData.elements) as Rect
-                    );
-                }
-
-                item.node.script = frameData.script;
-                if (item.node.script !== undefined && item.node.script.length !== 0) {
-                    console.trace("== SCRIPT: ", item.node.script);
-                }
+                const frame = layer.frames[frameIndex];
+                logDebug(` == Frame #${frameIndex}`);
 
                 // ignore other layers.
                 // TODO: mask layer
                 if (layer.layerType === LayerType.normal) {
-                    usedAnimationKey = animationKey;
-                    const items: ExportItem[] = [];
-                    for (const frameElement of frameData.elements) {
-                        let animationTarget: undefined | ExportItem = undefined;
+                    // TODO: multiple transformation for tween or state
+                    const targets: ExportItem[] = [];
+                    for (const frameElement of frame.elements) {
+                        let found = false;
                         for (const prevItem of item.children) {
                             if (prevItem.ref &&
                                 prevItem.ref.libraryItemName === frameElement.libraryItemName &&
-                                prevItem.node.layerKey === layer_key) {
-                                animationTarget = prevItem;
-                                usedAnimationKey = prevItem.node.animationKey;
-                                items.push(animationTarget);
+                                prevItem.node.layerKey === layerIndex &&
+                                prevItem.node.animationKey > 0) {
+                                targets.push(prevItem);
+                                // copy new transform
+                                prevItem.ref = frameElement;
+                                found = true;
                                 break;
                             }
                         }
-                        if (animationTarget === undefined) {
-                            this.processElement(frameElement, item, items);
+                        if (!found) {
+                            this._animationSpan0 = frame.index;
+                            this._animationSpan1 = frame.endFrame;
+                            this.process(frameElement, item, targets);
                         }
                     }
-                    if (item.node.movie
-                        // if we don't have added children there is nothing to animate
-                        && items.length !== 0) {
-                        const ef = new SgMovieFrame();
-
-                        ef.index = frameData.index;
-                        ef.duration = frameData.duration;
-                        ef.key = usedAnimationKey;
-                        if (frameData.tweenType === TweenType.none) {
-                            ef.motion_type = 0;
-                        } else {
-                            ef.motion_type = 1;
-                            for (const fd of frameData.tweens) {
-                                ef.tweens.push(new SgEasing(
-                                    convertTweenTarget(fd.target),
-                                    fd.intensity / 100,
-                                    fd.custom_ease
-                                ));
-                            }
-                            if (ef.tweens.length === 0) {
-                                ef.tweens.push(new SgEasing(
-                                    TweenTargetType.All,
-                                    frameData.acceleration / 100
-                                ));
-                            }
+                    const k0 = createFrameModel(frame);
+                    let delta: undefined | KeyframeTransform = undefined;
+                    if (k0.motionType === 1
+                        && frame.elements.length > 0
+                        && (frameIndex + 1) < layer.frames.length) {
+                        const nextFrame = layer.frames[frameIndex + 1];
+                        if (nextFrame.elements.length > 0) {
+                            logDebug("--- SCAN:");
+                            const el0 = frame.elements[frame.elements.length - 1];
+                            const el1 = nextFrame.elements[0];
+                            delta = extractTweenDelta(frame, el0, el1);
                         }
+                    }
+                    for (const target of targets) {
+                        if (target.ref) {
+                            let targetLayer: SgMovieLayer | undefined = undefined;
+                            let targetReused = false;
+                            if (target.node.animationKey > 0) {
+                                for (const prevTargetLayer of movie.targets) {
+                                    if (prevTargetLayer.key === target.node.animationKey) {
+                                        targetLayer = prevTargetLayer;
+                                        targetReused = true;
+                                        break;
+                                    }
+                                }
+                            }
+                            if (targetLayer === undefined) {
+                                targetLayer = new SgMovieLayer();
+                                targetLayer.key = nextTargetId++;
+                                movie.targets.push(targetLayer);
+                                target.node.animationKey = targetLayer.key;
+                                target.node.layerKey = layerIndex;
+                            }
 
-                        const el0 = frameData.elements[0];
-                        const m = el0.matrix;
-                        const p = el0.transformationPoint;
-                        ef.pivot.copyFrom(p);
-                        p.transform(m);
-                        ef.position.copyFrom(p);
-                        m.extractScale(ef.scale);
-                        m.extractSkew(ef.skew);
-
-                        ef.colorMultiplier.copyFrom(el0.colorMultiplier);
-                        ef.colorOffset.copyFrom(el0.colorOffset);
-
-                        layerData.frames.push(ef);
-
-                        for (const child of items) {
-                            child.node.animationKey = usedAnimationKey;
-                            child.node.layerKey = layer_key;
+                            let kf0: SgMovieFrame | undefined = undefined;
+                            // if (targetReused &&
+                            //     targetLayer.frames.length > 0 &&
+                            //     targetLayer.frames[targetLayer.frames.length - 1].index === frame.index) {
+                            //     // delete closing frame
+                            //     // targetLayer.frames.pop();
+                            //     kf0 = targetLayer.frames[targetLayer.frames.length - 1];
+                            //     kf0.visible = true;
+                            //     kf0.duration = frame.duration;
+                            // } else {
+                            kf0 = createFrameModel(frame);
+                            targetLayer.frames.push(kf0);
+                            setupFrameFromElement(kf0, target.ref);
+                            // }
+                            if (delta !== undefined) {
+                                const kf1 = new SgMovieFrame();
+                                kf1.index = kf0.index + kf0.duration;
+                                kf1.duration = 0;
+                                kf1.position.copyFrom(kf0.position).add(delta.position);
+                                kf1.pivot.copyFrom(kf0.pivot).add(delta.pivot);
+                                kf1.scale.copyFrom(kf0.scale).add(delta.scale);
+                                kf1.skew.copyFrom(kf0.skew).add(delta.skew);
+                                kf1.colorMultiplier.copyFrom(kf0.colorMultiplier).add(delta.colorMultiplier);
+                                kf1.colorOffset.copyFrom(kf0.colorOffset).add(delta.colorOffset);
+                                kf1.visible = false;
+                                targetLayer.frames.push(kf1);
+                            }
                         }
                     }
                 }
-                ++animationKey;
+            }
+        }
 
-                this._animationSpan0 += frameData.duration;
+        movie.targets = movie.targets.filter((targetLayer) => {
+            let empty = false;
+            if (targetLayer.frames.length === 0) {
+                empty = true;
             }
-            const keyframe_count = layerData.frames.length;
-            if (keyframe_count > 1) {
-                normalizeRotation(layerData);
-                addRotation(layerData, layer.frames);
+            if (targetLayer.frames.length === 1) {
+                const frame = targetLayer.frames[0];
+                if (frame.index === 0 && frame.motionType !== 2 && frame.duration === movie.frames) {
+                    empty = true;
+                }
             }
-            if (item.node.movie !== undefined) {
-                item.node.movie.layers.push(layerData);
+            if (empty) {
+                for (const child of item.children) {
+                    if (child.node.animationKey === targetLayer.key) {
+                        child.node.animationKey = 0;
+                    }
+                }
             }
-            ++layer_key;
+            return !empty;
+        });
+
+        const forceAsStatic = !el.scaleGrid.empty ||
+            el.item.linkageBaseClass === "flash.display.Sprite";
+
+        if (!forceAsStatic && movie.frames > 1 && movie.targets.length > 0) {
+            item.node.movie = movie;
+        } else {
+            for (const child of item.children) {
+                child.node.animationKey = 0;
+            }
+        }
+
+        if (this.shouldConvertItemToSprite(item)) {
+            item.renderThis = true;
+            item.node.animationKey = 0;
+            item.children.length = 0;
         }
 
         item.appendTo(parent);
         bag?.push(item);
 
-        // this._currentKeyFrame = 0;
-        // this._currentLayer = 0;
         this._animationSpan0 = 0;
         this._animationSpan1 = 0;
     }
 
-    processBitmapInstance(el: Element, parent: ExportItem, bag?: ExportItem[]) {
-        console.assert(el.elementType === ElementType.bitmap_instance, `wrong type ${el.elementType} bitmap instance`);
+    onBitmapInstance(el: Element, parent: ExportItem, bag?: ExportItem[]) {
+        logAssert(el.elementType === ElementType.bitmap_instance, `wrong type ${el.elementType} bitmap instance`);
 
         const item = new ExportItem();
         item.ref = el;
         processElementCommons(el, item);
         item.node.name = el.item.name;
         item.node.libraryName = el.libraryItemName ?? "";
-        item.node.sprite = el.libraryItemName;
 
         processFilters(el, item);
 
@@ -467,16 +427,17 @@ export class FlashDocExporter {
         bag?.push(item);
     }
 
-    processBitmapItem(el: Element, library: ExportItem, bag?: ExportItem[]) {
+    onBitmapItem(el: Element, library: ExportItem, bag?: ExportItem[]) {
         const item = new ExportItem();
         item.ref = el;
         item.node.libraryName = el.item.name;
+        item.renderThis = true;
         item.appendTo(library);
         bag?.push(item);
     }
 
-    processDynamicText(el: Element, parent: ExportItem, bag?: ExportItem[]) {
-        console.assert(el.elementType === ElementType.dynamic_text, `wrong type ${el.elementType} dynamic text`);
+    onDynamicText(el: Element, parent: ExportItem, bag?: ExportItem[]) {
+        logAssert(el.elementType === ElementType.dynamic_text, `wrong type ${el.elementType} dynamic text`);
 
         const item = new ExportItem();
         item.ref = el;
@@ -504,8 +465,8 @@ export class FlashDocExporter {
         dynamicText.alignment.copyFrom(textRun0.attributes.alignment);
         dynamicText.face = face ?? "";
         dynamicText.size = textRun0.attributes.size;
-        dynamicText.line_height = textRun0.attributes.line_height;
-        dynamicText.line_spacing = textRun0.attributes.line_spacing;
+        dynamicText.lineHeight = textRun0.attributes.lineHeight;
+        dynamicText.lineSpacing = textRun0.attributes.lineSpacing;
         dynamicText.color = textRun0.attributes.color.argb32;
         item.node.dynamicText = dynamicText;
 
@@ -515,10 +476,10 @@ export class FlashDocExporter {
         bag?.push(item);
     }
 
-    processGroup(el: Element, parent: ExportItem, bag?: ExportItem[]) {
-        console.assert(el.elementType === ElementType.group, `wrong type ${el.elementType} group`);
+    onGroup(el: Element, parent: ExportItem, bag?: ExportItem[]) {
+        logAssert(el.elementType === ElementType.group, `wrong type ${el.elementType} group`);
         for (const member of el.members) {
-            this.processElement(member, parent, bag);
+            this.process(member, parent, bag);
         }
     }
 
@@ -535,7 +496,7 @@ export class FlashDocExporter {
                 child.animationSpan0 === this._animationSpan0 &&
                 child.animationSpan1 === this._animationSpan1
             ) {
-                log(`  Found drawing layer ${child.ref.item.name}`);
+                logDebug(`  Found drawing layer ${child.ref.item.name}`);
                 child.ref.members.push(element);
                 ++child.shapes;
                 return child;
@@ -548,28 +509,28 @@ export class FlashDocExporter {
         layer.ref.item.name = name;
         layer.ref.elementType = ElementType.group;
         layer.node.libraryName = name;
-        layer.node.sprite = name;
+        layer.renderThis = true;
         layer.drawingLayer = true;
         layer.animationSpan0 = this._animationSpan0;
         layer.animationSpan1 = this._animationSpan1;
         item.add(layer);
         this.library.add(layer);
 
-        log(`  Created drawing layer ${layer.ref.item.name}`);
+        logDebug(`  Created drawing layer ${layer.ref.item.name}`);
 
         layer.ref.members.push(element);
         ++layer.shapes;
         return layer;
     }
 
-    processShape(el: Element, parent: ExportItem, bag?: ExportItem[]) {
-        console.assert(
+    onShape(el: Element, parent: ExportItem, bag?: ExportItem[]) {
+        logAssert(
             el.elementType === ElementType.shape
             || el.elementType === ElementType.OvalObject
             || el.elementType === ElementType.RectangleObject,
             `Wrong shape type: ${el.elementType}`
         );
-        log(`  Process Shape ${el.item.name}`);
+        logDebug(`  Process Shape ${el.item.name}`);
         const affectedItems = this.addElementToDrawingLayer(parent, el);
         bag?.push(affectedItems);
     }
@@ -577,30 +538,117 @@ export class FlashDocExporter {
     render(item: ExportItem, to_atlas: Atlas) {
         const el = item.ref;
         if (el === undefined) {
-            console.warn('skip element with undefined ref');
+            logWarning('skip element with undefined ref');
             return;
         }
-        console.info("RENDER: ", item.node.libraryName, el.item.name, el.elementType);
+        logDebug("RENDER: ", item.node.libraryName, el.item.name, el.elementType);
         const options = {
             scale: 1
         };
+        const spriteId = el.item.name;
+        item.node.sprite = spriteId;
         for (const resolution of to_atlas.resolutions) {
             options.scale = Math.min(
                 item.max_abs_scale,
                 resolution.scale * Math.min(1, item.estimated_scale)
             );
             const result = renderElement(this.doc, el, options);
-            result.name = el.item.name;
+            result.name = spriteId;
             resolution.sprites.push(result);
         }
     }
 
     exportLibrary(): SgFile {
+
+        for (const item of this.library.node.children) {
+            for (const child of item.children) {
+                const ref = this.library.find_library_item(child.libraryName);
+                if (ref !== undefined
+                    && ref.node.sprite === ref.node.libraryName
+                    && ref.node.scaleGrid.empty
+                ) {
+                    child.sprite = ref.node.sprite;
+                    child.libraryName = "";
+                }
+                //&& (!ref.ref || !ref.ref.item.linkageExportForAS)
+            }
+            // if (item.children.length === 1 && item.children[0].sprite && !ref.node.scaleGrid.empty) {
+            //     item.sprite = item.children[0].sprite;
+            //     item.children.length = 0;
+            // }
+        }
+
+        const isInLinkages = (id: string) => {
+            for (const linkage of this.linkages.values()) {
+                if (linkage === id) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        const lib = new SgNode();
+        for (const item of this.library.node.children) {
+            if (item.sprite === item.libraryName
+                && item.scaleGrid.empty
+                && !isInLinkages(item.libraryName)) {
+                continue;
+            }
+            lib.children.push(item);
+        }
+
         return new SgFile(
-            this.library.node,
+            lib,
             this.linkages,
             this.scenes
         );
     }
 
+    private setupSpecialLayer(layer: Layer, toItem: ExportItem): boolean {
+        if (isHitRect(layer.name)) {
+            toItem.node.hitRect.copyFrom(
+                estimateBounds(this.doc, layer.frames[0].elements) as Rect
+            );
+            return true;
+        } else if (isClipRect(layer.name)) {
+            toItem.node.clipRect.copyFrom(
+                estimateBounds(this.doc, layer.frames[0].elements) as Rect
+            );
+            return true;
+        }
+        return false;
+    }
+
+    private collectFramesMetaInfo(item: ExportItem) {
+        if (item.ref === undefined) {
+            return;
+        }
+        const layers = item.ref.timeline.layers;
+        for (const layer of layers) {
+            if (this.setupSpecialLayer(layer, item)) {
+                continue;
+            }
+            for (const frame of layer.frames) {
+                if (frame.script !== undefined) {
+                    item.node.scripts.set(frame.index, frame.script);
+                }
+                if (frame.name !== undefined) {
+                    item.node.labels.set(frame.index, frame.name);
+                }
+            }
+        }
+    }
+
+    private shouldConvertItemToSprite(item: ExportItem) {
+        if (item.children.length === 1 && item.children[0].drawingLayer && item.children[0].shapes > 0) {
+            return true;
+        } else if (item.node.labels.get(0) === '*static') {
+            // special user TAG
+            return true;
+        } else if (!item.node.scaleGrid.empty) {
+            // scale 9 grid items
+            return true;
+        }
+        return false;
+    }
 }

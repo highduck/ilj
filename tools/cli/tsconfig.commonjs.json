@@ -3,15 +3,13 @@
   "compilerOptions": {
     "composite": true,
     "module": "commonjs",
-    "outDir": "dist",
+    "outDir": "dist/commonjs",
+    "rootDir": "src",
     "esModuleInterop": true
   },
   "references": [
     {
       "path": "../../packages/xfl/tsconfig.commonjs.json"
-    },
-    {
-      "path": "../../packages/anijson/tsconfig.commonjs.json"
     }
   ],
   "files": [
@@ -19,5 +17,9 @@
   ],
   "include": [
     "src/**/*.ts"
+  ],
+  "exclude": [
+    "**/node_modules",
+    "dist/**"
   ]
 }

@@ -20,9 +20,10 @@ export function initCanvas(name = "gameview", parent?: HTMLElement | null): HTML
     canvas.style.touchAction = 'none';
     canvas.style.webkitTapHighlightColor = 'transparent';
     canvas.style.webkitUserSelect = 'none';
-    canvas.style.msUserSelect = 'none';
+    // canvas.style.msUserSelect = 'none';
     canvas.style.userSelect = 'none';
-    canvas.style.webkitUserModify = '';
+    // deprecated
+    // canvas.style.webkitUserModify = '';
     resetStyle(canvas);
     // -webkit-tap-highlight-color: transparent;
     // -webkit-user-select: none;

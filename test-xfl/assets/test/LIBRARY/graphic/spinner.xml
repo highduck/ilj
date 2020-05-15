@@ -1,6 +1,6 @@
-<DOMSymbolItem xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://ns.adobe.com/xfl/2008/" name="graphic/spinner" itemID="5eb8391f-00000582" lastModified="1589132613" lastUniqueIdentifier="1">
+<DOMSymbolItem xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://ns.adobe.com/xfl/2008/" name="graphic/spinner" itemID="5eb8391f-00000582" lastModified="1589550393" lastUniqueIdentifier="1">
   <timeline>
-    <DOMTimeline name="spinner" currentFrame="12" layerDepthEnabled="true">
+    <DOMTimeline name="spinner" currentFrame="38" layerDepthEnabled="true">
       <layers>
         <DOMLayer name="Layer_1" color="#00FFFF" current="true" isSelected="true">
           <frames>
@@ -9,7 +9,7 @@
                 <Ease target="all" intensity="64"/>
               </tweens>
               <elements>
-                <DOMSymbolInstance libraryItemName="graphic/Symbol 1">
+                <DOMSymbolInstance libraryItemName="graphic/thumb">
                   <transformationPoint>
                     <Point/>
                   </transformationPoint>
@@ -21,19 +21,19 @@
                 <Ease target="all" intensity="-100"/>
               </tweens>
               <elements>
-                <DOMSymbolInstance libraryItemName="graphic/Symbol 1">
+                <DOMSymbolInstance libraryItemName="graphic/thumb">
                   <transformationPoint>
                     <Point/>
                   </transformationPoint>
                 </DOMSymbolInstance>
               </elements>
             </DOMFrame>
-            <DOMFrame index="30" duration="8" tweenType="motion" motionTweenSnap="true" keyMode="22017" acceleration="100">
+            <DOMFrame index="30" duration="8" tweenType="motion" motionTweenRotateTimes="1" motionTweenSnap="true" keyMode="22017" acceleration="100">
               <tweens>
                 <Ease target="all" intensity="100"/>
               </tweens>
               <elements>
-                <DOMSymbolInstance libraryItemName="graphic/Symbol 1">
+                <DOMSymbolInstance libraryItemName="graphic/thumb">
                   <matrix>
                     <Matrix a="0.559188842773438" b="-0.82904052734375" c="0.82904052734375" d="0.559188842773438"/>
                   </matrix>
@@ -43,9 +43,9 @@
                 </DOMSymbolInstance>
               </elements>
             </DOMFrame>
-            <DOMFrame index="38" duration="15" keyMode="15872">
+            <DOMFrame index="38" duration="15" keyMode="9728">
               <elements>
-                <DOMSymbolInstance libraryItemName="graphic/Symbol 1">
+                <DOMSymbolInstance libraryItemName="graphic/thumb" selected="true" tabIndex="1" hasAccessibleData="true">
                   <transformationPoint>
                     <Point/>
                   </transformationPoint>

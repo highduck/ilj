@@ -4,6 +4,7 @@ import {pack} from "./Packing";
 import {makeDirs, saveJPEG, savePNG} from "../utilsNode";
 import path from "path";
 import fs from "fs";
+import {logDebug} from "../debug";
 
 export class SpriteImage {
 
@@ -150,7 +151,7 @@ export class Atlas {
 
     pack() {
         for (const res of this.resolutions) {
-            console.info(`pack ${this.name} @${res.scale}x`);
+            logDebug(`pack ${this.name} @${res.scale}x`);
             res.pages = pack(res.sprites, res.widthMax, res.heightMax);
         }
     }
@@ -164,12 +165,12 @@ export class Atlas {
                 page.pathImage = this.name + postfix;
                 if (format === 'png') {
                     page.pathImage += '.png';
-                    console.info(`save atlas page: ${page.pathImage}`);
+                    logDebug(`save atlas page: ${page.pathImage}`);
                     savePNG(path.join(destDir, page.pathImage), page.image);
                 } else if (format === 'jpeg') {
                     page.pathMask = page.pathImage + '_.png';
                     page.pathImage += '.jpg';
-                    console.info(`save atlas page: ${page.pathImage}`);
+                    logDebug(`save atlas page: ${page.pathImage}`);
                     saveJPEG(path.join(destDir, page.pathImage), page.image, quality);
                 }
             }

@@ -1,6 +1,6 @@
 <DOMDocument xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://ns.adobe.com/xfl/2008/" backgroundColor="#666666" width="480" height="320" frameRate="30" currentTimeline="1" xflVersion="2.971" creatorInfo="Adobe Animate" platform="Macintosh" versionInfo="Saved by Animate Macintosh 20.0 build 25487" majorVersion="20" buildNumber="25487" viewAngle3D="48.8658374504694" vanishingPoint3DX="240" vanishingPoint3DY="160" nextSceneIdentifier="4" playOptionsPlayLoop="false" playOptionsPlayPages="false" playOptionsPlayFrameActions="false" filetypeGUID="DD0DDBBF-5BEF-45B2-9F24-A3048D2A676F" fileGUID="967D3F0EE88C4745B14CE22408CC83F7">
      <folders>
-          <DOMFolderItem name="drawings" itemID="5eb292ab-000002cf"/>
+          <DOMFolderItem name="drawings" itemID="5eb292ab-000002cf" isExpanded="true"/>
           <DOMFolderItem name="graphic" itemID="5eb28c61-00000280" isExpanded="true"/>
           <DOMFolderItem name="import" itemID="5eb2b025-000002f6"/>
           <DOMFolderItem name="import/bmp0305" itemID="5eb2bd42-00000404" isExpanded="true"/>
@@ -24,13 +24,13 @@
      </media>
      <symbols>
           <Include href="bones.xml" loadImmediate="false" itemID="5eb27cc3-00000272" lastModified="1588755980"/>
-          <Include href="drawings/bitmap_fill.xml" loadImmediate="false" itemID="5eb4fd96-00000063" lastModified="1588929694"/>
+          <Include href="drawings/bitmap_fill.xml" loadImmediate="false" itemID="5eb4fd96-00000063" lastModified="1589368812"/>
           <Include href="drawings/pixi_test.xml" loadImmediate="false" itemID="5eb29d9f-000002e3" lastModified="1588764115"/>
           <Include href="drawings/primitive_objects.xml" loadImmediate="false" itemID="5eb2929b-000002c9" lastModified="1588761251"/>
           <Include href="drawings/strokes.xml" loadImmediate="false" itemID="5eb54c0c-00000133" lastModified="1588942851"/>
-          <Include href="graphic/mc.xml" loadImmediate="false" itemID="5eb28c6d-00000282" lastModified="1588759941"/>
+          <Include href="graphic/mc.xml" loadImmediate="false" itemID="5eb28c6d-00000282" lastModified="1589368856"/>
           <Include href="graphic/Symbol 1.xml" loadImmediate="false" itemID="5eb28cf4-0000028d" lastModified="1588759796"/>
-          <Include href="graphic/timeline.xml" loadImmediate="false" itemID="5eb28c75-00000284" lastModified="1588765710"/>
+          <Include href="graphic/timeline.xml" loadImmediate="false" itemID="5eb28c75-00000284" lastModified="1589368986"/>
           <Include href="import/preview_gif.xml" loadImmediate="false" itemID="5eb2b128-0000031c" lastModified="1588779067"/>
           <Include href="lsd_1.xml" itemIcon="3" itemID="5eb27d23-00000275" lastModified="1588755747"/>
           <Include href="lsd_2.xml" itemIcon="3" itemID="5eb27d78-00000279" lastModified="1588755832"/>

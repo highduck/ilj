@@ -1,7 +1,7 @@
 import {BoundsBuilder, Rect} from "@highduck/math";
-import {Bitmap, Element, FillStyle, StrokeStyle} from "../xfl/types";
+import {Bitmap, Element} from "../xfl/types";
 import {TransformModel} from "./TransformModel";
-import {DOMOvalObject, DOMRectangleObject, ElementType} from "../xfl/dom";
+import {ElementType} from "../xfl/dom";
 import {RenderBatch} from "./RenderBatch";
 import {ShapeDecoder} from "./ShapeDecoder";
 import {RenderCommand} from "./RenderCommand";
@@ -41,77 +41,55 @@ export class ShapeProcessor {
         return !decoder.empty && this.add(decoder.getResult());
     }
 
-    addRectangle(obj: DOMRectangleObject, world: TransformModel): boolean {
-        const batch = new RenderBatch();
+    addShapeObject(el: Element, world: TransformModel): boolean {
+        const rectangle = el.rectangle;
+        const oval = el.oval;
+        const shape = rectangle ?? oval ?? undefined;
+        if (shape === undefined) {
+            return false;
+        }
         const rc = new Rect(
-            obj._x ?? 0,
-            obj._y ?? 0,
-            obj._objectWidth ?? 0,
-            obj._objectHeight ?? 0
+            shape._x ?? 0,
+            shape._y ?? 0,
+            shape._objectWidth ?? 0,
+            shape._objectHeight ?? 0
         );
-        const rcWithStrokes = new Rect().copyFrom(rc);
-        // rc.transform(world.matrix);
+        let cmd: undefined | RenderCommand = undefined;
+        if (rectangle) {
+            cmd = new RenderCommand(
+                RenderOp.Rectangle,
+                rc.x, rc.y, rc.right, rc.bottom,
+                rectangle._topLeftRadius ?? 0,
+                rectangle._topRightRadius ?? 0,
+                rectangle._bottomRightRadius ?? 0,
+                rectangle._bottomLeftRadius ?? 0
+            );
+        } else if (oval) {
+            cmd = new RenderCommand(
+                RenderOp.oval,
+                rc.x, rc.y, rc.right, rc.bottom,
+                oval._startAngle ?? 0,
+                oval._endAngle ?? 0,
+                (oval._closePath ?? true) ? 1 : 0,
+                (oval._innerRadius ?? 0) / 100
+            );
+        }
+        if (cmd === undefined) {
+            return false;
+        }
 
-        const cmd = new RenderCommand(
-            RenderOp.Rectangle,
-            rc.x, rc.y, rc.right, rc.bottom,
-            obj._topLeftRadius ?? 0,
-            obj._topRightRadius ?? 0,
-            obj._bottomRightRadius ?? 0,
-            obj._bottomLeftRadius ?? 0
-        );
+        cmd.fill = el.fills.length > 0 ? el.fills[0] : undefined;
+        cmd.stroke = el.strokes.length > 0 ? el.strokes[0] : undefined;
+
+        const batch = new RenderBatch();
         batch.transform.copyFrom(world);
         batch.total = 1;
         batch.commands.push(cmd);
-        ShapeProcessor.fillObjectPropsToCommand(obj, cmd);
 
-        const hw = (obj.stroke?.SolidStroke?._weight ?? 0) / 2;
-        rcWithStrokes.expand(hw, hw);
-        rcWithStrokes.transform(world.matrix);
-        batch.bounds.addRect(rcWithStrokes.x, rcWithStrokes.y, rcWithStrokes.width, rcWithStrokes.height);
-        return this.add(batch);
-    }
-
-    private static fillObjectPropsToCommand(obj: DOMOvalObject | DOMRectangleObject, cmd: RenderCommand) {
-        if (obj.fill) {
-            cmd.fill = new FillStyle();
-            cmd.fill.parse(obj.fill);
-        }
-        if (obj.stroke) {
-            cmd.stroke = new StrokeStyle();
-            cmd.stroke.parse(obj.stroke);
-        }
-    }
-
-    addOval(obj: DOMOvalObject, world: TransformModel): boolean {
-        const batch = new RenderBatch();
-        const rc = new Rect(
-            obj._x ?? 0,
-            obj._y ?? 0,
-            obj._objectWidth ?? 0,
-            obj._objectHeight ?? 0
-        );
-        const rcWithStrokes = new Rect().copyFrom(rc);
-        // rc.transform(world.matrix);
-
-        const cmd = new RenderCommand(
-            RenderOp.oval,
-            rc.x, rc.y, rc.right, rc.bottom,
-            obj._startAngle ?? 0,
-            obj._endAngle ?? 0,
-            (obj._closePath ?? true) ? 1 : 0,
-            (obj._innerRadius ?? 0) / 100
-        );
-
-        batch.transform.copyFrom(world);
-        batch.total = 1;
-        batch.commands.push(cmd);
-        ShapeProcessor.fillObjectPropsToCommand(obj, cmd);
-
-        const hw = (obj.stroke?.SolidStroke?._weight ?? 0) / 2;
-        rcWithStrokes.expand(hw, hw);
-        rcWithStrokes.transform(world.matrix);
-        batch.bounds.addRect(rcWithStrokes.x, rcWithStrokes.y, rcWithStrokes.width, rcWithStrokes.height);
+        const hw = (cmd.stroke?.solid.weight ?? 0) / 2;
+        rc.expand(hw, hw);
+        rc.transform(world.matrix);
+        batch.bounds.addRect(rc.x, rc.y, rc.width, rc.height);
         return this.add(batch);
     }
 

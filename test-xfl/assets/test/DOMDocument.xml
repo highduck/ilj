@@ -1,14 +1,17 @@
 <DOMDocument xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://ns.adobe.com/xfl/2008/" width="480" height="320" frameRate="30" currentTimeline="1" xflVersion="2.971" creatorInfo="Adobe Animate" platform="Macintosh" versionInfo="Saved by Animate Macintosh 20.0 build 25487" majorVersion="20" buildNumber="25487" viewAngle3D="48.8658374504694" vanishingPoint3DX="240" vanishingPoint3DY="160" previewMode="full" nextSceneIdentifier="2" playOptionsPlayLoop="false" playOptionsPlayPages="false" playOptionsPlayFrameActions="false" filetypeGUID="DD0DDBBF-5BEF-45B2-9F24-A3048D2A676F" fileGUID="6644B666E86A49D8BFC024541DB0C332">
      <folders>
           <DOMFolderItem name="drawing layer" itemID="5eb70f8c-0000051f" isExpanded="true"/>
+          <DOMFolderItem name="drawings" itemID="5eb951d5-000005c1" isExpanded="true"/>
           <DOMFolderItem name="graphic" itemID="5eb82761-00000557" isExpanded="true"/>
      </folders>
      <symbols>
           <Include href="drawing layer/framed graphic.xml" itemIcon="1" loadImmediate="false" itemID="5eb82a31-00000570" lastModified="1589132376"/>
           <Include href="drawing layer/instance with layers.xml" itemIcon="1" loadImmediate="false" itemID="5eb719bf-00000546" lastModified="1589131556"/>
           <Include href="drawing layer/merge layers.xml" itemIcon="1" loadImmediate="false" itemID="5eb70f98-00000521" lastModified="1589127730"/>
-          <Include href="graphic/spinner.xml" loadImmediate="false" itemID="5eb8391f-00000582" lastModified="1589132613"/>
-          <Include href="graphic/Symbol 1.xml" loadImmediate="false" itemID="5eb28cf4-0000028d" lastModified="1588759796"/>
+          <Include href="drawings/invalid_gradients.xml" loadImmediate="false" itemID="5eb9542d-000005ca" lastModified="1589204013"/>
+          <Include href="drawings/stroke_solid_weight_def.xml" loadImmediate="false" itemID="5eb9686d-000005ce" lastModified="1589209243"/>
+          <Include href="graphic/spinner.xml" loadImmediate="false" itemID="5eb8391f-00000582" lastModified="1589550393"/>
+          <Include href="graphic/thumb.xml" loadImmediate="false" itemID="5eb9543a-000005cb" lastModified="1589204026"/>
      </symbols>
      <timelines>
           <DOMTimeline name="Scene 1" layerDepthEnabled="true">
@@ -25,7 +28,7 @@
                                                   <Point x="3.8" y="-8.65"/>
                                              </transformationPoint>
                                         </DOMSymbolInstance>
-                                        <DOMSymbolInstance libraryItemName="drawing layer/instance with layers" selected="true" symbolType="graphic" loop="loop">
+                                        <DOMSymbolInstance libraryItemName="drawing layer/instance with layers" symbolType="graphic" loop="loop">
                                              <matrix>
                                                   <Matrix tx="150.8" ty="49.7"/>
                                              </matrix>
@@ -39,6 +42,14 @@
                                              </matrix>
                                              <transformationPoint>
                                                   <Point x="-0.55" y="-0.55"/>
+                                             </transformationPoint>
+                                        </DOMSymbolInstance>
+                                        <DOMSymbolInstance libraryItemName="drawings/invalid_gradients" selected="true">
+                                             <matrix>
+                                                  <Matrix tx="149.9" ty="152.05"/>
+                                             </matrix>
+                                             <transformationPoint>
+                                                  <Point/>
                                              </transformationPoint>
                                         </DOMSymbolInstance>
                                    </elements>

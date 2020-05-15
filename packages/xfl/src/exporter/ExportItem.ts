@@ -20,6 +20,7 @@ export class ExportItem {
     drawingLayer: boolean = false;
     animationSpan0 = 0;
     animationSpan1 = 0;
+    renderThis = false;
 
     constructor() {
     }

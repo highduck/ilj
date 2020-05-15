@@ -16,7 +16,7 @@ async function loadItems(items: BundleItem[]) {
             case BundleItemType.Ani:
                 if (item.id) {
                     loaders.push(
-                        Ani.load(engine, item.id).then((a: Ani) => {
+                        Ani.load(item.id).then((a: Ani) => {
                             registerAniLibrary(item.id, a);
                         })
                     );

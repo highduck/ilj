@@ -5,14 +5,13 @@ import {
     EasingJson,
     FilterJson,
     FilterType,
-    MovieFrameJson,
+    KeyframeJson,
     MovieJson,
-    MovieLayerJson,
     NodeJson,
     TweenTargetType
 } from "@highduck/anijson";
 import {fixPrecision, mapToDict, tupleColor4, tupleRect, tupleVec2} from "./Serialize";
-import {LoopMode} from "../xfl/dom";
+import {LoopMode, RotationDirection} from "../xfl/dom";
 
 export class SgFilterData {
     type = FilterType.None;
@@ -37,8 +36,8 @@ export class SgDynamicText {
     text: string = "";
     face: string = "";
     readonly alignment = new Vec2();
-    line_spacing = 0;
-    line_height = 0;
+    lineSpacing = 0;
+    lineHeight = 0;
     size = 0;
     color: Color32_ARGB = 0;
 
@@ -47,8 +46,8 @@ export class SgDynamicText {
             rect: tupleRect(this.rect),
             text: this.text,
             face: this.face,
-            line_spacing: this.line_spacing,
-            line_height: this.line_height,
+            lineSpacing: this.lineSpacing,
+            lineHeight: this.lineHeight,
             size: this.size,
             color: this.color,
             alignment: tupleVec2(this.alignment)
@@ -63,63 +62,88 @@ export class SgEasing {
         readonly ease = 0,
         readonly curve: Vec2[] = []
     ) {
+
+    }
+
+    get isDefault(): boolean {
+        return this.attribute === TweenTargetType.All &&
+            this.ease === 0 &&
+            this.curve.length === 0;
     }
 
     serialize(): EasingJson {
         const r: EasingJson = {};
 
         if (this.attribute !== 0) {
-            r.attribute = this.attribute;
+            r.t = this.attribute;
         }
 
         if (this.ease !== 0) {
-            r.ease = this.ease;
+            r.v = this.ease;
         }
+
         if (this.curve.length > 0) {
-            r.curve = [];
+            r.c = [];
             for (const p of this.curve) {
-                r.curve.push(
+                r.c.push(
                     fixPrecision(p.x, 6),
                     fixPrecision(p.y, 6)
                 );
             }
         }
+
         return r;
     }
 }
 
 export class SgMovieFrame {
+    // KEY FRAME
     index = 0;
-    duration = 0;
-    motion_type = 0;
+    duration = 1;
+    motionType = 0;
 
-    readonly tweens: SgEasing[] = [];
+    readonly easing: SgEasing[] = [];
 
-    key = 0;
     readonly position = new Vec2();
-    readonly scale = new Vec2();
+    readonly scale = new Vec2(1, 1);
     readonly skew = new Vec2();
+
     readonly pivot = new Vec2();
     readonly colorMultiplier = new Color4(1, 1, 1, 1);
     readonly colorOffset = new Color4(0, 0, 0, 0);
+
+    visible = true;
 
     // graphic frame control
     loopMode: LoopMode | undefined = undefined;
     firstFrame = 0;
 
-    serialize(): MovieFrameJson {
-        const r: MovieFrameJson = {
-            i: this.index,
-            len: this.duration,
-            key: this.key,
-            mot: this.motion_type
+    // rotation postprocessing
+    rotate = RotationDirection.none;
+    rotateTimes = 0;
+
+    serialize(): KeyframeJson {
+        const r: KeyframeJson = {
+            _: [this.index, this.index + this.duration]
         };
+
+        if (this.motionType !== 0) {
+            r.m = this.motionType;
+        }
+
+        if (this.easing.length > 0) {
+            if (this.easing.length === 1 && this.easing[0].isDefault && this.motionType === 1) {
+                // oh, ignore this value, we know it's linear by default
+            } else {
+                r.ease = this.easing.map((v) => v.serialize());
+            }
+        }
 
         if (!Vec2.ZERO.equals(this.position)) {
             r.p = tupleVec2(this.position);
         }
 
-        if (!Vec2.ONE.equals(this.scale)) {
+        if (!Vec2.ONE.equals(this.scale, 1e-4)) {
             r.s = tupleVec2(this.scale);
         }
 
@@ -139,8 +163,22 @@ export class SgMovieFrame {
             r.co = tupleColor4(this.colorOffset);
         }
 
-        if (this.tweens.length > 0) {
-            r.tweens = this.tweens.map((v) => v.serialize());
+        if (!this.visible) {
+            r.v = this.visible;
+        }
+
+        if (this.loopMode !== undefined) {
+            switch (this.loopMode) {
+                case LoopMode.Loop:
+                    r.l = [0];
+                    break;
+                case LoopMode.PlayOnce:
+                    r.l = [1, this.firstFrame];
+                    break;
+                case LoopMode.SingleFrame:
+                    r.l = [2, this.firstFrame];
+                    break;
+            }
         }
         return r;
     }
@@ -148,36 +186,34 @@ export class SgMovieFrame {
 
 export class SgMovieLayer {
     key = 0;
-//    std::string ref;
     readonly frames: SgMovieFrame[] = [];
-
-    serialize(): MovieLayerJson {
-        return {
-            key: this.key,
-            frames: this.frames.map((v) => v.serialize())
-        };
-    }
 }
 
 export class SgMovie {
     frames = 1;
-    readonly layers: SgMovieLayer[] = [];
+    targets: SgMovieLayer[] = [];
     fps = 24;
 
     serialize(): MovieJson {
+        const framesMap: { [_: number]: KeyframeJson[] } = {};
+        for (const target of this.targets) {
+            framesMap[target.key] = target.frames.map((v) => v.serialize());
+        }
         return {
-            frames: this.frames,
-            layers: this.layers.map((v) => v.serialize()),
-            fps: this.fps
+            l: this.frames,
+            f: this.fps,
+            t: framesMap
         }
     }
 }
 
 export class SgNode {
 
+    // transform
     readonly matrix = new Matrix2D();
     readonly colorMultiplier = new Color4(1, 1, 1, 1);
     readonly colorOffset = new Color4(0, 0, 0, 0);
+    visible = true;
 
     // instance name
     name: string = "";
@@ -190,7 +226,6 @@ export class SgNode {
 
     button = false;
     touchable = true;
-    visible = true;
     readonly scaleGrid = new Rect();
     readonly hitRect = new Rect();
     readonly clipRect = new Rect();
@@ -202,99 +237,82 @@ export class SgNode {
     animationKey = 0;
     layerKey = 0;
 
-    loop: LoopMode | undefined = undefined;
-    firstFrame: undefined | number = undefined;
+    readonly scripts = new Map<number, string>();
+    readonly labels = new Map<number, string>();
+
+    //loop: LoopMode | undefined = undefined;
+    //firstFrame: undefined | number = undefined;
 
     serialize(): NodeJson {
+        const r: NodeJson = {};
+        if (this.name.length > 0) {
+            r.id = this.name;
+        }
+        if (this.libraryName.length > 0) {
+            r.ref = this.libraryName;
+        }
+        // matrix
         const pos = new Vec2(this.matrix.x, this.matrix.y);
         const scale = new Vec2();
         this.matrix.extractScale(scale);
         const skew = new Vec2();
         this.matrix.extractSkew(skew);
-
-        const res: NodeJson = {};
-        if (this.name.length > 0) {
-            res.id = this.name;
-        }
-        if (this.libraryName.length > 0) {
-            res.ref = this.libraryName;
-        }
-        // matrix
         if (!Vec2.ZERO.equals(pos)) {
-            res.p = tupleVec2(pos, 2);
+            r.p = tupleVec2(pos, 2);
         }
-        if (!Vec2.ONE.equals(scale)) {
-            res.s = tupleVec2(scale);
+        if (!Vec2.ONE.equals(scale, 1e-5)) {
+            r.s = tupleVec2(scale);
         }
         if (!Vec2.ZERO.equals(skew)) {
-            res.r = tupleVec2(skew);
+            r.r = tupleVec2(skew);
         }
         // color transform
         if (!Color4.ONE.equals(this.colorMultiplier)) {
-            res.cm = tupleColor4(this.colorMultiplier);
+            r.cm = tupleColor4(this.colorMultiplier);
         }
         if (!Color4.ZERO.equals(this.colorOffset)) {
-            res.co = tupleColor4(this.colorOffset);
+            r.co = tupleColor4(this.colorOffset);
         }
+
         // flags
         if (this.button) {
-            res.button = this.button;
+            r.button = this.button;
         }
         if (!this.touchable) {
-            res.touchable = this.touchable;
+            r.touchable = this.touchable;
         }
         if (!this.visible) {
-            res.visible = this.visible;
+            r.v = this.visible;
         }
         if (this.animationKey !== 0) {
-            res.ak = this.animationKey;
-        }
-        if (this.layerKey !== 0) {
-            res.lk = this.layerKey;
-        }
-        if (this.loop !== undefined) {
-            switch (this.loop) {
-                case LoopMode.Loop:
-                    res.l = 0;
-                    break;
-                case LoopMode.SingleFrame:
-                    res.l = 1;
-                    break;
-                case LoopMode.PlayOnce:
-                    res.l = 2;
-                    break;
-            }
-            res.ff = this.firstFrame!;
+            r._ = this.animationKey;
         }
 
         if (this.sprite !== undefined && this.sprite.length > 0) {
-            res.spr = this.sprite;
+            r.spr = this.sprite;
         }
         if (!this.scaleGrid.empty) {
-            res.scaleGrid = tupleRect(this.scaleGrid);
+            r.scaleGrid = tupleRect(this.scaleGrid);
         }
         if (!this.hitRect.empty) {
-            res.hitRect = tupleRect(this.hitRect);
+            r.hitRect = tupleRect(this.hitRect);
         }
         if (!this.clipRect.empty) {
-            res.clipRect = tupleRect(this.clipRect);
+            r.clipRect = tupleRect(this.clipRect);
         }
         if (this.dynamicText !== undefined) {
-            res.dynamicText = this.dynamicText.serialize();
+            r.tf = this.dynamicText.serialize();
         }
         if (this.movie !== undefined) {
-            res.movie = this.movie.serialize();
-        }
-        if (this.script !== undefined && this.script.length > 0) {
-            res.script = this.script;
+            r.mc = this.movie.serialize();
         }
         if (this.filters.length > 0) {
-            res.filters = this.filters.map((v) => v.serialize());
+            r.filters = this.filters.map((v) => v.serialize());
         }
         if (this.children.length > 0) {
-            res.children = this.children.map((v) => v.serialize());
+            r.C = this.children.map((v) => v.serialize());
         }
-        return res;
+        return r;
     }
 }
 
@@ -308,8 +326,17 @@ export class SgFile {
     }
 
     serialize(): AniJson {
+        const library: { [key: string]: NodeJson } = {};
+        for (const node of this.library.children) {
+            if (node.libraryName.length > 0) {
+                const data = node.serialize();
+                const ref = data.ref!;
+                data.ref = undefined;
+                library[ref] = data;
+            }
+        }
         return {
-            library: this.library.serialize(),
+            library,
             linkages: mapToDict(this.linkages),
             scenes: mapToDict(this.scenes)
         };

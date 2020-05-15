@@ -4,6 +4,7 @@
     "composite": true,
     "module": "commonjs",
     "outDir": "dist/commonjs",
+    "rootDir": "src",
     "esModuleInterop": true
   },
   "references": [
@@ -19,5 +20,9 @@
   ],
   "include": [
     "src/**/*.ts"
+  ],
+  "exclude": [
+    "**/node_modules",
+    "dist/**"
   ]
 }

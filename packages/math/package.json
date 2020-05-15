@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "main": "dist/commonjs/index.js",
   "module": "dist/esm/index.js",
-  "types": "dist/esm/index.d.ts",
+  "types": "dist/types/index.d.ts",
   "scripts": {
     "build": "run build:esm && run build:commonjs",
     "build:esm": "tsc -p tsconfig.esm.json",
@@ -13,7 +13,7 @@
   "sideEffects": false,
   "devDependencies": {
     "rimraf": "^3.0.2",
-    "typescript": "^3.8.3"
+    "typescript": "^3.9.2"
   },
   "workspaces": [
     "example"

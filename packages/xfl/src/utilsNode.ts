@@ -4,6 +4,7 @@ import path from "path";
 import {encode} from 'fast-png';
 import {Bitmap} from "./xfl/types";
 import jpeg from 'jpeg-js';
+import {logDebug, logWarning} from "./debug";
 
 export function isDir(p: string) {
     return fs.existsSync(p) && fs.lstatSync(p).isDirectory();
@@ -17,7 +18,7 @@ export function makeDirs(p: string) {
 
 export function savePNG(filepath: string, image?: SpriteImage | Bitmap) {
     if (image === undefined || image.data === undefined || image.width <= 0 || image.height <= 0) {
-        console.warn('image has no data');
+        logWarning('image has no data');
         return;
     }
 
@@ -34,7 +35,7 @@ export function savePNG(filepath: string, image?: SpriteImage | Bitmap) {
 
 export function saveJPEG(filepath: string, image?: SpriteImage | Bitmap, quality: number = 90) {
     if (image === undefined || image.data === undefined || image.width <= 0 || image.height <= 0) {
-        console.warn('image has no data');
+        logWarning('image has no data');
         return;
     }
 
@@ -62,7 +63,7 @@ export function saveJPEG(filepath: string, image?: SpriteImage | Bitmap, quality
             channels: 1
         });
         const alphaMaskPath = filepath.replace('.jpg', '_.png');
-        console.log('save alpha mask: ' + alphaMaskPath)
+        logDebug('save alpha mask: ' + alphaMaskPath)
         fs.writeFileSync(alphaMaskPath, alphaMaskData);
     }
 }

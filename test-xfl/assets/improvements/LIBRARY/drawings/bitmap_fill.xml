@@ -1,10 +1,10 @@
-<DOMSymbolItem xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://ns.adobe.com/xfl/2008/" name="drawings/bitmap_fill" itemID="5eb4fd96-00000063" lastModified="1588929694">
+<DOMSymbolItem xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://ns.adobe.com/xfl/2008/" name="drawings/bitmap_fill" itemID="5eb4fd96-00000063" lastModified="1589368812">
   <timeline>
-    <DOMTimeline name="bitmap_fill" currentFrame="2" layerDepthEnabled="true">
+    <DOMTimeline name="bitmap_fill" currentFrame="19" layerDepthEnabled="true">
       <layers>
         <DOMLayer name="Layer_1" color="#00FFFF" current="true" isSelected="true">
           <frames>
-            <DOMFrame index="0" duration="2" keyMode="9728">
+            <DOMFrame index="0" duration="10" keyMode="9728">
               <elements>
                 <DOMShape>
                   <fills>
@@ -46,7 +46,7 @@
                 </DOMShape>
               </elements>
             </DOMFrame>
-            <DOMFrame index="2" keyMode="9728">
+            <DOMFrame index="10" duration="10" keyMode="9728">
               <elements>
                 <DOMShape>
                   <fills>

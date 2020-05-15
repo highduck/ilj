@@ -3,17 +3,18 @@
   "version": "0.0.1",
   "main": "dist/commonjs/index.js",
   "module": "dist/esm/index.js",
-  "types": "dist/esm/index.d.ts",
+  "types": "dist/types/index.d.ts",
   "scripts": {
     "build": "tsc -p tsconfig.commonjs.json && tsc -p tsconfig.esm.json",
     "demo:build": "run build && cd demo && tsc && rollup --config rollup.config.js",
-    "clean": "rimraf dist/ && rimraf demo/dist/"
+    "clean": "rimraf dist/ && rimraf demo/dist/ && rimraf test/dist/",
+    "test": "cd test && tsc && node dist/commonjs/test/index.js"
   },
   "devDependencies": {
     "rimraf": "^3.0.2",
-    "rollup": "^2.8.2",
+    "rollup": "^2.10.2",
     "rollup-plugin-node-resolve": "^5.2.0",
     "rollup-plugin-terser": "^5.3.0",
-    "typescript": "^3.8.3"
+    "typescript": "^3.9.2"
   }
 }

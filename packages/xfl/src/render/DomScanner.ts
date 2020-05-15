@@ -4,18 +4,20 @@ import {Rect} from "@highduck/math";
 import {TransformModel} from "./TransformModel";
 import {ShapeProcessor} from "./ShapeProcessor";
 import {ElementType, LayerType} from "../xfl/dom";
+import {logWarning} from "../debug";
 
 export class DomScanner {
     name?: string;
     readonly output = new ShapeProcessor();
-    stack: TransformModel[] = [];
+    readonly stack: TransformModel[] = [new TransformModel()];
 
     constructor(readonly doc: FlashFile) {
         this.reset();
     }
 
     reset() {
-        this.stack = [new TransformModel()];
+        this.stack.length = 1;
+        this.stack[0] = new TransformModel();
         this.output.reset();
     }
 
@@ -23,34 +25,35 @@ export class DomScanner {
         const type = element.elementType;
         switch (type) {
             case ElementType.symbol_instance:
-                this.scan_symbol_instance(element);
+                this.onSymbolInstance(element);
                 break;
             case ElementType.group:
-                this.scan_group(element);
+                this.onGroup(element);
                 break;
             case ElementType.shape:
-                this.scan_shape(element);
+                this.onShape(element);
                 break;
             case ElementType.OvalObject:
             case ElementType.RectangleObject:
-                this.scanPrimitive(element);
+                this.onShapeObject(element);
                 break;
             case ElementType.symbol_item:
-                this.scan_symbol_item(element);
+            case ElementType.SceneTimeline:
+                this.onSymbolItem(element);
                 break;
             case ElementType.bitmap_instance:
-                this.scan_bitmap_instance(element);
+                this.onBitmapInstance(element);
                 break;
             case ElementType.bitmap_item:
-                this.scan_bitmap_item(element);
+                this.onBitmapItem(element);
                 break;
             default:
-                console.warn("Unknown ElementType: " + type);
+                logWarning("Unknown ElementType: ", type);
                 break;
         }
     }
 
-    scan_group(element: Element) {
+    onGroup(element: Element) {
         // ! Group Transformation is not applied !
         for (const member of element.members) {
             this.scan(member);
@@ -61,24 +64,24 @@ export class DomScanner {
         return this.stack[this.stack.length - 1];
     }
 
-    scan_shape(element: Element) {
-        this.push_transform(element);
+    onShape(element: Element) {
+        this.pushTransform(element);
         this.output.addElement(element, this.getTopTransform());
-        this.pop_transform();
+        this.popTransform();
     }
 
-    scan_symbol_instance(element: Element) {
+    onSymbolInstance(element: Element) {
         if (element.libraryItemName !== undefined) {
             const s = this.doc.find(element.libraryItemName, ElementType.symbol_item);
             if (s !== undefined) {
-                this.push_transform(element);
+                this.pushTransform(element);
                 this.scan(s);
-                this.pop_transform();
+                this.popTransform();
             }
         }
     }
 
-    scan_symbol_item(element: Element) {
+    onSymbolItem(element: Element) {
         const layers = element.timeline.layers;
         for (let i = layers.length - 1; i >= 0; --i) {
             const layer = layers[i];
@@ -92,24 +95,24 @@ export class DomScanner {
         }
     }
 
-    scan_bitmap_instance(element: Element) {
+    onBitmapInstance(element: Element) {
         if (element.libraryItemName !== undefined) {
             const s = this.doc.find(element.libraryItemName, ElementType.bitmap_item);
             if (s !== undefined) {
-                this.push_transform(element);
-                this.scan_bitmap_item(s);
-                this.pop_transform();
+                this.pushTransform(element);
+                this.onBitmapItem(s);
+                this.popTransform();
             }
         }
     }
 
-    scan_bitmap_item(element: Element) {
-        this.push_transform(element);
+    onBitmapItem(element: Element) {
+        this.pushTransform(element);
         this.output.addElement(element, this.getTopTransform());
-        this.pop_transform();
+        this.popTransform();
     }
 
-    push_transform(element: Element) {
+    pushTransform(element: Element) {
         this.stack.push(
             new TransformModel()
                 .copyFrom(this.getTopTransform())
@@ -122,18 +125,14 @@ export class DomScanner {
         );
     }
 
-    pop_transform() {
+    popTransform() {
         this.stack.pop();
     }
 
-    private scanPrimitive(element: Element) {
-        this.push_transform(element);
-        if (element.elementType === ElementType.OvalObject && element.oval) {
-            this.output.addOval(element.oval, this.getTopTransform());
-        } else if (element.elementType === ElementType.RectangleObject && element.rectangle) {
-            this.output.addRectangle(element.rectangle, this.getTopTransform());
-        }
-        this.pop_transform();
+    private onShapeObject(element: Element) {
+        this.pushTransform(element);
+        this.output.addShapeObject(element, this.getTopTransform());
+        this.popTransform();
     }
 }
 

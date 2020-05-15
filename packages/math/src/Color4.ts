@@ -102,6 +102,14 @@ export class Color4 {
         return this;
     }
 
+    subtract(v: Readonly<Color4>): this {
+        this.r -= v.r;
+        this.g -= v.g;
+        this.b -= v.b;
+        this.a -= v.a;
+        return this;
+    }
+
     copy(out?: Color4): Color4 {
         if (out === undefined) {
             return new Color4(this.r, this.g, this.b, this.a);

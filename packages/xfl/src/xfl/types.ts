@@ -8,6 +8,7 @@ import {
     DOMFilterKind,
     DOMFrame,
     DOMGradientEntry,
+    DOMGradientStyle,
     DOMLayer,
     DOMOvalObject,
     DOMRectangleObject,
@@ -44,6 +45,8 @@ import {
 } from "./parsing";
 import {parseEdges} from "./parseEdges";
 import he from 'he';
+import {FlashFile} from "./FlashFile";
+import {logWarning} from "../debug";
 
 function decode(v: any): string {
     return he.decode(String(v));
@@ -89,15 +92,15 @@ class Filter {
 class Edge {
     readonly commands: number[] = [];
     readonly values: number[] = [];
-    fill_style_0 = 0;
-    fill_style_1 = 0;
-    stroke_style = 0;
+    fillStyle0 = 0;
+    fillStyle1 = 0;
+    strokeStyle = 0;
 
     parse(data: DOMEdges) {
         if (data._edges !== undefined) {
-            this.fill_style_0 = data._fillStyle0 ?? 0;
-            this.fill_style_1 = data._fillStyle1 ?? 0;
-            this.stroke_style = data._strokeStyle ?? 0;
+            this.fillStyle0 = data._fillStyle0 ?? 0;
+            this.fillStyle1 = data._fillStyle1 ?? 0;
+            this.strokeStyle = data._strokeStyle ?? 0;
             parseEdges(data._edges, this.commands, this.values);
         }
     }
@@ -105,20 +108,21 @@ class Edge {
 
 class TextAttributes {
     readonly alignment = new Vec2();// alignment = "left"; / center / right
-    alias_text = false;
+    aliasText = false;
     readonly color = new Color4(0, 0, 0, 1);
     face: undefined | string = undefined; // face="Font 1*"
-    line_height = 20; // 20
-    line_spacing = 0; // "-14";
+    lineHeight = 20; // 20
+    lineSpacing = 0; // "-14";
     size = 32;// = "32";
-    bitmap_size = 640; // just twips size
+    bitmapSize = 640; // just twips size
+
     parse(data: DOMTextAttributes) {
         readAlignment(this.alignment, data._alignment);
-        this.alias_text = data._aliasText ?? false;
+        this.aliasText = data._aliasText ?? false;
         this.size = data._size ?? 12;
-        this.line_height = data._lineHeight ?? this.size;
-        this.line_spacing = data._lineSpacing ?? 0;
-        this.bitmap_size = data._bitmapSize ?? (this.size * 20);
+        this.lineHeight = data._lineHeight ?? this.size;
+        this.lineSpacing = data._lineSpacing ?? 0;
+        this.bitmapSize = data._bitmapSize ?? (this.size * 20);
         this.face = data._face;
         readColor(this.color, data, "_fillColor");
     }
@@ -149,10 +153,10 @@ class SolidStroke {
     miterLimit = 0.0;
     pixelHinting = false;
 
-    parse(data: DOMSolidStroke) {
+    parse(doc: FlashFile, data: DOMSolidStroke) {
         this.weight = data._weight ?? 1;
         if (data.fill) {
-            this.fill.parse(data.fill);
+            this.fill.parse(doc, data.fill);
         }
         this.miterLimit = data._miterLimit ?? 3;
         this.pixelHinting = data._pixelHinting ?? false;
@@ -182,7 +186,18 @@ export class FillStyle {
     bitmap: Bitmap | undefined = undefined;
     readonly matrix = new Matrix2D();
 
-    parse(data: DOMFillStyle) {
+    private parseGradient(type: FillType, fillData: DOMGradientStyle) {
+        this.type = type;
+        this.spreadMethod = fillData._spreadMethod ?? SpreadMethod.extend;
+        parseMatrix2D(this.matrix, fillData);
+        for (const entryData of oneOrMany(fillData.GradientEntry)) {
+            const entry = new GradientEntry();
+            entry.parse(entryData);
+            this.entries.push(entry);
+        }
+    }
+
+    parse(doc: FlashFile, data: DOMFillStyle): this {
         // TODO:
         this.index = data._index ?? 0;
         for (const fillData of oneOrMany(data.SolidColor)) {
@@ -193,34 +208,30 @@ export class FillStyle {
         }
 
         for (const fillData of oneOrMany(data.LinearGradient)) {
-            this.type = FillType.linear;
-            this.spreadMethod = fillData._spreadMethod ?? SpreadMethod.extend;
-            parseMatrix2D(this.matrix, fillData);
-            for (const entryData of oneOrMany(fillData.GradientEntry)) {
-                const entry = new GradientEntry();
-                entry.parse(entryData);
-                this.entries.push(entry);
-            }
+            this.parseGradient(FillType.linear, fillData);
         }
 
         for (const fillData of oneOrMany(data.RadialGradient)) {
-            this.type = FillType.radial;
-            this.spreadMethod = fillData._spreadMethod ?? SpreadMethod.extend;
-            parseMatrix2D(this.matrix, fillData);
-            for (const entryData of oneOrMany(fillData.GradientEntry)) {
-                const entry = new GradientEntry();
-                entry.parse(entryData);
-                this.entries.push(entry);
-            }
+            this.parseGradient(FillType.radial, fillData);
         }
 
         for (const fillData of oneOrMany(data.BitmapFill)) {
             this.type = FillType.Bitmap;
             this.spreadMethod = SpreadMethod.repeat;
             this.bitmapPath = decode(fillData._bitmapPath);
+            this.bitmap = doc.find(this.bitmapPath, ElementType.bitmap_item)?.bitmap;
+            if (this.bitmap === undefined) {
+                logWarning('[BitmapFill] bitmap item not found: ', this.bitmapPath);
+            }
             parseMatrix2D(this.matrix, fillData);
             this.matrix.scale(1 / 20, 1 / 20);
         }
+
+        if (this.matrix.determinant === 0.0) {
+            this.type = FillType.solid;
+        }
+
+        return this;
     }
 }
 
@@ -229,13 +240,14 @@ export class StrokeStyle {
     readonly solid = new SolidStroke();
     isSolid = false;
 
-    parse(data: DOMStrokeStyle) {
+    parse(doc: FlashFile, data: DOMStrokeStyle): this {
         this.index = data._index;
         const solidData = data.SolidStroke;
         if (solidData !== undefined) {
-            this.solid.parse(solidData);
+            this.solid.parse(doc, solidData);
         }
         this.isSolid = solidData !== undefined;
+        return this;
     }
 }
 
@@ -244,13 +256,13 @@ export class StrokeStyle {
 class TweenObject {
     target = TweenTarget.all;
     intensity = 0; // <Ease intensity="-100...100" />
-    custom_ease?: Vec2[];
+    customEase?: Vec2[];
 }
 
 export class Frame {
     index = 0;
     duration = 1;
-    tweenType = TweenType.none;
+    tweenType = TweenType.None;
     keyMode = 0;
 
     motionTweenSnap = false;
@@ -268,16 +280,16 @@ export class Frame {
     script?: string;
     motionObject?: MotionObject;
 
-    static create(data: DOMFrame): Frame {
+    static create(doc: FlashFile, data: DOMFrame): Frame {
         const frame = new Frame();
-        frame.parse(data);
+        frame.parse(doc, data);
         return frame;
     }
 
-    parse(data: DOMFrame) {
+    parse(doc: FlashFile, data: DOMFrame) {
         this.index = data._index;
         this.duration = data._duration ?? 1;
-        this.tweenType = data._tweenType ?? TweenType.none;
+        this.tweenType = data._tweenType ?? TweenType.None;
         if (data._name) {
             this.name = decode(data._name);
         }
@@ -300,7 +312,7 @@ export class Frame {
                 (data.elements as any)[ttag] as undefined | DOMAnyElement | DOMAnyElement[]
             )) {
                 const el = new Element();
-                el.parse(ttag, elData);
+                el.parse(doc, ttag, elData);
                 this.elements.push(el);
             }
             // }
@@ -317,19 +329,23 @@ export class Frame {
             for (const tweenData of oneOrMany(data.tweens.CustomEase)) {
                 const tweenObject = new TweenObject();
                 tweenObject.target = tweenData._target ?? TweenTarget.all;
-                tweenObject.custom_ease = [];
+                tweenObject.customEase = [];
                 for (const p of oneOrMany(tweenData.Point)) {
                     const v = new Vec2();
                     readPoint(v, p);
-                    tweenObject.custom_ease.push(v);
+                    tweenObject.customEase.push(v);
                 }
                 this.tweens.push(tweenObject);
             }
         }
     }
+
+    get endFrame(): number {
+        return this.index + this.duration - 1;
+    }
 }
 
-class Layer {
+export class Layer {
     name?: string;
     layerType = LayerType.normal;
     color: Color32_ARGB = 0xFFFFFF;
@@ -341,6 +357,10 @@ class Layer {
 
     readonly frames: Frame[] = [];
 
+    constructor(readonly index: number) {
+
+    }
+
     getDuration() {
         let total = 0;
         for (const frame of this.frames) {
@@ -349,16 +369,14 @@ class Layer {
         return total;
     }
 
-    parse(data: DOMLayer) {
+    parse(doc: FlashFile, data: DOMLayer): this {
         this.name = decode(data._name);
         this.color = parseColorCSS(data._color);
-        if (data._layerType) {
-            this.layerType = data._layerType as LayerType;
-        }
-
+        this.layerType = data._layerType ?? LayerType.normal;
         for (const frameData of oneOrMany(data.frames?.DOMFrame)) {
-            this.frames.push(Frame.create(frameData));
+            this.frames.push(Frame.create(doc, frameData));
         }
+        return this;
     }
 }
 
@@ -375,13 +393,16 @@ export class Timeline {
         return res;
     }
 
-    parse(data: DOMTimeline) {
+    parse(doc: FlashFile, data: DOMTimeline): this {
         this.name = decode(data._name);
+        let index = 0;
         for (const layerData of oneOrMany(data.layers?.DOMLayer)) {
-            const layer = new Layer();
-            layer.parse(layerData);
-            this.layers.push(layer);
+            this.layers.push(
+                new Layer(index++)
+                    .parse(doc, layerData)
+            );
         }
+        return this;
     }
 }
 
@@ -514,10 +535,11 @@ export class Element {
     // cachedSampleCount="6480"
 
     // primitive objects
+
     oval?: DOMOvalObject;
     rectangle?: DOMRectangleObject;
 
-    parse(tag: ElementType, data: DOMAnyElement) {
+    parse(doc: FlashFile, tag: ElementType, data: DOMAnyElement) {
         this.item.parse(data);
         this.elementType = tag;
 
@@ -531,14 +553,14 @@ export class Element {
         if (data.fills) {
             for (const fillData of oneOrMany(data.fills.FillStyle)) {
                 const fill = new FillStyle();
-                fill.parse(fillData);
+                fill.parse(doc, fillData);
                 this.fills.push(fill);
             }
         }
         if (data.strokes) {
             for (const strokeData of oneOrMany(data.strokes.StrokeStyle)) {
                 const stroke = new StrokeStyle();
-                stroke.parse(strokeData as DOMStrokeStyle);
+                stroke.parse(doc, strokeData as DOMStrokeStyle);
                 this.strokes.push(stroke);
             }
         }
@@ -622,7 +644,7 @@ export class Element {
             for (const tag in data.members) {
                 for (const elData of oneOrMany(data.members[tag])) {
                     const el = new Element();
-                    el.parse(tag as ElementType, elData as DOMAnyElement);
+                    el.parse(doc, tag as ElementType, elData as DOMAnyElement);
                     this.members.push(el);
                 }
             }
@@ -652,7 +674,7 @@ export class Element {
         }
         readScaleGrid(this.scaleGrid, data);
         if (data.timeline !== undefined) {
-            this.timeline.parse(data.timeline.DOMTimeline);
+            this.timeline.parse(doc, data.timeline.DOMTimeline);
         }
 
         // bitmap item
@@ -683,13 +705,23 @@ export class Element {
             this.id = data._id;
         }
 
+        if (data.fill) {
+            this.fills.push(new FillStyle().parse(doc, data.fill));
+        }
+        if (data.stroke) {
+            this.strokes.push(new StrokeStyle().parse(doc, data.stroke));
+        }
+
         // sound item
         ////  todo:
 
-        if (this.elementType === ElementType.OvalObject) {
-            this.oval = data;
-        } else if (this.elementType === ElementType.RectangleObject) {
-            this.rectangle = data;
+        if (this.elementType === ElementType.OvalObject ||
+            this.elementType === ElementType.RectangleObject) {
+            if (this.elementType === ElementType.OvalObject) {
+                this.oval = data;
+            } else if (this.elementType === ElementType.RectangleObject) {
+                this.rectangle = data;
+            }
         }
     }
 }

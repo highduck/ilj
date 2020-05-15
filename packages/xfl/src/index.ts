@@ -2,10 +2,11 @@ import {loadFlashArchive} from "./xfl/loadFlashArchive";
 import {FlashFile} from './xfl/FlashFile';
 import {FlashDocExporter} from "./exporter/FlashDocExporter";
 import {Atlas} from "./spritepack/SpritePack";
-import {loadCanvasContext} from "./rasterizer/CanvasKitHelpers";
+import {loadCanvasContext} from "./rasterizer/SkiaHelpers";
 import fs from "fs";
 import path from "path";
 import {makeDirs, savePNG} from "./utilsNode";
+import {logError} from "./debug";
 
 export * from './xfl/FlashFile';
 
@@ -35,7 +36,7 @@ export function getAtlasList(): string[] {
 export async function exportFlashAsset(name: string, filepath: string, destDir: string, atlas: string) {
     const archive = loadFlashArchive(filepath);
     if (archive === undefined) {
-        console.error('cant open flash asset: ' + filepath);
+        logError('cant open flash asset: ' + filepath);
         return;
     }
 

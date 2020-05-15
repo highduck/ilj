@@ -33,9 +33,9 @@ export class Vec2 {
         return this;
     }
 
-    equals(o: Vec2): boolean {
-        return Math.abs(this.x - o.x) < 0.000001 &&
-            Math.abs(this.y - o.y) < 0.000001;
+    equals(o: Vec2, epsilon = 1e-6): boolean {
+        return Math.abs(this.x - o.x) < epsilon &&
+            Math.abs(this.y - o.y) < epsilon;
     }
 
     addScale(v: Readonly<Vec2>, s: number): this {

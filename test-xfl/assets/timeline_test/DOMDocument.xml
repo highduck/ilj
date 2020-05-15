@@ -1,0 +1,63 @@
+<DOMDocument xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://ns.adobe.com/xfl/2008/" width="480" height="320" frameRate="30" currentTimeline="1" xflVersion="2.971" creatorInfo="Adobe Animate" platform="Macintosh" versionInfo="Saved by Animate Macintosh 20.0 build 25487" majorVersion="20" buildNumber="25487" viewAngle3D="48.8658374504694" vanishingPoint3DX="240" vanishingPoint3DY="160" nextSceneIdentifier="3" playOptionsPlayLoop="false" playOptionsPlayPages="false" playOptionsPlayFrameActions="false" filetypeGUID="DD0DDBBF-5BEF-45B2-9F24-A3048D2A676F" fileGUID="4F9BABC3437B44F9820899AF9C552DCD">
+     <folders>
+          <DOMFolderItem name="compiled_mc" itemID="5ebe9d86-000000ca"/>
+          <DOMFolderItem name="path guide" itemID="5ebee348-0000023a" isExpanded="true"/>
+     </folders>
+     <symbols>
+          <Include href="compiled_mc/cmc1.xml" loadImmediate="false" itemID="5ebe9d91-000000cc" lastModified="1589552194"/>
+          <Include href="p1.xml" loadImmediate="false" itemID="5ebaa7b7-00000610" lastModified="1589290935"/>
+          <Include href="p2.xml" loadImmediate="false" itemID="5ebaa7be-00000617" lastModified="1589290957"/>
+          <Include href="path guide/path guide test.xml" loadImmediate="false" itemID="5ebee353-0000023c" lastModified="1589568744"/>
+          <Include href="quad.xml" loadImmediate="false" itemID="5ebb9ac1-0000062b" lastModified="1589568723"/>
+          <Include href="timeline.xml" loadImmediate="false" itemID="5ebaa888-00000627" lastModified="1589549896"/>
+          <Include href="timeline2.xml" loadImmediate="false" itemID="5ebb9aaf-00000629" lastModified="1589353560"/>
+          <Include href="Tween 1.xml" itemIcon="1" loadImmediate="false" itemID="5eba7b1f-000005ea" lastModified="1589552050"/>
+          <Include href="Tween 2.xml" itemIcon="1" loadImmediate="false" itemID="5eba7b1f-000005ef" lastModified="1589551833"/>
+     </symbols>
+     <timelines>
+          <DOMTimeline name="Scene 1" layerDepthEnabled="true">
+               <layers>
+                    <DOMLayer name="Layer_1" color="#00FFFF" current="true" isSelected="true">
+                         <frames>
+                              <DOMFrame index="0" keyMode="9728">
+                                   <elements>
+                                        <DOMSymbolInstance libraryItemName="timeline">
+                                             <matrix>
+                                                  <Matrix tx="303.35" ty="154.05"/>
+                                             </matrix>
+                                             <transformationPoint>
+                                                  <Point x="-66.35"/>
+                                             </transformationPoint>
+                                        </DOMSymbolInstance>
+                                        <DOMSymbolInstance libraryItemName="timeline2">
+                                             <matrix>
+                                                  <Matrix tx="294.45" ty="235.95"/>
+                                             </matrix>
+                                             <transformationPoint>
+                                                  <Point/>
+                                             </transformationPoint>
+                                        </DOMSymbolInstance>
+                                        <DOMSymbolInstance libraryItemName="compiled_mc/cmc1">
+                                             <matrix>
+                                                  <Matrix a="1.01776123046875" b="1.01776123046875" c="-1.06149291992188" d="1.06149291992188" tx="108.1" ty="249.25"/>
+                                             </matrix>
+                                             <transformationPoint>
+                                                  <Point x="0.35" y="-33.4"/>
+                                             </transformationPoint>
+                                        </DOMSymbolInstance>
+                                   </elements>
+                              </DOMFrame>
+                         </frames>
+                    </DOMLayer>
+               </layers>
+          </DOMTimeline>
+     </timelines>
+     <scripts/>
+     <PrinterSettings platform="macintosh"/>
+     <publishHistory>
+          <PublishItem publishSize="2198" publishTime="1589550847"/>
+          <PublishItem publishSize="2194" publishTime="1589550832"/>
+          <PublishItem publishSize="2193" publishTime="1589550810"/>
+          <PublishItem publishSize="2463" publishTime="1589550609"/>
+     </publishHistory>
+</DOMDocument>

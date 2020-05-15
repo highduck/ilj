@@ -27,24 +27,22 @@ export interface DynamicTextJson {
     text: string;
     face: string;
     alignment: [number, number];
-    line_spacing: number;
-    line_height: number;
+    lineSpacing: number;
+    lineHeight: number;
     size: number;
     color: ARGB32;
 }
 
 export interface EasingJson {
-    attribute?: TweenTargetType; // default = 0
-    ease?: number; // default = 0
-    curve?: number[]; //pairs: x,y,x,y,x,y...
+    // target attribute
+    t?: TweenTargetType; // default = 0
+    // ease value
+    v?: number; // default = 0
+    // curve points
+    c?: number[]; //pairs: x,y,x,y,x,y...
 }
 
-export interface MovieFrameJson {
-    i: number; // index
-    len: number; // duration
-    mot: number; // motion_type
-    key: number;
-
+export interface TransformJson {
     // position-scale-rotation(skew)-origin(pivot)
     p?: [number, number];
     s?: [number, number];
@@ -55,61 +53,64 @@ export interface MovieFrameJson {
     cm?: [number, number, number, number];
     co?: [number, number, number, number];
 
-    tweens?: EasingJson[];
+    // is visible
+    v?: boolean;
 }
 
-export interface MovieLayerJson {
-    key: number;
-    frames: MovieFrameJson[];
+export interface KeyframeJson extends TransformJson {
+    // start time, end time
+    // additional could be used [Flags for motion+loop-mode, first frame]
+    _: number[];
+    // i: number; // start time
+    // e: number; // end time
+    // motion type
+    m?: number; // None by default
+    // loop/firstFrame
+    l?: number[];
+
+    // easing setup
+    ease?: EasingJson[];
 }
 
 export interface MovieJson {
-    frames: number;
-    layers: MovieLayerJson[];
-    fps?: number;
+    // length, total frames
+    l: number;
+    // targets
+    // t: { [_:number]MovieTargetJson[];
+    // Target ID -> Frames
+    t: { [_: number]: KeyframeJson[] };
+    // fps
+    f?: number;
 }
 
-export interface NodeJson {
-
-    // instance `name`
-    id?: string;
-
+export interface NodeJson extends TransformJson {
     // name in library: `libraryName`
     ref?: string;
-    // position-scale-rotation_skew
-    p?: [number, number];
-    s?: [number, number];
-    r?: [number, number];
 
-    // color multiplier, color offset
-    cm?: [number, number, number, number];
-    co?: [number, number, number, number];
+    // instance name
+    id?: string;
 
-    // sprite id
+    // Sprite ID
     spr?: string;
+
+    // Node's children
+    C?: NodeJson[];
 
     button?: boolean;
     touchable?: boolean;
-    visible?: boolean;
     scaleGrid?: [number, number, number, number];
     hitRect?: [number, number, number, number];
     clipRect?: [number, number, number, number];
-    children?: NodeJson[];
     filters?: FilterJson[];
-    script?: string;
-    dynamicText?: DynamicTextJson;
-    movie?: MovieJson;
-
-    ak?: number; // `animationKey`
-    lk?: number; // `layerKey`
-
-    l?:number; // loop mode
-    ff?:number; // first frame
+    tf?: DynamicTextJson;
+    mc?: MovieJson;
+    // Animation target ID
+    _?: number;
 }
 
 export interface AniJson {
     linkages: { [key: string]: string };
     scenes: { [key: string]: string };
-    library: NodeJson;
+    library: { [key: string]: NodeJson };
 }
 

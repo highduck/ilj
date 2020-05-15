@@ -1,3 +1,10 @@
+export const enum LabelType {
+    None = '',
+    Name = 'name',
+    Comment = 'comment',
+    Anchor = 'anchor'
+}
+
 // Graphic Symbol loop mode
 export const enum LoopMode {
     Loop = 'loop',
@@ -43,7 +50,8 @@ export const enum ElementType {
     symbol_item = 'DOMSymbolItem',
     bitmap_item = 'DOMBitmapItem',
     font_item = 'DOMFontItem',
-    sound_item = 'DOMSoundItem'
+    sound_item = 'DOMSoundItem',
+    SceneTimeline = 'DOMSceneTimeline'
 }
 
 export const enum SymbolType {
@@ -116,8 +124,9 @@ export const enum LayerType {
 }
 
 export const enum TweenType {
-    none = 'none',
-    motion = 'motion'
+    None = 'none',
+    Classic = 'motion',
+    MotionObject = 'motion object'
 }
 
 export const enum RotationDirection {
@@ -235,14 +244,17 @@ export interface DOMFillStyle {
 }
 
 export interface DOMShape extends ElementObject {
-    _selected: true,
-    _isDrawingObject: true,
+    _selected: true;
+    _isDrawingObject: true;
     fills?: {
         FillStyle?: DOMFillStyle | DOMFillStyle[]
-    },
+    };
     edges?: {
         Edge?: DOMEdges | DOMEdges[]
-    }
+    };
+    strokes?: {
+        StrokeStyle?: DOMStrokeStyle | DOMStrokeStyle[]
+    };
 }
 
 export const enum TweenTarget {
@@ -255,8 +267,9 @@ export const enum TweenTarget {
 }
 
 export interface DOMEase {
-    _target?: TweenTarget, // all
-    _intensity?: number // -100 .. 100
+    _target?: TweenTarget; // all
+    _intensity?: number; // -100 .. 100
+    _method?:string; // "quadIn" TODO:
 }
 
 export interface DOMCustomEase {
@@ -312,17 +325,47 @@ export interface ElementsArray {
 }
 
 export interface DOMFrame {
-    _name: string;
-    _index: number; // def: 0
+
+    // label value
+    _name?: string;
+
+    _labelType?: LabelType; // def: None
+    // flag for Anchor label
+    _bookmark?:boolean; // def: false
+
+    // start frame index
+    _index: number; // seems like no default, 0 and 1 printed explicitly
+    // frame span duration
     _duration: number; // def: 1
-    _tweenType: TweenType;
-    _keyMode: number; // think bitmask with flags, TODO:
+
+    _tweenType?: TweenType; // def: None
+
+    // key frame bitmask flags
+    // bit idx 0-based
+    // 9728 => 9, 10, 13
+    // 22017 => 0, 9, 10, 12, 14
+    // 8 - Orient to path, _motionTweenOrientToPath
+    // 9 - Scale enabled, _motionTweenScale
+    // 10 - Rotate mode ENABLED - auto/cw/ccw
+    // 11 - motionTweenSync
+    // 12 - Snap enabled, _motionTweenSnap
+    // 15 - motionTweenColorAlongPath
+    // 16 - _motionTweenScaleAlongPath
+
+    _keyMode?: number;
+
+    _easeMethodName?:string; //
+
     _acceleration?: number;
     _hasCustomEase?: boolean;
     _motionTweenRotateTimes?: number; // 0
     _motionTweenRotate?: RotationDirection;
-    _motionTweenSnap?: boolean;
-    _motionTweenOrientToPath?: boolean;
+    _motionTweenSnap?: boolean; // def: false
+    _motionTweenScale?: boolean; // def: true
+    _motionTweenOrientToPath?: boolean; // def: false
+    _motionTweenColorAlongPath?: boolean; // def: false
+    _motionTweenScaleAlongPath?: boolean; // def: false
+    _motionTweenSync?: boolean; // def: false;
 
     _parentLayerIndex?: number; // ?? todo:
 
@@ -349,6 +392,7 @@ export interface DOMFrame {
 export interface DOMLayer {
     _name: string,
     _layerType?: LayerType,
+    //_animationType?: TweenType; // def: normal
     _attachedToCamera?: boolean, // default: false (means layer actually affected by camera)
     _parentLayerIndex?: number, // ?? todo:
     _layerRiggingIndex?: number, // ?? layers hierarchy, also propagated into the DOMFrame
@@ -372,7 +416,6 @@ export interface DOMTimeline {
 
 export interface DOMSymbolItem extends ItemObject {
 }
-
 
 export interface DOMDocument {
     _xflVersion: number;
@@ -534,31 +577,28 @@ export interface DOMTransformationPointHolder {
     };
 }
 
-export interface DOMOvalObject extends DOMMatrix2DHolder, DOMTransformationPointHolder {
+export interface DOMShapeObject extends DOMMatrix2DHolder, DOMTransformationPointHolder {
     _objectWidth?: number; // 58
     _objectHeight?: number; // 58
     _x?: number;
     _y?: number;
-    _endAngle?: number; // 0
-    _startAngle?: number; // 0
-    _innerRadius?: number; // 0
-    _closePath?: boolean; // true
     fill?: DOMFillStyle;
     stroke?: DOMStrokeStyle;
 }
 
-export interface DOMRectangleObject extends DOMMatrix2DHolder, DOMTransformationPointHolder {
-    _objectWidth?: number; // 58
-    _objectHeight?: number; // 58
-    _x?: number;
-    _y?: number;
-    _lockFlag?: boolean; // false
+export interface DOMOvalObject extends DOMShapeObject {
+    _endAngle?: number; // 0
+    _startAngle?: number; // 0
+    _innerRadius?: number; // 0
+    _closePath?: boolean; // true
+}
+
+export interface DOMRectangleObject extends DOMShapeObject {
     _topLeftRadius?: number; // 0
     _topRightRadius?: number; // 0
     _bottomLeftRadius?: number; // 0
     _bottomRightRadius?: number; // 0
-    fill?: DOMFillStyle;
-    stroke?: DOMStrokeStyle;
+    _lockFlag?: boolean; // false
 }
 
 interface SoundEnvelopePoint {

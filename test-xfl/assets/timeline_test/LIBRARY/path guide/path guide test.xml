@@ -1,0 +1,73 @@
+<DOMSymbolItem xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://ns.adobe.com/xfl/2008/" name="path guide/path guide test" itemID="5ebee353-0000023c" lastModified="1589568744" lastUniqueIdentifier="1">
+  <timeline>
+    <DOMTimeline name="path guide test" layerDepthEnabled="true">
+      <layers>
+        <DOMLayer name="Guide: Layer_1" color="#FF800A" autoNamed="false" highlighted="true" layerType="guide">
+          <frames>
+            <DOMFrame index="0" duration="13" keyMode="9728">
+              <elements>
+                <DOMShape>
+                  <strokes>
+                    <StrokeStyle index="1">
+                      <SolidStroke scaleMode="normal" weight="2">
+                        <fill>
+                          <SolidColor/>
+                        </fill>
+                      </SolidStroke>
+                    </StrokeStyle>
+                  </strokes>
+                  <edges>
+                    <Edge strokeStyle="1" edges="!-20 -39[-100 -200 -185 -438!-185 -438[-355 -915 -380 -1299!-380 -1299[-415 -1837 -155 -2115!-155 -2115[170 -2461 940 -2379!940 -2379[1739 -2293 2316 -1995!2316 -1995[2837 -1724 3065 -1344!3065 -1344[3284 -979 3162 -641!3162 -641[3035
+ -290 2580 -99"/>
+                    <Edge cubics="!-20 -39(-20,-39;-20,-39 -1300,-2619 940,-2379q-20 -39Q-100 -200q-185 -438Q-355 -915q-380 -1299Q-415 -1837q-155 -2115Q170 -2461q940 -2379);"/>
+                    <Edge cubics="!940 -2379(;3180,-2139 3820,-619 2580,-99q940 -2379Q1739 -2293q2316 -1995Q2837 -1724q3065 -1344Q3284 -979q3162 -641Q3035 -290q2580 -99)1340,421;"/>
+                  </edges>
+                </DOMShape>
+              </elements>
+            </DOMFrame>
+          </frames>
+        </DOMLayer>
+        <DOMLayer name="Layer_1" color="#00FFFF" parentLayerIndex="0" current="true" isSelected="true" autoNamed="false" heightMultiplier="2">
+          <frames>
+            <DOMFrame index="0" duration="6" tweenType="motion" motionTweenOrientToPath="true" motionTweenSnap="true" keyMode="22273">
+              <elements>
+                <DOMSymbolInstance libraryItemName="quad">
+                  <matrix>
+                    <Matrix a="0.965927124023438" b="-0.258804321289062" c="0.258804321289062" d="0.965927124023438" tx="-1" ty="-1.95"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point y="-0.05"/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+              </elements>
+            </DOMFrame>
+            <DOMFrame index="6" duration="6" tweenType="motion" motionTweenSnap="true" keyMode="22017">
+              <elements>
+                <DOMSymbolInstance libraryItemName="quad" centerPoint3DX="128.95" centerPoint3DY="-4.95">
+                  <matrix>
+                    <Matrix a="-0.258819580078125" b="-0.965911865234375" c="0.965911865234375" d="-0.258819580078125" tx="128.95" ty="-4.95"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+              </elements>
+            </DOMFrame>
+            <DOMFrame index="12" tweenType="motion" motionTweenSnap="true" keyMode="22017">
+              <elements>
+                <DOMSymbolInstance libraryItemName="quad" centerPoint3DX="-1" centerPoint3DY="-1.95">
+                  <matrix>
+                    <Matrix tx="-1" ty="-1.95"/>
+                  </matrix>
+                  <transformationPoint>
+                    <Point/>
+                  </transformationPoint>
+                </DOMSymbolInstance>
+              </elements>
+            </DOMFrame>
+          </frames>
+        </DOMLayer>
+      </layers>
+    </DOMTimeline>
+  </timeline>
+</DOMSymbolItem>

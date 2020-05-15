@@ -7,13 +7,13 @@
           <Include href="s3.xml" itemIcon="1" loadImmediate="false" itemID="5eb5ddf1-00000192" lastModified="1588977137"/>
      </symbols>
      <timelines>
-          <DOMTimeline name="Scene 1" currentFrame="18" layerDepthEnabled="true">
+          <DOMTimeline name="Scene 1" layerDepthEnabled="true">
                <layers>
                     <DOMLayer name="Layer_1" color="#00FFFF" current="true" isSelected="true">
                          <frames>
                               <DOMFrame index="0" duration="9" keyMode="9728">
                                    <elements>
-                                        <DOMSymbolInstance libraryItemName="flipbook" selected="true" symbolType="graphic" loop="loop">
+                                        <DOMSymbolInstance libraryItemName="flipbook" symbolType="graphic" loop="loop">
                                              <matrix>
                                                   <Matrix tx="207" ty="204.5"/>
                                              </matrix>
@@ -21,7 +21,7 @@
                                                   <Point x="-16.45" y="0.65"/>
                                              </transformationPoint>
                                         </DOMSymbolInstance>
-                                        <DOMSymbolInstance libraryItemName="flipbook2" selected="true" symbolType="graphic" loop="single frame">
+                                        <DOMSymbolInstance libraryItemName="flipbook2" symbolType="graphic" loop="single frame">
                                              <matrix>
                                                   <Matrix tx="297" ty="223.5"/>
                                              </matrix>
@@ -41,7 +41,7 @@
                                                   <Point x="-16.45" y="0.65"/>
                                              </transformationPoint>
                                         </DOMSymbolInstance>
-                                        <DOMSymbolInstance libraryItemName="flipbook2" symbolType="graphic" centerPoint3DX="299" centerPoint3DY="225.05" loop="single frame">
+                                        <DOMSymbolInstance libraryItemName="flipbook2" symbolType="graphic" firstFrame="11" centerPoint3DX="299" centerPoint3DY="225.05" loop="single frame">
                                              <matrix>
                                                   <Matrix tx="297" ty="223.5"/>
                                              </matrix>

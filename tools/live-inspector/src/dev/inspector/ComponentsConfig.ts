@@ -2,23 +2,23 @@ import {MovieClipInspector} from "./MovieClipInspector";
 import {ComponentType} from "preact";
 import {Transform2DEditor} from "./Transform2DEditor";
 import {
-    Transform2D,
+    Button,
+    Camera2D,
     ConstructorWithID,
-    DisplaySprite,
-    DisplayText,
-    DisplayQuad,
     DisplayArc,
     DisplayParticles,
+    DisplayQuad,
+    DisplaySprite,
+    DisplayText,
+    Filters2D,
+    Interactive,
     MovieClip2D,
     MovieClipTarget,
-    Filters2D,
-    Camera2D,
-    TrailRenderer,
-    Trail,
+    ParticleEmitter,
     ParticleLayer,
-    Button,
-    Interactive,
-    ParticleEmitter
+    Trail,
+    TrailRenderer,
+    Transform2D
 } from "@highduck/core";
 
 export interface ComponentViewProps<T = object> {
@@ -31,9 +31,28 @@ export interface ComponentViewConfig {
     kind?: string;
     view?: ComponentType<ComponentViewProps>;
     icon?: string;
+    severity?: number;
 }
 
 export const COMPONENTS_CONFIG = new Map<ConstructorWithID, ComponentViewConfig>();
+export const COMPONENTS_SEVERITY:ConstructorWithID[] = [
+    Transform2D,
+    Interactive,
+    MovieClipTarget,
+    TrailRenderer,
+    ParticleLayer,
+    DisplayArc,
+    DisplayParticles,
+    DisplayQuad,
+    DisplaySprite,
+    DisplayText,
+    Button,
+    Camera2D,
+    Filters2D,
+    MovieClip2D,
+    ParticleEmitter,
+    Trail
+];
 
 export function getComponentIcon(type: ConstructorWithID): string {
     const config = COMPONENTS_CONFIG.get(type);
@@ -109,7 +128,7 @@ COMPONENTS_CONFIG.set(MovieClip2D, {
 
 COMPONENTS_CONFIG.set(MovieClipTarget, {
     name: "MovieClip Target",
-    icon: "🎭",
+    icon: "🎭"
 });
 
 COMPONENTS_CONFIG.set(Filters2D, {

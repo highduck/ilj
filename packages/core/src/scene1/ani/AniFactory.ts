@@ -19,18 +19,10 @@ export class AniFactory {
     constructor(private readonly engine: Engine) {
     }
 
-    applyData(entity: Entity, data: NodeJson, library: Ani) {
+    applyData(entity: Entity, ref: string | undefined, data: NodeJson, library: Ani) {
         entity.name = data.id;
-        const targetKeys = entity.getOrCreate(MovieClipTarget);
-        if (data.ak !== undefined) {
-            targetKeys.keyAnimation = data.ak;
-        }
-        if (data.lk !== undefined) {
-            targetKeys.keyLayer = data.lk;
-        }
-        if (data.l !== undefined) {
-            targetKeys.loop = data.l;
-            targetKeys.ff = data.ff!;
+        if (data._ !== undefined) {
+            entity.getOrCreate(MovieClipTarget).keyAnimation = data._;
         }
 
         const transform = entity.get(Transform2D);
@@ -64,33 +56,31 @@ export class AniFactory {
             entity.touchable = data.touchable;
         }
 
-        if (data.visible !== undefined) {
-            entity.visible = data.visible;
-        }
+        entity.visible = data.v ?? true;
 
-        if (data.dynamicText) {
+        if (data.tf) {
             const dtext = entity.getOrCreate(DisplayText);
-            dtext.text = data.dynamicText.text;
-            dtext.rect.setTuple(data.dynamicText.rect);
+            dtext.text = data.tf.text;
+            dtext.rect.setTuple(data.tf.rect);
 
-            dtext.format.font = data.dynamicText.face;
-            dtext.format.size = data.dynamicText.size;
-            dtext.format.alignment.setTuple(data.dynamicText.alignment);
-            dtext.format.lineSpacing = data.dynamicText.line_spacing;
-            dtext.format.lineHeight = data.dynamicText.line_height;
+            dtext.format.font = data.tf.face;
+            dtext.format.size = data.tf.size;
+            dtext.format.alignment.setTuple(data.tf.alignment);
+            dtext.format.lineSpacing = data.tf.lineSpacing;
+            dtext.format.lineHeight = data.tf.lineHeight;
             dtext.format.shadow = false;
-            dtext.format.color = data.dynamicText.color;
+            dtext.format.color = data.tf.color;
         }
 
-        if (data.movie) {
+        if (data.mc) {
             const mov = entity.set(MovieClip2D);
             if (library.backReference !== undefined) {
                 mov.libraryAsset = library.backReference;
-                mov.movieDataSymbol = data.ref!;
+                mov.movieDataSymbol = ref!;
             } else {
-                mov.data = data.movie;
+                mov.data = data.mc;
             }
-            mov.fps = data.movie.fps ?? 24;
+            mov.fps = data.mc.f ?? 24;
         }
 
         let sprite: DisplaySprite | undefined;
@@ -126,20 +116,19 @@ export class AniFactory {
         }
     }
 
-    createAndMerge(ani: Ani, data?: NodeJson, over?: NodeJson): Entity {
+    createAndMerge(ani: Ani, ref?: string, data?: NodeJson, over?: NodeJson): Entity {
         const entity = this.engine.world.create();
         entity.set(Transform2D);
-        entity.set(MovieClipTarget);
         if (data) {
-            this.applyData(entity, data, ani);
+            this.applyData(entity, ref, data, ani);
         }
         if (over) {
-            this.applyData(entity, over, ani);
+            this.applyData(entity, ref, over, ani);
         }
-        if (data && data.children) {
-            for (const child of data.children) {
+        if (data && data.C) {
+            for (const child of data.C) {
                 entity.appendStrict(
-                    this.createAndMerge(ani, ani.get(child.ref!), child)
+                    this.createAndMerge(ani, child.ref, ani.get(child.ref!), child)
                 );
             }
         }
@@ -148,31 +137,31 @@ export class AniFactory {
     }
 
     extendBounds(file: Ani, data: NodeJson, bounds: Rect, matrix: Matrix2D) {
-        if (data.spr) {
-            const spr = Resources.get(Sprite, data.spr).data;
-            if (spr) {
-                // TODO:
-                // bounds = combine(bounds, points_box(
-                //     matrix.transform(spr->rect.position),
-                //     matrix.transform(spr->rect.right_bottom())
-                // ));
-            }
-        }
-        if (data.children) {
-            for (const child of data.children) {
-                const symbol = child.ref ? file.get(child.ref) : child;
-                if (symbol) {
-                    // TODO:
-                    //this.extend_bounds(file, symbol, bounds, matrix * child.matrix);
-                }
-            }
-        }
+        // if (data.spr) {
+        //     const spr = Resources.get(Sprite, data.spr).data;
+        //     if (spr) {
+        //         // TODO:
+        //         // bounds = combine(bounds, points_box(
+        //         //     matrix.transform(spr->rect.position),
+        //         //     matrix.transform(spr->rect.right_bottom())
+        //         // ));
+        //     }
+        // }
+        // if (data.C) {
+        //     for (const child of data.C) {
+        //         const symbol = child.ref ? file.get(child.ref) : child;
+        //         if (symbol) {
+        //             // TODO:
+        //             //this.extend_bounds(file, symbol, bounds, matrix * child.matrix);
+        //         }
+        //     }
+        // }
     }
 
     create(linkage: string, parent?: Entity): Entity | undefined {
         const ref = findLinkageRef(linkage);
         if (ref !== undefined) {
-            const entity = this.createFromAni(ref.library, ref.path);
+            const entity = this.createFromAni(ref.library, ref.ref);
             if (entity !== undefined) {
                 if (parent !== undefined) {
                     parent.appendStrict(entity);
@@ -185,12 +174,12 @@ export class AniFactory {
         return undefined;
     }
 
-    createFromAni(library: Ani, path: string): Entity | undefined {
-        const data = library.get(path);
+    createFromAni(library: Ani, ref: string): Entity | undefined {
+        const data = library.get(ref);
         if (data) {
-            return this.createAndMerge(library, data);
+            return this.createAndMerge(library, ref, data);
         }
-        console.warn(`SG Object ${path} not found in library ${library}`);
+        console.warn(`SG Object ${ref} not found in library ${library}`);
         return undefined;
     }
 
@@ -218,7 +207,7 @@ export class AniFactory {
         return undefined;
     }
 
-    sgGetBounds(library: string, name: string): Rect {
+    getBounds(library: string, name: string): Rect {
         const asset = Resources.get(Ani, library);
         const file = asset.data;
         if (file) {

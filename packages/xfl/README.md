@@ -39,12 +39,12 @@ Purpose of rewriting C/C++ codebase to TypeScript:
 - [x] Bitmap Fills
 - [x] JPEG export support
 - [x] Split-alpha export support
+- [x] Graphic symbol frame control
+- [x] Visibility timeline animation
 
 ### 2. Features
-- [ ] Graphic symbol frame control
 - [ ] Masks (Alpha/Color)
-- [ ] Visibility timeline animation
-- [ ] Motion tween / Classic tween
+- [ ] Motion Object tween
 - [ ] Stroke styles - not solid
 - [ ] Bitmap font export
 
@@ -63,6 +63,9 @@ Purpose of rewriting C/C++ codebase to TypeScript:
 - [ ] Sounds processing
 - [ ] Video processing
 - [ ] Morphing shapes
+- [ ] Bones / IK
+- [ ] Warping tool
+- [ ] 3D Transforms
 
 ## Test data files
 
@@ -71,3 +74,11 @@ XFL parsing source file
 
 - `./testData/test_fla.fla`
 compressed FLA file test
+
+## mini todo
+
+- [ ] Simple player library, preview application
+- [ ] Force sprite symbol (decide flag)
+- [ ] Labels and scripts data export and access
+- [ ] Rotate mode None
+- [ ] StaticText

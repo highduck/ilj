@@ -6,6 +6,7 @@ import {RenderBatch} from "./RenderBatch";
 import {RenderOp} from "./RenderOp";
 import {ShapeEdge} from "./ShapeEdge";
 import {EdgeSelectionBit} from "../xfl/parseEdges";
+import {logDebug, logError, logWarning} from "../debug";
 
 const enum CommandSymbol {
     MOVE_TO = 0, // '!'
@@ -22,8 +23,8 @@ export class ShapeDecoder {
     total = 0;
 
     commands: RenderCommand[] = [];
-    fill_styles: RenderCommand[] = [];
-    line_styles: RenderCommand[] = [];
+    fillStyles: RenderCommand[] = [];
+    lineStyles: RenderCommand[] = [];
 
     constructor(transform: TransformModel) {
         this.transform.copyFrom(transform);
@@ -34,41 +35,41 @@ export class ShapeDecoder {
 
         const matrix = this.transform.matrix;
 
-        this.read_fill_styles(el);
-        this.read_line_styles(el);
+        this.readFillStyles(el);
+        this.readLineStyles(el);
 
         const pen = new Vec2(0, 0);
 
-        let current_fill_0 = 0;
-        let current_fill_1 = 0;
-        let current_line = -1;
+        let currentFill0 = 0;
+        let currentFill1 = 0;
+        let currentLine = -1;
 
         const edges: RenderCommand[] = [];
         let fills: ShapeEdge[] = [];
-        let back_fills: ShapeEdge[] = [];
+        //let back_fills: ShapeEdge[] = [];
 
         for (const edge of el.edges) {
-            let line_started = false;
+            let lineStarted = false;
             const edgeCommands = edge.commands;
             const values = edge.values;
             if (edgeCommands.length === 0) {
                 continue;
             }
 
-            back_fills = [];
+            //back_fills = [];
 
-            const is_new_line_style = edge.stroke_style !== current_line;
-            current_fill_0 = edge.fill_style_0;
-            current_fill_1 = edge.fill_style_1;
+            const isNewLineStyle = edge.strokeStyle !== currentLine;
+            currentFill0 = edge.fillStyle0;
+            currentFill1 = edge.fillStyle1;
 
             let radius = 0;
 
-            if (is_new_line_style) {
-                const line_style_idx = edge.stroke_style;
-                edges.push(this.line_styles[line_style_idx]);
-                current_line = line_style_idx;
+            if (isNewLineStyle) {
+                const lineStyleIdx = edge.strokeStyle;
+                edges.push(this.lineStyles[lineStyleIdx]);
+                currentLine = lineStyleIdx;
 
-                radius = line_style_idx < 1 ? 0 : (el.strokes[line_style_idx - 1].solid.weight / 2);
+                radius = lineStyleIdx < 1 ? 0 : (el.strokes[lineStyleIdx - 1].solid.weight / 2);
             }
 
             let valueIndex = 0;
@@ -81,10 +82,10 @@ export class ShapeDecoder {
                     matrix.transform(v1, v2, p);
 
                     //if (px != penX || py != penY) {
-                    if (current_line > 0 && !(line_started && pen.equals(p))) {
+                    if (currentLine > 0 && !(lineStarted && pen.equals(p))) {
                         this.extend(p.x, p.y, radius);
                         edges.push(new RenderCommand(RenderOp.move_to, p.x, p.y));
-                        line_started = true;
+                        lineStarted = true;
                     }
                     //}
 
@@ -97,18 +98,18 @@ export class ShapeDecoder {
                     matrix.transform(v1, v2, p);
                     this.extend(p.x, p.y, radius);
 
-                    if (current_line > 0) {
+                    if (currentLine > 0) {
                         edges.push(new RenderCommand(RenderOp.line_to, p.x, p.y));
                     } else {
                         edges.push(new RenderCommand(RenderOp.move_to, p.x, p.y));
                     }
 
-                    if (current_fill_0 > 0) {
-                        fills.push(ShapeEdge.line(current_fill_0, pen, p));
+                    if (currentFill0 > 0) {
+                        fills.push(ShapeEdge.line(currentFill0, pen, p));
                     }
 
-                    if (current_fill_1 > 0) {
-                        fills.push(ShapeEdge.line(current_fill_1, p, pen));
+                    if (currentFill1 > 0) {
+                        fills.push(ShapeEdge.line(currentFill1, p, pen));
                     }
 
                     pen.copyFrom(p);
@@ -125,16 +126,16 @@ export class ShapeDecoder {
                     this.extend(c.x, c.y, radius);
                     this.extend(p.x, p.y, radius);
 
-                    if (current_line > 0) {
+                    if (currentLine > 0) {
                         edges.push(new RenderCommand(RenderOp.curve_to, c.x, c.y, p.x, p.y));
                     }
 
-                    if (current_fill_0 > 0) {
-                        fills.push(ShapeEdge.curve(current_fill_0, pen, c, p));
+                    if (currentFill0 > 0) {
+                        fills.push(ShapeEdge.curve(currentFill0, pen, c, p));
                     }
 
-                    if (current_fill_1 > 0) {
-                        fills.push(ShapeEdge.curve(current_fill_1, p, c, pen));
+                    if (currentFill1 > 0) {
+                        fills.push(ShapeEdge.curve(currentFill1, p, c, pen));
                     }
 
                     pen.copyFrom(p);
@@ -154,9 +155,9 @@ export class ShapeDecoder {
                     }
                 }
             }
-            fills = fills.concat(back_fills);
+            //fills = fills.concat(back_fills);
         }
-        this.flush_commands(edges, fills);
+        this.flushCommands(edges, fills);
     }
 
     getResult(): RenderBatch {
@@ -176,7 +177,7 @@ export class ShapeDecoder {
         this.boundsBuilder.addBounds(x - r, y - r, x + r, y + r);
     }
 
-    private read_fill_styles(el: Element) {
+    private readFillStyles(el: Element) {
         const result: RenderCommand[] = [];
 
         // Special null fill-style
@@ -188,10 +189,10 @@ export class ShapeDecoder {
             result.push(cmd);
         }
 
-        this.fill_styles = result;
+        this.fillStyles = result;
     }
 
-    private read_line_styles(el: Element) {
+    private readLineStyles(el: Element) {
         const result: RenderCommand[] = [];
 
         // Special null line-style
@@ -206,50 +207,50 @@ export class ShapeDecoder {
                 /// TODO: check if not solid stroke
             }
         }
-        this.line_styles = result;
+        this.lineStyles = result;
     }
 
-    private flush_commands(edges: RenderCommand[], fills: ShapeEdge[]) {
+    private flushCommands(edges: RenderCommand[], fills: ShapeEdge[]) {
         let left = fills.length;
 //        bool init = false;
-        let current_fill = 0;
+        let currentFill = 0;
         let fillBeginCount = 0;
         while (left > 0) {
             let first = fills[0];
-            let found_fill = false;
-            if (current_fill > 0) {
+            let fillFounded = false;
+            if (currentFill > 0) {
                 for (let i = 0; i < left; ++i) {
-                    if (fills[i].fill_style_idx === current_fill) {
+                    if (fills[i].fillStyleIndex === currentFill) {
                         first = fills[i];
                         fills.splice(i, 1);
                         --left;
-                        found_fill = true;
+                        fillFounded = true;
                         break;
                     }
                 }
             }
-            if (!found_fill) {
+            if (!fillFounded) {
                 fills.splice(0, 1);
                 //fills[0] = fills[--left];
                 --left;
             }
-            if (first.fill_style_idx >= this.fill_styles.length) {
-                console.warn(`Fill Style ${first.fill_style_idx} not found`);
+            if (first.fillStyleIndex >= this.fillStyles.length) {
+                logWarning(`Fill Style ${first.fillStyleIndex} not found`);
                 continue;
             }
 
-//          if (!init) {
-//              init = true;
-            if (current_fill !== first.fill_style_idx) {
-                this.commands.push(this.fill_styles[first.fill_style_idx]);
-                current_fill = first.fill_style_idx;
+            //if (!init) {
+            //init = true;
+            if (currentFill !== first.fillStyleIndex) {
+                this.commands.push(this.fillStyles[first.fillStyleIndex]);
+                currentFill = first.fillStyleIndex;
                 ++fillBeginCount;
             }
-//          }
+            //}
             const m = first.p0;
 
             this.commands.push(new RenderCommand(RenderOp.move_to, m.x, m.y));
-            this.commands.push(first.to_command());
+            this.commands.push(first.toCommand());
 
             let prev = first;
             let loop = false;
@@ -262,7 +263,7 @@ export class ShapeDecoder {
                         fills.splice(i, 1);
                         --left;
                         // fills[i] = fills[--left];
-                        this.commands.push(prev.to_command());
+                        this.commands.push(prev.toCommand());
                         found = true;
                         if (prev.connects(first)) {
                             loop = true;
@@ -272,11 +273,13 @@ export class ShapeDecoder {
                 }
 
                 if (!found) {
-                    /*trace("Remaining:");
-                    for (f in 0...left)
-                        fills[f].dump ();
+                    logDebug("Remaining:");
+                    //for (let f = 0; f < left; ++f) {
+                    //fills[f].dump();
+                    //}
 
-                    throw("Dangling fill : " + prev.x1 + "," + prev.y1 + "  " + prev.fillStyle);*/
+                    //throw("Dangling fill : " + prev.x1 + "," + prev.y1 + "  " + prev.fillStyle);
+                    logError(`Dangling fill: ${prev.p0.x}, ${prev.p0.y}`, prev.fillStyleIndex);
                     break;
                 }
             }
@@ -287,22 +290,10 @@ export class ShapeDecoder {
         }
 
         if (edges.length !== 0) {
-            //trace("EDGES: " + edges.toString());
             for (const e of edges) {
                 this.commands.push(e);
             }
             this.commands.push(new RenderCommand(RenderOp.line_style_reset));
         }
     }
-}
-
-function extractFirstFill(fills: ShapeEdge[], fillStyleIndex: number): ShapeEdge | undefined {
-    for (let i = 0; i < fills.length; ++i) {
-        const fill = fills[i];
-        if (fill.fill_style_idx === fillStyleIndex) {
-            fills.splice(i, 1);
-            return fill;
-        }
-    }
-    return undefined;
 }

@@ -3,7 +3,7 @@ import AdmZip from "adm-zip";
 
 export class FLAEntry extends Entry {
 
-    static fromZipBuffer(buffer: ArrayBuffer): FLAEntry {
+    static fromZipBuffer(buffer: Uint8Array): FLAEntry {
         const zipFile = new AdmZip(new Buffer(buffer));
         return new FLAEntry("", zipFile);
     }

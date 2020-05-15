@@ -9,7 +9,7 @@
   "sideEffects": false,
   "devDependencies": {
     "rimraf": "^3.0.2",
-    "typescript": "^3.8.3"
+    "typescript": "^3.9.2"
   },
   "dependencies": {
     "@highduck/math": "0.0.1"

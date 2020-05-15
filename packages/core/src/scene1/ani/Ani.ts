@@ -6,7 +6,7 @@ import {AniJson, NodeJson} from "@highduck/anijson";
 
 type LinkageRef = {
     library: Ani,
-    path: string
+    ref: string
 };
 
 const LINKAGE_REGISTRY = new Map<string, LinkageRef>();
@@ -18,7 +18,7 @@ function registerLinkages(library: Ani, linkageMap: { [id: string]: string }) {
         if (registry.has(linkage)) {
             console.warn(`[Ani] Duplicated linkage: ${linkage}`);
         }
-        registry.set(linkage, {library, path});
+        registry.set(linkage, {library, ref: path});
     }
 }
 
@@ -36,25 +36,20 @@ export function registerAniLibrary(name: string, ani: Ani): AssetRef<Ani> {
 export class Ani {
     static TYPE_ID = declTypeID();
 
-    readonly refLookup = new Map<string, NodeJson>();
+    readonly lookup:{ [key: string]: NodeJson };
     backReference: AssetRef<Ani> | undefined;
 
-    constructor(public engine: Engine, public json: AniJson) {
-        if (this.json.library.children) {
-            for (const child of this.json.library.children) {
-                if (child.ref) {
-                    this.refLookup.set(child.ref, child);
-                }
-            }
-        }
+    constructor(public json: AniJson) {
+        this.lookup = json.library;
     }
 
     get(libraryName: string): NodeJson | undefined {
-        return this.refLookup.get(libraryName);
+        return this.lookup[libraryName];
     }
 
-    static async load(engine: Engine, url: string): Promise<Ani> {
-        const json = await loadJSON(engine.assetsPath + "/" + url + ".ani.json");
-        return new Ani(engine, json as AniJson);
+    static async load(url: string): Promise<Ani> {
+        const assetPath = Engine.current.assetsPath;
+        const json = await loadJSON(assetPath + "/" + url + ".ani.json");
+        return new Ani(json as AniJson);
     }
 }

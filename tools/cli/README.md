@@ -1,3 +1,3 @@
-### requirements
+### Requirements
 
-install `ffmpeg` with `libmp3lame` for output
+Install `ffmpeg` with `libmp3lame` to enable audio files processing

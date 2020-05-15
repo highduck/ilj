@@ -11,6 +11,7 @@
     "sourceMap": true,
     "strict": true,
     "declaration": true,
+    "declarationDir": "dist/types",
     "outDir": "./dist",
     "noEmitOnError": true,
     "allowSyntheticDefaultImports": true,

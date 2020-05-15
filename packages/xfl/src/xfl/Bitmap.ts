@@ -2,6 +2,7 @@ import {Bitmap} from "./types";
 import {Entry} from "./Entry";
 import zlib from 'zlib';
 import jpeg from 'jpeg-js';
+import {logAssert, logDebug, logError, logWarning} from "../debug";
 
 // thanks to https://github.com/charrea6/flash-hd-upscaler/blob/master/images.py
 const JPEG_MAGIC = 0xd8ff;
@@ -21,7 +22,7 @@ class BitmapDataDesc {
 
     read(reader: BufferReader) {
         this.magic = reader.readU16();
-        console.info('magic', '0x' + this.magic.toString(16));
+        logDebug('magic', '0x' + this.magic.toString(16));
 
         if (this.magic === ARGB_MAGIC || this.magic === CLUT_MAGIC) {
             this.stride = reader.readU16();
@@ -32,9 +33,9 @@ class BitmapDataDesc {
             this.heightHigh = reader.readU32();
             this.heightTwips = reader.readU32();
 
-            console.assert(this.widthTwips === this.width * 20,
+            logAssert(this.widthTwips === this.width * 20,
                 `${this.widthTwips} | ${this.width}`);
-            console.assert(this.heightTwips === this.height * 20,
+            logAssert(this.heightTwips === this.height * 20,
                 `${this.heightTwips} | ${this.height}`);
 
             this.flags = reader.readU8();
@@ -42,20 +43,20 @@ class BitmapDataDesc {
         } else if (this.magic === JPEG_MAGIC) {
             return true;
         } else {
-            console.error('Unknown DAT image header tag: ' + this.magic.toString(16));
+            logWarning('Unknown DAT image header tag: ' + this.magic.toString(16));
         }
         return false;
     }
 
     dump() {
-        console.info('stride', this.stride);
-        console.info('width', this.width);
-        console.info('height', this.height);
-        console.info('widthHigh', this.widthHigh);
-        console.info('widthTwips', this.widthTwips);
-        console.info('heightHigh', this.heightHigh);
-        console.info('heightTwips', this.heightTwips);
-        console.info('flags', '0x' + this.flags.toString(16));
+        logDebug('stride', this.stride);
+        logDebug('width', this.width);
+        logDebug('height', this.height);
+        logDebug('widthHigh', this.widthHigh);
+        logDebug('widthTwips', this.widthTwips);
+        logDebug('heightHigh', this.heightHigh);
+        logDebug('heightTwips', this.heightTwips);
+        logDebug('flags', '0x' + this.flags.toString(16));
     }
 
     get hasAlpha(): boolean {
@@ -64,15 +65,23 @@ class BitmapDataDesc {
 }
 
 // to ARGB to RGBA for Google Skia default surface format
+// un-multiply by alpha :(
 function convertColors(data: Uint8Array) {
     for (let i = 0; i < data.length; i += 4) {
         const a = data[i];
         const r = data[i + 1];
         const g = data[i + 2];
         const b = data[i + 3];
-        data[i] = r;
-        data[i + 1] = g;
-        data[i + 2] = b;
+        if (a < 255 && a > 0) {
+            const k = 255 / a;
+            data[i] = Math.min(255, r * k) | 0;
+            data[i + 1] = Math.min(255, g * k) | 0;
+            data[i + 2] = Math.min(255, b * k) | 0;
+        } else {
+            data[i] = r;
+            data[i + 1] = g;
+            data[i + 2] = b;
+        }
         data[i + 3] = a;
     }
 }
@@ -144,7 +153,7 @@ export function loadBitmap(entry: Entry): Bitmap {
     const desc = new BitmapDataDesc();
     const success = desc.read(reader);
     if (!success) {
-        console.error(`Bitmap data loading error`, '0x' + desc.magic.toString(16), entry.path);
+        logError(`Bitmap data loading error`, '0x' + desc.magic.toString(16), entry.path);
     }
 
     const bitmap = new Bitmap();
@@ -161,7 +170,7 @@ export function loadBitmap(entry: Entry): Bitmap {
         if (compressed) {
             const written = uncompress(reader, bitmap.data);
             if (written !== bitmapBytesLength) {
-                console.error("bitmap decompress error");
+                logError("bitmap decompress error");
             }
         } else {
             bitmap.data.set(new Uint8Array(reader.buf, reader.pos, bitmapBytesLength));
@@ -175,7 +184,6 @@ export function loadBitmap(entry: Entry): Bitmap {
             nColors = 0xFF;
         }
         reader.readU16(); // read align space
-        //console.info(entry.path);
         const colorTable = new Uint32Array(nColors);
         for (let i = 0; i < nColors; ++i) {
             colorTable[i] = reader.readU32();
@@ -188,7 +196,7 @@ export function loadBitmap(entry: Entry): Bitmap {
         const data = new Uint8Array(dataLength);
         const written = uncompress(reader, data);
         if (written !== dataLength) {
-            console.error("bitmap decompress error");
+            logError("bitmap decompress error");
         }
 
         const buff = new Uint32Array(bitmap.width * bitmap.height);
@@ -197,7 +205,7 @@ export function loadBitmap(entry: Entry): Bitmap {
         }
         bitmap.data = new Uint8Array(buff.buffer);
     } else if (desc.magic === JPEG_MAGIC) {
-        console.warn('jpeg reading...');
+        logDebug('jpeg reading...');
         const result = jpeg.decode(data, {useTArray: true, formatAsRGBA: true});
         bitmap.width = result.width;
         bitmap.height = result.height;

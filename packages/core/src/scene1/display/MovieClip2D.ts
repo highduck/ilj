@@ -3,7 +3,7 @@ import {Ani} from "../ani/Ani";
 import {AssetRef} from "../../util/Resources";
 import {Transform2D} from "./Transform2D";
 import {declTypeID} from "../../util/TypeID";
-import {MovieJson} from "@highduck/anijson";
+import {KeyframeJson, MovieJson} from "@highduck/anijson";
 
 // const cos = Math.cos;
 // const sin = Math.sin;
@@ -154,6 +154,28 @@ export function ease(x: number, curve?: number[], easing?: number): number {
     return x;
 }
 
+function findKeyFrame(kfs: KeyframeJson[], t: number): number {
+    for (let i = 0; i < kfs.length; ++i) {
+        const kf = kfs[i];
+        if (t >= kf._[0] && t < kf._[1]) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+function findTargetEntity(e: Entity, id: number): undefined | Entity {
+    let it = e.childFirst;
+    while (it !== undefined) {
+        const targetData = it.components.get(MovieClipTarget.TYPE_ID) as MovieClipTarget | undefined;
+        if (targetData !== undefined && targetData.keyAnimation === id) {
+            return it;
+        }
+        it = it.siblingNext;
+    }
+    return undefined;
+}
+
 const N2_ONE: [number, number] = [1, 1];
 const N2_ZERO: [number, number] = [0, 0];
 const N4_ONE: [number, number, number, number] = [1, 1, 1, 1];
@@ -163,10 +185,6 @@ export class MovieClipTarget {
     static TYPE_ID = declTypeID();
 
     keyAnimation = 0;
-    keyLayer = 0;
-
-    loop = -1;
-    ff = 0;
 }
 
 export class MovieClip2D {
@@ -182,20 +200,20 @@ export class MovieClip2D {
     dirty = false;
     fps = 24.0;
 
-    discreteMode = true;
+    discreteMode = false;
 
     get timeMax(): number {
         const data = this.getMovieClipData();
-        return data ? data.frames : 0;
+        return data ? data.l : 0;
     }
 
     getMovieClipData(): MovieJson | undefined {
         let result = this.data;
         if (!result && this.libraryAsset &&
             this.libraryAsset.data && this.movieDataSymbol) {
-            const symbol_data = this.libraryAsset.data.refLookup.get(this.movieDataSymbol);
-            if (symbol_data && symbol_data.movie) {
-                result = symbol_data.movie;
+            const symbolData = this.libraryAsset.data.lookup[this.movieDataSymbol];
+            if (symbolData && symbolData.mc) {
+                result = symbolData.mc;
             }
         }
         return result;
@@ -203,7 +221,7 @@ export class MovieClip2D {
 
     truncTime(data: MovieJson) {
         const t = this._time;
-        const max = data.frames;
+        const max = data.l;
         if (t >= max) {
             this._time -= max * Math.trunc(t / max);
         }
@@ -230,50 +248,26 @@ export class MovieClip2D {
 
     applyFrameData(data: MovieJson) {
         const time = this.discreteMode ? Math.trunc(this._time) : this._time;
-        for (const layer of data.layers) {
-            let keyframe_index = 0;
-            let animation_key = 0;
-            const keyframes_count = layer.frames.length;
-            for (; keyframe_index < keyframes_count; ++keyframe_index) {
-                const k1 = layer.frames[keyframe_index];
-                if (time >= k1.i && time < k1.i + k1.len) {
-                    animation_key = k1.key;
-                    break;
-                }
+        for (const key of Object.keys(data.t)) {
+            const targetId = Number(key);
+            const frames = data.t[targetId];
+            let e = findTargetEntity(this.entity, targetId);
+            if (e === undefined) {
+                continue;
             }
-
-            let target: Entity | undefined = undefined;
-            let it = this.entity.childFirst;
-            while (it !== undefined) {
-                const targetData = it.components.get(MovieClipTarget.TYPE_ID) as MovieClipTarget | undefined;
-                if (targetData !== undefined && targetData.keyLayer === layer.key) {
-                    if (animation_key === targetData.keyAnimation) {
-                        target = it;
-                        it.visible = true;
-
-                        if (targetData.loop >= 0) {
-                            const k1 = layer.frames[keyframe_index];
-                            const mc = it.components.get(MovieClip2D.TYPE_ID) as MovieClip2D | undefined;
-                            if (mc && k1) {
-                                if (targetData.loop === 0) {
-                                    mc.gotoAndStop(time - k1.i);
-                                } else if (targetData.loop === 1) {
-                                    mc.gotoAndStop(targetData.ff);
-                                } else if (targetData.loop === 2) {
-                                    mc.gotoAndStop(Math.min(time - k1.i, k1.len));
-                                }
-                            }
-                        }
-
-                    } else {
-                        it.visible = false;
-                    }
-                }
-                it = it.siblingNext;
+            const ki = findKeyFrame(frames, time);
+            if (ki < 0) {
+                e.visible = false;
+                continue;
             }
-            if (target !== undefined) {
-                const k1 = layer.frames[keyframe_index];
-                const transform = target.components.get(Transform2D.TYPE_ID) as Transform2D;
+            const k1 = frames[ki];
+            const k2 = (ki + 1) < frames.length ? frames[ki + 1] : undefined;
+            const begin = k1._[0];
+            const end = k1._[1];
+            e.visible = k1.v ?? true;
+
+            const transform = e.components.get(Transform2D.TYPE_ID) as Transform2D | undefined;
+            if (transform !== undefined) {
                 const P = transform.position;
                 const S = transform.scale;
                 const R = transform.skew;
@@ -289,28 +283,26 @@ export class MovieClip2D {
 
                 // const o = VEC2_TMP_0.setTuple(k1.o !== undefined ? k1.o : N2_ZERO);
                 // if tweens are populated, then we assume there is tween motion type (k1.mot === 1)
-                if (k1.tweens !== undefined) {
-                    const k2 = (keyframe_index + 1) < layer.frames.length ? layer.frames[keyframe_index + 1]
-                        : layer.frames[keyframe_index];
-
-                    const progress = (time - k1.i) / k1.len;
+                if (k1.m === 1 && k2 !== undefined) {
+                    const progress = (time - begin) / (end - begin);
                     let x_position = progress;
                     let x_rotation = progress;
                     let x_scale = progress;
                     let x_color = progress;
-                    for (const easing_data of k1.tweens) {
-                        const x = ease(progress, easing_data.curve, easing_data.ease);
-                        if (!easing_data.attribute) {
-                            x_position = x_rotation = x_scale = x_color = x;
-                            break;
-                        } else if (easing_data.attribute === 1) {
-                            x_position = x;
-                        } else if (easing_data.attribute === 2) {
-                            x_rotation = x;
-                        } else if (easing_data.attribute === 3) {
-                            x_scale = x;
-                        } else if (easing_data.attribute === 4) {
-                            x_color = x;
+                    if (k1.ease !== undefined) {
+                        for (const easing_data of k1.ease) {
+                            const x = ease(progress, easing_data.c, easing_data.v);
+                            if (!easing_data.t) {
+                                x_position = x_rotation = x_scale = x_color = x;
+                            } else if (easing_data.t === 1) {
+                                x_position = x;
+                            } else if (easing_data.t === 2) {
+                                x_rotation = x;
+                            } else if (easing_data.t === 3) {
+                                x_scale = x;
+                            } else if (easing_data.t === 4) {
+                                x_color = x;
+                            }
                         }
                     }
 
@@ -326,7 +318,6 @@ export class MovieClip2D {
 
                     CM.lerpTuple(k2.cm !== undefined ? k2.cm : N4_ONE, x_color);
                     CO.lerpTuple(k2.co !== undefined ? k2.co : N4_ZERO, x_color);
-
                 }
                 if (k1.o !== undefined) {
                     const sx = k1.o[0] * S.x;
@@ -337,7 +328,26 @@ export class MovieClip2D {
                     P.y -= Math.sin(ry) * sx + Math.cos(rx) * sy;
                 }
             }
+
+            if (k1.l !== undefined) {
+                const mc = e.components.get(MovieClip2D.TYPE_ID) as MovieClip2D | undefined;
+                if (mc !== undefined) {
+                    const loop = k1.l[0];
+                    if (loop === 0) {
+                        mc.gotoAndStop(time - begin);
+                    } else if (loop === 1) {
+                        const offset = Math.min(time, end) - begin;
+                        let t = k1.l[1] + offset;
+                        const mcData = mc.getMovieClipData();
+                        if (mcData && t > mcData.l) {
+                            t = mcData.l;
+                        }
+                        mc.gotoAndStop(t);
+                    } else if (loop === 2) {
+                        mc.gotoAndStop(k1.l[1]);
+                    }
+                }
+            }
         }
     }
 }
-

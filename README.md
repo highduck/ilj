@@ -24,9 +24,9 @@ This is monorepo based on [Yarn 2](https://yarnpkg.com/) package manager workspa
 
 ### Prerequisites
 
-- `node.js`, `npm`, `yarn`
-- build native libraries: `conan`, `cmake`, any local c++ compile toolchain
-- convert audio files: `ffmpeg`
+- `node.js`, `npm`
+- `yarn`
+- `ffmpeg` to convert audio files
 
 ### Standalone development
 

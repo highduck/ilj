@@ -1,8 +1,8 @@
-<DOMSymbolItem xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://ns.adobe.com/xfl/2008/" name="graphic/timeline" itemID="5eb28c75-00000284" lastModified="1588765710">
+<DOMSymbolItem xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://ns.adobe.com/xfl/2008/" name="graphic/timeline" itemID="5eb28c75-00000284" lastModified="1589368986">
   <timeline>
-    <DOMTimeline name="timeline" layerDepthEnabled="true">
+    <DOMTimeline name="timeline" currentFrame="6" layerDepthEnabled="true">
       <layers>
-        <DOMLayer name="Layer_1_copy_copy" color="#00FFFF" current="true" isSelected="true" autoNamed="false">
+        <DOMLayer name="Layer_1_copy_copy" color="#00FFFF" locked="true" autoNamed="false">
           <frames>
             <DOMFrame index="0" duration="4" keyMode="9728">
               <elements>
@@ -48,7 +48,7 @@
             </DOMFrame>
           </frames>
         </DOMLayer>
-        <DOMLayer name="Layer_1_copy" color="#00FFFF" autoNamed="false">
+        <DOMLayer name="Layer_1_copy" color="#00FFFF" current="true" isSelected="true" autoNamed="false">
           <frames>
             <DOMFrame index="0" duration="4" keyMode="9728">
               <elements>
@@ -91,7 +91,7 @@
             </DOMFrame>
           </frames>
         </DOMLayer>
-        <DOMLayer name="Layer_1" color="#00FFFF">
+        <DOMLayer name="Layer_1" color="#00FFFF" locked="true">
           <frames>
             <DOMFrame index="0" duration="13" keyMode="9728">
               <elements>
