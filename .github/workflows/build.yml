@@ -28,6 +28,6 @@ jobs:
     - run: yarn plugin import @yarnpkg/plugin-interactive-tools
     - run: yarn plugin import @yarnpkg/plugin-workspace-tools
     - run: yarn
-    - run: yarn all:build
+    - run: yarn all:ci
       env:
         CI: true

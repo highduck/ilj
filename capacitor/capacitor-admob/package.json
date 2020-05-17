@@ -6,6 +6,7 @@
   "module": "dist/esm/index.js",
   "types": "dist/esm/index.d.ts",
   "scripts": {
+    "ci": "run build",
     "js:clean": "rimraf ./dist",
     "js:transpile": "tsc --module ES2015 --target ES5 --outDir dist/esm",
     "build": "run js:clean && run js:transpile",

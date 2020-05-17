@@ -75,10 +75,8 @@ export interface KeyframeJson extends TransformJson {
 export interface MovieJson {
     // length, total frames
     l: number;
-    // targets
-    // t: { [_:number]MovieTargetJson[];
-    // Target ID -> Frames
-    t: { [_: number]: KeyframeJson[] };
+    // [Target ID] -> Frames[]
+    t: KeyframeJson[][];
     // fps
     f?: number;
 }
@@ -94,7 +92,7 @@ export interface NodeJson extends TransformJson {
     spr?: string;
 
     // Node's children
-    C?: NodeJson[];
+    _?: NodeJson[];
 
     button?: boolean;
     touchable?: boolean;
@@ -105,7 +103,7 @@ export interface NodeJson extends TransformJson {
     tf?: DynamicTextJson;
     mc?: MovieJson;
     // Animation target ID
-    _?: number;
+    i?: number;
 }
 
 export interface AniJson {

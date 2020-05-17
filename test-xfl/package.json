@@ -3,6 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "scripts": {
+    "ci": "run build",
     "start": "ilj build -l",
     "build": "ilj build",
     "prepare": "ilj export"

@@ -21,8 +21,8 @@ export class AniFactory {
 
     applyData(entity: Entity, ref: string | undefined, data: NodeJson, library: Ani) {
         entity.name = data.id;
-        if (data._ !== undefined) {
-            entity.getOrCreate(MovieClipTarget).keyAnimation = data._;
+        if (data.i !== undefined) {
+            entity.getOrCreate(MovieClipTarget).keyAnimation = data.i;
         }
 
         const transform = entity.get(Transform2D);
@@ -59,17 +59,17 @@ export class AniFactory {
         entity.visible = data.v ?? true;
 
         if (data.tf) {
-            const dtext = entity.getOrCreate(DisplayText);
-            dtext.text = data.tf.text;
-            dtext.rect.setTuple(data.tf.rect);
+            const tf = entity.getOrCreate(DisplayText);
+            tf.text = data.tf.text;
+            tf.rect.setTuple(data.tf.rect);
 
-            dtext.format.font = data.tf.face;
-            dtext.format.size = data.tf.size;
-            dtext.format.alignment.setTuple(data.tf.alignment);
-            dtext.format.lineSpacing = data.tf.lineSpacing;
-            dtext.format.lineHeight = data.tf.lineHeight;
-            dtext.format.shadow = false;
-            dtext.format.color = data.tf.color;
+            tf.format.font = data.tf.face;
+            tf.format.size = data.tf.size;
+            tf.format.alignment.setTuple(data.tf.alignment);
+            tf.format.lineSpacing = data.tf.lineSpacing;
+            tf.format.lineHeight = data.tf.lineHeight;
+            tf.format.shadow = false;
+            tf.format.color = data.tf.color;
         }
 
         if (data.mc) {
@@ -125,8 +125,8 @@ export class AniFactory {
         if (over) {
             this.applyData(entity, ref, over, ani);
         }
-        if (data && data.C) {
-            for (const child of data.C) {
+        if (data && data._) {
+            for (const child of data._) {
                 entity.appendStrict(
                     this.createAndMerge(ani, child.ref, ani.get(child.ref!), child)
                 );

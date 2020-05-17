@@ -5,6 +5,7 @@
     "iljdevfs": "index.js"
   },
   "scripts": {
+    "ci": "echo OK",
     "run": "node index.js"
   },
   "dependencies": {

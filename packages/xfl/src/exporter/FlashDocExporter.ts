@@ -261,113 +261,130 @@ export class FlashDocExporter {
 
         this.collectFramesMetaInfo(item);
 
+        const framesCount = el.timeline.getFramesCount();
+        const elementsCount = el.timeline.getElementsCount();
+
+        if (shouldConvertItemToSprite(item)) {
+            item.renderThis = true;
+            item.children.length = 0;
+        } else {
+            const withoutTimeline = framesCount <= 1 ||
+                elementsCount === 0 ||
+                el.item.linkageBaseClass === "flash.display.Sprite" ||
+                el.item.linkageBaseClass === "flash.display.Shape";
+
+            if (withoutTimeline) {
+                const layers = el.timeline.layers;
+                for (let layerIndex = layers.length - 1; layerIndex >= 0; --layerIndex) {
+                    const layer = layers[layerIndex];
+                    if (layer.layerType === LayerType.normal) {
+                        for (const frame of layer.frames) {
+                            for (const frameElement of frame.elements) {
+                                this._animationSpan0 = 0;
+                                this._animationSpan1 = 0;
+                                this.process(frameElement, item);
+                            }
+                        }
+                    }
+                }
+            } else {
+                this.processTimeline(el, item);
+            }
+        }
+
+        item.appendTo(parent);
+        bag?.push(item);
+    }
+
+    processTimeline(el: Element, item: ExportItem) {
         const movie = new SgMovie();
-        movie.frames = el.timeline.getTotalFrames();
+        movie.frames = el.timeline.getFramesCount();
         movie.fps = this.doc.fps;
 
-        let nextTargetId = 1;
         const layers = el.timeline.layers;
         for (let layerIndex = layers.length - 1; layerIndex >= 0; --layerIndex) {
             const layer = layers[layerIndex];
             logDebug(` = Layer #${layerIndex} : ${layer.name}`);
+            // ignore other layers.
+            // TODO: mask layer
+            if (layer.layerType !== LayerType.normal) {
+                continue;
+            }
 
             for (let frameIndex = 0; frameIndex < layer.frames.length; ++frameIndex) {
                 const frame = layer.frames[frameIndex];
                 logDebug(` == Frame #${frameIndex}`);
 
-                // ignore other layers.
-                // TODO: mask layer
-                if (layer.layerType === LayerType.normal) {
-                    // TODO: multiple transformation for tween or state
-                    const targets: ExportItem[] = [];
-                    for (const frameElement of frame.elements) {
-                        let found = false;
-                        for (const prevItem of item.children) {
-                            if (prevItem.ref &&
-                                prevItem.ref.libraryItemName === frameElement.libraryItemName &&
-                                prevItem.node.layerKey === layerIndex &&
-                                prevItem.node.animationKey > 0) {
-                                targets.push(prevItem);
-                                // copy new transform
-                                prevItem.ref = frameElement;
-                                found = true;
-                                break;
-                            }
-                        }
-                        if (!found) {
-                            this._animationSpan0 = frame.index;
-                            this._animationSpan1 = frame.endFrame;
-                            this.process(frameElement, item, targets);
+                // TODO: multiple transformation for tween or state
+                const targets: ExportItem[] = [];
+                for (const frameElement of frame.elements) {
+                    let found = false;
+                    for (const prevItem of item.children) {
+                        if (prevItem.ref &&
+                            prevItem.ref.libraryItemName === frameElement.libraryItemName &&
+                            prevItem.ref.item.name === frameElement.item.name &&
+                            prevItem.fromLayer === layerIndex &&
+                            prevItem.linkedMovieLayer !== undefined) {
+                            targets.push(prevItem);
+                            // copy new transform
+                            prevItem.ref = frameElement;
+                            found = true;
+                            break;
                         }
                     }
-                    const k0 = createFrameModel(frame);
-                    let delta: undefined | KeyframeTransform = undefined;
-                    if (k0.motionType === 1
-                        && frame.elements.length > 0
-                        && (frameIndex + 1) < layer.frames.length) {
-                        const nextFrame = layer.frames[frameIndex + 1];
-                        if (nextFrame.elements.length > 0) {
-                            logDebug("--- SCAN:");
-                            const el0 = frame.elements[frame.elements.length - 1];
-                            const el1 = nextFrame.elements[0];
-                            delta = extractTweenDelta(frame, el0, el1);
-                        }
+                    if (!found) {
+                        this._animationSpan0 = frame.index;
+                        this._animationSpan1 = frame.endFrame;
+                        this.process(frameElement, item, targets);
                     }
-                    for (const target of targets) {
-                        if (target.ref) {
-                            let targetLayer: SgMovieLayer | undefined = undefined;
-                            let targetReused = false;
-                            if (target.node.animationKey > 0) {
-                                for (const prevTargetLayer of movie.targets) {
-                                    if (prevTargetLayer.key === target.node.animationKey) {
-                                        targetLayer = prevTargetLayer;
-                                        targetReused = true;
-                                        break;
-                                    }
-                                }
-                            }
-                            if (targetLayer === undefined) {
-                                targetLayer = new SgMovieLayer();
-                                targetLayer.key = nextTargetId++;
-                                movie.targets.push(targetLayer);
-                                target.node.animationKey = targetLayer.key;
-                                target.node.layerKey = layerIndex;
-                            }
+                }
+                const k0 = createFrameModel(frame);
+                let delta: undefined | KeyframeTransform = undefined;
+                if (k0.motionType === 1
+                    && frame.elements.length > 0
+                    && (frameIndex + 1) < layer.frames.length) {
+                    const nextFrame = layer.frames[frameIndex + 1];
+                    if (nextFrame.elements.length > 0) {
+                        logDebug("--- SCAN:");
+                        const el0 = frame.elements[frame.elements.length - 1];
+                        const el1 = nextFrame.elements[0];
+                        delta = extractTweenDelta(frame, el0, el1);
+                    }
+                }
+                for (const target of targets) {
+                    if (target.ref) {
+                        let targetLayer = target.linkedMovieLayer;
+                        if (targetLayer === undefined) {
+                            targetLayer = new SgMovieLayer();
+                            movie.layers.push(targetLayer);
+                            targetLayer.targets.push(target.node);
+                            target.fromLayer = layerIndex;
+                            target.linkedMovieLayer = targetLayer;
+                        }
 
-                            let kf0: SgMovieFrame | undefined = undefined;
-                            // if (targetReused &&
-                            //     targetLayer.frames.length > 0 &&
-                            //     targetLayer.frames[targetLayer.frames.length - 1].index === frame.index) {
-                            //     // delete closing frame
-                            //     // targetLayer.frames.pop();
-                            //     kf0 = targetLayer.frames[targetLayer.frames.length - 1];
-                            //     kf0.visible = true;
-                            //     kf0.duration = frame.duration;
-                            // } else {
-                            kf0 = createFrameModel(frame);
-                            targetLayer.frames.push(kf0);
-                            setupFrameFromElement(kf0, target.ref);
-                            // }
-                            if (delta !== undefined) {
-                                const kf1 = new SgMovieFrame();
-                                kf1.index = kf0.index + kf0.duration;
-                                kf1.duration = 0;
-                                kf1.position.copyFrom(kf0.position).add(delta.position);
-                                kf1.pivot.copyFrom(kf0.pivot).add(delta.pivot);
-                                kf1.scale.copyFrom(kf0.scale).add(delta.scale);
-                                kf1.skew.copyFrom(kf0.skew).add(delta.skew);
-                                kf1.colorMultiplier.copyFrom(kf0.colorMultiplier).add(delta.colorMultiplier);
-                                kf1.colorOffset.copyFrom(kf0.colorOffset).add(delta.colorOffset);
-                                kf1.visible = false;
-                                targetLayer.frames.push(kf1);
-                            }
+                        let kf0: SgMovieFrame | undefined = undefined;
+                        kf0 = createFrameModel(frame);
+                        targetLayer.frames.push(kf0);
+                        setupFrameFromElement(kf0, target.ref);
+                        if (delta !== undefined) {
+                            const kf1 = new SgMovieFrame();
+                            kf1.index = kf0.index + kf0.duration;
+                            kf1.duration = 0;
+                            kf1.position.copyFrom(kf0.position).add(delta.position);
+                            kf1.pivot.copyFrom(kf0.pivot).add(delta.pivot);
+                            kf1.scale.copyFrom(kf0.scale).add(delta.scale);
+                            kf1.skew.copyFrom(kf0.skew).add(delta.skew);
+                            kf1.colorMultiplier.copyFrom(kf0.colorMultiplier).add(delta.colorMultiplier);
+                            kf1.colorOffset.copyFrom(kf0.colorOffset).add(delta.colorOffset);
+                            kf1.visible = false;
+                            targetLayer.frames.push(kf1);
                         }
                     }
                 }
             }
         }
 
-        movie.targets = movie.targets.filter((targetLayer) => {
+        movie.layers = movie.layers.filter((targetLayer) => {
             let empty = false;
             if (targetLayer.frames.length === 0) {
                 empty = true;
@@ -378,35 +395,17 @@ export class FlashDocExporter {
                     empty = true;
                 }
             }
-            if (empty) {
-                for (const child of item.children) {
-                    if (child.node.animationKey === targetLayer.key) {
-                        child.node.animationKey = 0;
-                    }
-                }
-            }
             return !empty;
         });
 
-        const forceAsStatic = !el.scaleGrid.empty ||
-            el.item.linkageBaseClass === "flash.display.Sprite";
-
-        if (!forceAsStatic && movie.frames > 1 && movie.targets.length > 0) {
+        if (movie.frames > 1 && movie.layers.length > 0) {
             item.node.movie = movie;
-        } else {
-            for (const child of item.children) {
-                child.node.animationKey = 0;
+            for (let i = 0; i < movie.layers.length; ++i) {
+                for (const target of movie.layers[i].targets) {
+                    target.movieTargetId = i;
+                }
             }
         }
-
-        if (this.shouldConvertItemToSprite(item)) {
-            item.renderThis = true;
-            item.node.animationKey = 0;
-            item.children.length = 0;
-        }
-
-        item.appendTo(parent);
-        bag?.push(item);
 
         this._animationSpan0 = 0;
         this._animationSpan1 = 0;
@@ -638,17 +637,17 @@ export class FlashDocExporter {
             }
         }
     }
+}
 
-    private shouldConvertItemToSprite(item: ExportItem) {
-        if (item.children.length === 1 && item.children[0].drawingLayer && item.children[0].shapes > 0) {
-            return true;
-        } else if (item.node.labels.get(0) === '*static') {
-            // special user TAG
-            return true;
-        } else if (!item.node.scaleGrid.empty) {
-            // scale 9 grid items
-            return true;
-        }
-        return false;
+function shouldConvertItemToSprite(item: ExportItem) {
+    if (item.children.length === 1 && item.children[0].drawingLayer && item.children[0].shapes > 0) {
+        return true;
+    } else if (item.node.labels.get(0) === '*static') {
+        // special user TAG
+        return true;
+    } else if (!item.node.scaleGrid.empty) {
+        // scale 9 grid items
+        return true;
     }
+    return false;
 }

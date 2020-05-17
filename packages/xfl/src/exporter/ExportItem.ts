@@ -1,6 +1,6 @@
 import {Matrix2D, Vec2} from "@highduck/math";
 import {Element} from '../xfl/types';
-import {SgNode} from "../anif/SgModel";
+import {SgMovieLayer, SgNode} from "../anif/SgModel";
 import {ElementType} from "../xfl/dom";
 
 export class ExportItem {
@@ -21,6 +21,9 @@ export class ExportItem {
     animationSpan0 = 0;
     animationSpan1 = 0;
     renderThis = false;
+
+    fromLayer: number = 0;
+    linkedMovieLayer: undefined | SgMovieLayer = undefined;
 
     constructor() {
     }

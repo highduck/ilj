@@ -164,18 +164,6 @@ function findKeyFrame(kfs: KeyframeJson[], t: number): number {
     return -1;
 }
 
-function findTargetEntity(e: Entity, id: number): undefined | Entity {
-    let it = e.childFirst;
-    while (it !== undefined) {
-        const targetData = it.components.get(MovieClipTarget.TYPE_ID) as MovieClipTarget | undefined;
-        if (targetData !== undefined && targetData.keyAnimation === id) {
-            return it;
-        }
-        it = it.siblingNext;
-    }
-    return undefined;
-}
-
 const N2_ONE: [number, number] = [1, 1];
 const N2_ZERO: [number, number] = [0, 0];
 const N4_ONE: [number, number, number, number] = [1, 1, 1, 1];
@@ -248,105 +236,109 @@ export class MovieClip2D {
 
     applyFrameData(data: MovieJson) {
         const time = this.discreteMode ? Math.trunc(this._time) : this._time;
-        for (const key of Object.keys(data.t)) {
-            const targetId = Number(key);
-            const frames = data.t[targetId];
-            let e = findTargetEntity(this.entity, targetId);
-            if (e === undefined) {
-                continue;
+        const totalTargets = data.t.length;
+        let e = this.entity.childFirst;
+        while (e !== undefined) {
+            const targetData = e.components.get(MovieClipTarget.TYPE_ID) as MovieClipTarget | undefined;
+            if (targetData !== undefined && targetData.keyAnimation < totalTargets) {
+                updateTarget(time, e, data.t[targetData.keyAnimation]);
             }
-            const ki = findKeyFrame(frames, time);
-            if (ki < 0) {
-                e.visible = false;
-                continue;
-            }
-            const k1 = frames[ki];
-            const k2 = (ki + 1) < frames.length ? frames[ki + 1] : undefined;
-            const begin = k1._[0];
-            const end = k1._[1];
-            e.visible = k1.v ?? true;
+            e = e.siblingNext;
+        }
+    }
+}
 
-            const transform = e.components.get(Transform2D.TYPE_ID) as Transform2D | undefined;
-            if (transform !== undefined) {
-                const P = transform.position;
-                const S = transform.scale;
-                const R = transform.skew;
-                const CM = transform.colorMultiplier;
-                const CO = transform.colorOffset;
+function updateTarget(time: number, e: Entity, frames: KeyframeJson[]) {
+    const ki = findKeyFrame(frames, time);
+    if (ki < 0) {
+        e.visible = false;
+        return;
+    }
+    const k1 = frames[ki];
+    const k2 = (ki + 1) < frames.length ? frames[ki + 1] : undefined;
+    const begin = k1._[0];
+    const end = k1._[1];
+    e.visible = k1.v ?? true;
 
-                // reset values to initial key frame
-                P.setTuple(k1.p !== undefined ? k1.p : N2_ZERO);
-                S.setTuple(k1.s !== undefined ? k1.s : N2_ONE);
-                R.setTuple(k1.r !== undefined ? k1.r : N2_ZERO);
-                CM.setTuple(k1.cm !== undefined ? k1.cm : N4_ONE);
-                CO.setTuple(k1.co !== undefined ? k1.co : N4_ZERO);
+    const transform = e.components.get(Transform2D.TYPE_ID) as Transform2D | undefined;
+    if (transform !== undefined) {
+        const P = transform.position;
+        const S = transform.scale;
+        const R = transform.skew;
+        const CM = transform.colorMultiplier;
+        const CO = transform.colorOffset;
 
-                // const o = VEC2_TMP_0.setTuple(k1.o !== undefined ? k1.o : N2_ZERO);
-                // if tweens are populated, then we assume there is tween motion type (k1.mot === 1)
-                if (k1.m === 1 && k2 !== undefined) {
-                    const progress = (time - begin) / (end - begin);
-                    let x_position = progress;
-                    let x_rotation = progress;
-                    let x_scale = progress;
-                    let x_color = progress;
-                    if (k1.ease !== undefined) {
-                        for (const easing_data of k1.ease) {
-                            const x = ease(progress, easing_data.c, easing_data.v);
-                            if (!easing_data.t) {
-                                x_position = x_rotation = x_scale = x_color = x;
-                            } else if (easing_data.t === 1) {
-                                x_position = x;
-                            } else if (easing_data.t === 2) {
-                                x_rotation = x;
-                            } else if (easing_data.t === 3) {
-                                x_scale = x;
-                            } else if (easing_data.t === 4) {
-                                x_color = x;
-                            }
-                        }
-                    }
+        // reset values to initial key frame
+        P.setTuple(k1.p !== undefined ? k1.p : N2_ZERO);
+        S.setTuple(k1.s !== undefined ? k1.s : N2_ONE);
+        R.setTuple(k1.r !== undefined ? k1.r : N2_ZERO);
+        CM.setTuple(k1.cm !== undefined ? k1.cm : N4_ONE);
+        CO.setTuple(k1.co !== undefined ? k1.co : N4_ZERO);
 
-                    let k2v: [number, number] = k2.p !== undefined ? k2.p : N2_ZERO;
-                    P.x = P.x * (1 - x_position) + x_position * k2v[0];
-                    P.y = P.y * (1 - x_position) + x_position * k2v[1];
-                    k2v = k2.r !== undefined ? k2.r : N2_ZERO;
-                    R.x = R.x * (1 - x_rotation) + x_rotation * k2v[0];
-                    R.y = R.y * (1 - x_rotation) + x_rotation * k2v[1];
-                    k2v = k2.s !== undefined ? k2.s : N2_ONE;
-                    S.x = S.x * (1 - x_scale) + x_scale * k2v[0];
-                    S.y = S.y * (1 - x_scale) + x_scale * k2v[1];
-
-                    CM.lerpTuple(k2.cm !== undefined ? k2.cm : N4_ONE, x_color);
-                    CO.lerpTuple(k2.co !== undefined ? k2.co : N4_ZERO, x_color);
-                }
-                if (k1.o !== undefined) {
-                    const sx = k1.o[0] * S.x;
-                    const sy = k1.o[1] * S.y;
-                    const rx = R.x;
-                    const ry = R.y;
-                    P.x -= Math.cos(ry) * sx - Math.sin(rx) * sy;
-                    P.y -= Math.sin(ry) * sx + Math.cos(rx) * sy;
-                }
-            }
-
-            if (k1.l !== undefined) {
-                const mc = e.components.get(MovieClip2D.TYPE_ID) as MovieClip2D | undefined;
-                if (mc !== undefined) {
-                    const loop = k1.l[0];
-                    if (loop === 0) {
-                        mc.gotoAndStop(time - begin);
-                    } else if (loop === 1) {
-                        const offset = Math.min(time, end) - begin;
-                        let t = k1.l[1] + offset;
-                        const mcData = mc.getMovieClipData();
-                        if (mcData && t > mcData.l) {
-                            t = mcData.l;
-                        }
-                        mc.gotoAndStop(t);
-                    } else if (loop === 2) {
-                        mc.gotoAndStop(k1.l[1]);
+        // const o = VEC2_TMP_0.setTuple(k1.o !== undefined ? k1.o : N2_ZERO);
+        // if tweens are populated, then we assume there is tween motion type (k1.mot === 1)
+        if (k1.m === 1 && k2 !== undefined) {
+            const progress = (time - begin) / (end - begin);
+            let x_position = progress;
+            let x_rotation = progress;
+            let x_scale = progress;
+            let x_color = progress;
+            if (k1.ease !== undefined) {
+                for (const easing_data of k1.ease) {
+                    const x = ease(progress, easing_data.c, easing_data.v);
+                    if (!easing_data.t) {
+                        x_position = x_rotation = x_scale = x_color = x;
+                    } else if (easing_data.t === 1) {
+                        x_position = x;
+                    } else if (easing_data.t === 2) {
+                        x_rotation = x;
+                    } else if (easing_data.t === 3) {
+                        x_scale = x;
+                    } else if (easing_data.t === 4) {
+                        x_color = x;
                     }
                 }
+            }
+
+            let k2v: [number, number] = k2.p !== undefined ? k2.p : N2_ZERO;
+            P.x = P.x * (1 - x_position) + x_position * k2v[0];
+            P.y = P.y * (1 - x_position) + x_position * k2v[1];
+            k2v = k2.r !== undefined ? k2.r : N2_ZERO;
+            R.x = R.x * (1 - x_rotation) + x_rotation * k2v[0];
+            R.y = R.y * (1 - x_rotation) + x_rotation * k2v[1];
+            k2v = k2.s !== undefined ? k2.s : N2_ONE;
+            S.x = S.x * (1 - x_scale) + x_scale * k2v[0];
+            S.y = S.y * (1 - x_scale) + x_scale * k2v[1];
+
+            CM.lerpTuple(k2.cm !== undefined ? k2.cm : N4_ONE, x_color);
+            CO.lerpTuple(k2.co !== undefined ? k2.co : N4_ZERO, x_color);
+        }
+        if (k1.o !== undefined) {
+            const sx = k1.o[0] * S.x;
+            const sy = k1.o[1] * S.y;
+            const rx = R.x;
+            const ry = R.y;
+            P.x -= Math.cos(ry) * sx - Math.sin(rx) * sy;
+            P.y -= Math.sin(ry) * sx + Math.cos(rx) * sy;
+        }
+    }
+
+    if (k1.l !== undefined) {
+        const mc = e.components.get(MovieClip2D.TYPE_ID) as MovieClip2D | undefined;
+        if (mc !== undefined) {
+            const loop = k1.l[0];
+            if (loop === 0) {
+                mc.gotoAndStop(time - begin);
+            } else if (loop === 1) {
+                const offset = Math.min(time, end) - begin;
+                let t = k1.l[1] + offset;
+                const mcData = mc.getMovieClipData();
+                if (mcData && t > mcData.l) {
+                    t = mcData.l;
+                }
+                mc.gotoAndStop(t);
+            } else if (loop === 2) {
+                mc.gotoAndStop(k1.l[1]);
             }
         }
     }

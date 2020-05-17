@@ -5,6 +5,7 @@
   "module": "dist/esm/index.js",
   "types": "dist/types/index.d.ts",
   "scripts": {
+    "ci": "run build",
     "build": "run build:esm && run build:commonjs",
     "build:esm": "tsc -p tsconfig.esm.json",
     "build:commonjs": "tsc -p tsconfig.commonjs.json",

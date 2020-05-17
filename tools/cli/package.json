@@ -5,6 +5,7 @@
     "ilj": "./ilj.js"
   },
   "scripts": {
+    "ci": "run build && ilj",
     "build": "tsc -b tsconfig.commonjs.json",
     "watch": "tsc -b tsconfig.commonjs.json -w --verbose",
     "clean": "rimraf dist/"
@@ -17,9 +18,9 @@
     "@highduck/xfl": "0.0.1",
     "app-icon": "^0.13.2",
     "chalk": "^4.0.0",
-    "copy-webpack-plugin": "^5.1.1",
+    "copy-webpack-plugin": "^6.0.1",
     "css-loader": "^3.5.3",
-    "fork-ts-checker-webpack-plugin": "^4.1.3",
+    "fork-ts-checker-webpack-plugin": "^4.1.4",
     "glob": "^7.1.6",
     "internal-ip": "^6.0.0",
     "pngquant-bin": "^5.0.2",

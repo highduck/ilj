@@ -15,6 +15,7 @@
 - Logging functions separated
 - Load bitmap data will un-multiply colors by alpha
 - More Flash DOM objects declaration
+- Access to movie layers by numeric index
 
 ### XFL test
 

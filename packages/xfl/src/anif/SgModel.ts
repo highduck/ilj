@@ -185,24 +185,24 @@ export class SgMovieFrame {
 }
 
 export class SgMovieLayer {
-    key = 0;
     readonly frames: SgMovieFrame[] = [];
+    readonly targets: SgNode[] = [];
 }
 
 export class SgMovie {
     frames = 1;
-    targets: SgMovieLayer[] = [];
+    layers: SgMovieLayer[] = [];
     fps = 24;
 
     serialize(): MovieJson {
-        const framesMap: { [_: number]: KeyframeJson[] } = {};
-        for (const target of this.targets) {
-            framesMap[target.key] = target.frames.map((v) => v.serialize());
+        const targetsToFrames: KeyframeJson[][] = [];
+        for (let i =0 ; i < this.layers.length; ++i) {
+            targetsToFrames[i] = this.layers[i].frames.map((v) => v.serialize());
         }
         return {
             l: this.frames,
             f: this.fps,
-            t: framesMap
+            t: targetsToFrames
         }
     }
 }
@@ -234,8 +234,8 @@ export class SgNode {
     script: undefined | string = undefined;
     dynamicText: undefined | SgDynamicText = undefined;
     movie: undefined | SgMovie = undefined;
-    animationKey = 0;
-    layerKey = 0;
+
+    movieTargetId: number | undefined = undefined;
 
     readonly scripts = new Map<number, string>();
     readonly labels = new Map<number, string>();
@@ -284,8 +284,8 @@ export class SgNode {
         if (!this.visible) {
             r.v = this.visible;
         }
-        if (this.animationKey !== 0) {
-            r._ = this.animationKey;
+        if (this.movieTargetId !== undefined) {
+            r.i = this.movieTargetId;
         }
 
         if (this.sprite !== undefined && this.sprite.length > 0) {
@@ -310,7 +310,7 @@ export class SgNode {
             r.filters = this.filters.map((v) => v.serialize());
         }
         if (this.children.length > 0) {
-            r.C = this.children.map((v) => v.serialize());
+            r._ = this.children.map((v) => v.serialize());
         }
         return r;
     }

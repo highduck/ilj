@@ -5,6 +5,7 @@
   "module": "dist/esm/index.js",
   "types": "dist/esm/index.d.ts",
   "scripts": {
+    "ci": "run build",
     "build": "tsc -p tsconfig.build.json && cp src/dev.css dist/esm",
     "clean": "rimraf dist/"
   },

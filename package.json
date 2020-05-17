@@ -1,7 +1,8 @@
 {
   "scripts": {
     "upgrade": "yarn upgrade-interactive",
-    "all:build": "yarn workspaces foreach -ptv run build"
+    "all:build": "yarn workspaces foreach -ptv run build",
+    "all:ci": "yarn workspaces foreach -ptv run ci"
   },
   "private": true,
   "workspaces": [

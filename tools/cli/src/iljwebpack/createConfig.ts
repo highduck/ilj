@@ -98,9 +98,11 @@ export function createWebpackConfig(projectConfig: ProjectConfig, mode?: string,
             ]
         },
         plugins: [
-            new CopyWebpackPlugin([{
-                from: getPath("./public")
-            }]),
+            new CopyWebpackPlugin(({
+                patterns: [{
+                    from: getPath("./public")
+                }]
+            } as any) as undefined),
             new DefinePlugin({
                 'process.env.PRODUCTION': JSON.stringify(!isDevelopment),
                 'process.env.PLATFORM': JSON.stringify(platform),

@@ -378,6 +378,14 @@ export class Layer {
         }
         return this;
     }
+
+    getElementsCount() {
+        let i = 0;
+        for (const frame of this.frames) {
+            i += frame.elements.length;
+        }
+        return i;
+    }
 }
 
 
@@ -385,12 +393,20 @@ export class Timeline {
     name?: string;
     layers: Layer[] = [];
 
-    getTotalFrames() {
+    getFramesCount() {
         let res = 1;
         for (const layer of this.layers) {
             res = Math.max(layer.getDuration(), res);
         }
         return res;
+    }
+
+    getElementsCount() {
+        let i = 0;
+        for (const layer of this.layers) {
+            i += layer.getElementsCount();
+        }
+        return i;
     }
 
     parse(doc: FlashFile, data: DOMTimeline): this {

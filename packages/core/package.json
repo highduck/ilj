@@ -5,6 +5,7 @@
   "module": "dist/esm/index.js",
   "types": "dist/esm/index.d.ts",
   "scripts": {
+    "ci": "run build",
     "build": "tsc -b tsconfig.build.json && run resources",
     "watch": "tsc -b tsconfig.build.json -w",
     "resources": "cp src/graphics/util/2d.vert.glsl dist/esm/graphics/util && cp src/graphics/util/2d.frag.glsl dist/esm/graphics/util",

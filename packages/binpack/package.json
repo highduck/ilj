@@ -5,6 +5,7 @@
   "module": "dist/esm/index.js",
   "types": "dist/types/index.d.ts",
   "scripts": {
+    "ci": "run build && run test",
     "build": "tsc -p tsconfig.commonjs.json && tsc -p tsconfig.esm.json",
     "demo:build": "run build && cd demo && tsc && rollup --config rollup.config.js",
     "clean": "rimraf dist/ && rimraf demo/dist/ && rimraf test/dist/",

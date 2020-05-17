@@ -4,6 +4,7 @@
   "main": "dist/commonjs/index.js",
   "types": "dist/types/index.d.ts",
   "scripts": {
+    "ci": "run build",
     "build": "tsc -b tsconfig.commonjs.json",
     "watch": "tsc -b tsconfig.commonjs.json -w",
     "test": "run clean && run build && node --expose-wasm dist/commonjs/runTest.js",
