@@ -261,6 +261,22 @@ export class Engine {
         }
         return false;
     }
+
+    static enableInspector() {
+        if (process.env.NODE_ENV === 'development') {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('dev')) {
+                const engine = Engine.current;
+                const {DevApp} = require("@highduck/live-inspector");
+                try {
+                    DevApp.CURRENT = engine.resolve(DevApp);
+                    DevApp.init();
+                } catch {
+                    engine.register(new DevApp(engine));
+                }
+            }
+        }
+    }
 }
 
 interface EngineHolder {

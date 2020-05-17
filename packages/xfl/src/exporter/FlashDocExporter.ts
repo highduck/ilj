@@ -75,6 +75,8 @@ function processFilters(el: Element, item: ExportItem) {
 }
 
 const SHAPE_ID = '$';
+// we need global across all libraries to avoid multiple FLA exports overlapping
+let NEXT_SHAPE_IDX = 0;
 
 function createFrameModel(frame: Frame): SgMovieFrame {
     const ef = new SgMovieFrame();
@@ -110,8 +112,6 @@ export class FlashDocExporter {
 
     private _animationSpan0: number = 0;
     private _animationSpan1: number = 0;
-
-    private _nextShapeIndex: number = 0;
 
     constructor(readonly doc: FlashFile) {
 
@@ -259,7 +259,7 @@ export class FlashDocExporter {
         logAssert(el.libraryItemName === undefined || el.libraryItemName.length === 0, `symbol item has no libraryItemName! ${el.item.name}`);
         item.node.scaleGrid.copyFrom(el.scaleGrid);
 
-        this.collectFramesMetaInfo(item);
+        collectFramesMetaInfo(this.doc, item);
 
         const framesCount = el.timeline.getFramesCount();
         const elementsCount = el.timeline.getElementsCount();
@@ -503,7 +503,7 @@ export class FlashDocExporter {
         }
         const layer = new ExportItem();
         layer.ref = new Element();
-        const name = SHAPE_ID + (++this._nextShapeIndex);
+        const name = SHAPE_ID + (++NEXT_SHAPE_IDX);
         layer.ref.libraryItemName = name;
         layer.ref.item.name = name;
         layer.ref.elementType = ElementType.group;
@@ -569,13 +569,18 @@ export class FlashDocExporter {
                     child.sprite = ref.node.sprite;
                     child.libraryName = "";
                 }
-                //&& (!ref.ref || !ref.ref.item.linkageExportForAS)
             }
-            // if (item.children.length === 1 && item.children[0].sprite && !ref.node.scaleGrid.empty) {
-            //     item.sprite = item.children[0].sprite;
-            //     item.children.length = 0;
-            // }
         }
+
+        // for (const item of this.library.node.children) {
+        //     if (item.children.length === 1) {
+        //         const child = item.children[0];
+        //         if(child.sprite && child.scaleGrid.empty) {
+        //             item.sprite = child.sprite;
+        //             item.children.length = 0;
+        //         }
+        //     }
+        // }
 
         const isInLinkages = (id: string) => {
             for (const linkage of this.linkages.values()) {
@@ -602,41 +607,6 @@ export class FlashDocExporter {
             this.scenes
         );
     }
-
-    private setupSpecialLayer(layer: Layer, toItem: ExportItem): boolean {
-        if (isHitRect(layer.name)) {
-            toItem.node.hitRect.copyFrom(
-                estimateBounds(this.doc, layer.frames[0].elements) as Rect
-            );
-            return true;
-        } else if (isClipRect(layer.name)) {
-            toItem.node.clipRect.copyFrom(
-                estimateBounds(this.doc, layer.frames[0].elements) as Rect
-            );
-            return true;
-        }
-        return false;
-    }
-
-    private collectFramesMetaInfo(item: ExportItem) {
-        if (item.ref === undefined) {
-            return;
-        }
-        const layers = item.ref.timeline.layers;
-        for (const layer of layers) {
-            if (this.setupSpecialLayer(layer, item)) {
-                continue;
-            }
-            for (const frame of layer.frames) {
-                if (frame.script !== undefined) {
-                    item.node.scripts.set(frame.index, frame.script);
-                }
-                if (frame.name !== undefined) {
-                    item.node.labels.set(frame.index, frame.name);
-                }
-            }
-        }
-    }
 }
 
 function shouldConvertItemToSprite(item: ExportItem) {
@@ -650,4 +620,39 @@ function shouldConvertItemToSprite(item: ExportItem) {
         return true;
     }
     return false;
+}
+
+function setupSpecialLayer(doc: FlashFile, layer: Layer, toItem: ExportItem): boolean {
+    if (isHitRect(layer.name)) {
+        toItem.node.hitRect.copyFrom(
+            estimateBounds(doc, layer.frames[0].elements) as Rect
+        );
+        return true;
+    } else if (isClipRect(layer.name)) {
+        toItem.node.clipRect.copyFrom(
+            estimateBounds(doc, layer.frames[0].elements) as Rect
+        );
+        return true;
+    }
+    return false;
+}
+
+function collectFramesMetaInfo(doc: FlashFile, item: ExportItem) {
+    if (item.ref === undefined) {
+        return;
+    }
+    const layers = item.ref.timeline.layers;
+    for (const layer of layers) {
+        if (setupSpecialLayer(doc, layer, item)) {
+            continue;
+        }
+        for (const frame of layer.frames) {
+            if (frame.script !== undefined) {
+                item.node.scripts.set(frame.index, frame.script);
+            }
+            if (frame.name !== undefined) {
+                item.node.labels.set(frame.index, frame.name);
+            }
+        }
+    }
 }

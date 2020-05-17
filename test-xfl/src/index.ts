@@ -1,5 +1,4 @@
 import {awaitDocument, Camera2D, Engine, loadBundle, Transform2D} from "@highduck/core";
-import {Plugins} from '@capacitor/core';
 
 function startGame() {
     const engine = Engine.current;
@@ -48,23 +47,7 @@ async function main() {
         engine.start();
     }
 
-    if (process.env.NODE_ENV === 'development') {
-        const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.has('dev')) {
-            const {DevApp} = require("@highduck/live-inspector");
-            const engine = Engine.current;
-            try {
-                DevApp.CURRENT = engine.resolve(DevApp);
-                DevApp.init();
-            } catch {
-                engine.register(new DevApp(engine));
-            }
-
-            Plugins.Device.getInfo().then((info) => {
-                console.log(info);
-            });
-        }
-    }
+    Engine.enableInspector();
 }
 
 main().then();
