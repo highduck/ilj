@@ -1,9 +1,18 @@
 import {BlendMode} from "../graphics/BlendMode";
 import {Program} from "../graphics/Program";
 import {Texture} from "../graphics/Texture";
-import {Color4, Matrix2D, Matrix4, Rect, Vec2} from "@highduck/math";
+import {
+    Color32_ABGR_PMA,
+    Color32_ARGB,
+    color32_pack_bytes,
+    color32_pack_floats,
+    Color4,
+    Matrix2D,
+    Matrix4,
+    Rect,
+    Vec2
+} from "@highduck/math";
 import {Resources} from "../util/Resources";
-import {Color32_ABGR_PMA, Color32_ARGB, color32_pack_bytes, color32_pack_floats,} from "@highduck/math";
 import {assert} from "../util/assert";
 
 const vec4Multiply3Add4From32 = (v1: Color4, v2: Color4, offset32: Color32_ARGB) => {
@@ -350,9 +359,9 @@ export class DrawingState {
     }
 
     setEmptyTexture(): this {
-        const whitePoint = this.texture?.whitePoint;
-        if (whitePoint !== undefined) {
-            this.uv.set(whitePoint.x, whitePoint.y, 0, 0);
+        const spot = this.texture?.spot;
+        if (spot !== undefined) {
+            this.uv.copyFrom(spot);
         } else {
             this.texture = this.defaultTexture;
             this.checkFlags |= CheckFlag.Texture;

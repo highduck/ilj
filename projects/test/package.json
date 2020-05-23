@@ -1,0 +1,23 @@
+{
+  "name": "test",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "ci": "run prepare && run build",
+    "start": "ilj build -l",
+    "build": "ilj build",
+    "ts:typecheck": "tsc --noEmit && echo looks good",
+    "prepare": "ilj export"
+  },
+  "devDependencies": {
+    "@highduck/cli": "0.0.1",
+    "@highduck/live-inspector": "0.0.1",
+    "typescript": "^3.9.3"
+  },
+  "dependencies": {
+    "@capacitor/core": "^2.1.0",
+    "@highduck/core": "0.0.1",
+    "@highduck/math": "0.0.1",
+    "@highduck/polykit": "0.0.1"
+  }
+}

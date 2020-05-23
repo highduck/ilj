@@ -1,0 +1,3 @@
+- Added `Engine.init` shortcut
+- Changed implementation for texture atlas white-spot region concept
+- Removed global Engine context sharing between multiple windows 

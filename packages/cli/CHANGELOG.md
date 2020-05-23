@@ -1,0 +1,2 @@
+- Removed experiment PnP support
+- Fixed recompiling TypeScript files by turning off `experimentalWatchApi` option

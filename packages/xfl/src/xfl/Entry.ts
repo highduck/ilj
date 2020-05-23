@@ -16,7 +16,12 @@ export class Entry {
         this.root = root ?? this;
     }
 
-    xml(): any {
+    xml(relPath?: string): any {
+        const e = relPath !== undefined ? this.open(relPath) : this;
+        return e.getXMLObject();
+    }
+
+    getXMLObject(): any {
         if (this._xmlObject === undefined) {
             this._xmlObject = fxp.parse(this.text(), {
                 attributeNamePrefix: "_",

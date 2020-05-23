@@ -1,6 +1,7 @@
 import {Color32_ARGB, Color4, Matrix2D, Rect, Vec2} from "@highduck/math";
 import {
     BlendMode,
+    DecodedBitmap,
     DOMAnyElement,
     DOMAnyFilter,
     DOMEdges,
@@ -45,20 +46,11 @@ import {
 } from "./parsing";
 import {parseEdges} from "./parseEdges";
 import he from 'he';
-import {FlashFile} from "./FlashFile";
-import {logWarning} from "../debug";
+import {AnimateDoc} from "./AnimateDoc";
+import {logWarning} from "./debug";
 
 function decode(v: any): string {
     return he.decode(String(v));
-}
-
-export class Bitmap {
-    path?: string;
-    width = 0;
-    height = 0;
-    bpp = 4;
-    alpha = true;
-    data?: Uint8Array;
 }
 
 class Filter {
@@ -153,7 +145,7 @@ class SolidStroke {
     miterLimit = 0.0;
     pixelHinting = false;
 
-    parse(doc: FlashFile, data: DOMSolidStroke) {
+    parse(doc: AnimateDoc, data: DOMSolidStroke) {
         this.weight = data._weight ?? 1;
         if (data.fill) {
             this.fill.parse(doc, data.fill);
@@ -183,7 +175,7 @@ export class FillStyle {
     spreadMethod = SpreadMethod.extend;
     entries: GradientEntry[] = [];
     bitmapPath: string | undefined = undefined;
-    bitmap: Bitmap | undefined = undefined;
+    bitmap: DecodedBitmap | undefined = undefined;
     readonly matrix = new Matrix2D();
 
     private parseGradient(type: FillType, fillData: DOMGradientStyle) {
@@ -197,7 +189,7 @@ export class FillStyle {
         }
     }
 
-    parse(doc: FlashFile, data: DOMFillStyle): this {
+    parse(doc: AnimateDoc, data: DOMFillStyle): this {
         // TODO:
         this.index = data._index ?? 0;
         for (const fillData of oneOrMany(data.SolidColor)) {
@@ -240,7 +232,7 @@ export class StrokeStyle {
     readonly solid = new SolidStroke();
     isSolid = false;
 
-    parse(doc: FlashFile, data: DOMStrokeStyle): this {
+    parse(doc: AnimateDoc, data: DOMStrokeStyle): this {
         this.index = data._index;
         const solidData = data.SolidStroke;
         if (solidData !== undefined) {
@@ -280,13 +272,13 @@ export class Frame {
     script?: string;
     motionObject?: MotionObject;
 
-    static create(doc: FlashFile, data: DOMFrame): Frame {
+    static create(doc: AnimateDoc, data: DOMFrame): Frame {
         const frame = new Frame();
         frame.parse(doc, data);
         return frame;
     }
 
-    parse(doc: FlashFile, data: DOMFrame) {
+    parse(doc: AnimateDoc, data: DOMFrame) {
         this.index = data._index;
         this.duration = data._duration ?? 1;
         this.tweenType = data._tweenType ?? TweenType.None;
@@ -369,7 +361,7 @@ export class Layer {
         return total;
     }
 
-    parse(doc: FlashFile, data: DOMLayer): this {
+    parse(doc: AnimateDoc, data: DOMLayer): this {
         this.name = decode(data._name);
         this.color = parseColorCSS(data._color);
         this.layerType = data._layerType ?? LayerType.normal;
@@ -409,7 +401,7 @@ export class Timeline {
         return i;
     }
 
-    parse(doc: FlashFile, data: DOMTimeline): this {
+    parse(doc: AnimateDoc, data: DOMTimeline): this {
         this.name = decode(data._name);
         let index = 0;
         for (const layerData of oneOrMany(data.layers?.DOMLayer)) {
@@ -528,7 +520,7 @@ export class Element {
     quality = 100;
 
 
-    bitmap: undefined | Bitmap = undefined;
+    bitmap: undefined | DecodedBitmap = undefined;
 
     /// FONT ITEM
     font: undefined | string = undefined;
@@ -555,7 +547,7 @@ export class Element {
     oval?: DOMOvalObject;
     rectangle?: DOMRectangleObject;
 
-    parse(doc: FlashFile, tag: ElementType, data: DOMAnyElement) {
+    parse(doc: AnimateDoc, tag: ElementType, data: DOMAnyElement) {
         this.item.parse(data);
         this.elementType = tag;
 

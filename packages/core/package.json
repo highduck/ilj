@@ -3,11 +3,11 @@
   "version": "0.0.1",
   "main": "dist/esm/index.js",
   "module": "dist/esm/index.js",
-  "types": "dist/esm/index.d.ts",
+  "types": "dist/types/index.d.ts",
   "scripts": {
     "ci": "run build",
-    "build": "tsc -b tsconfig.build.json && run resources",
-    "watch": "tsc -b tsconfig.build.json -w",
+    "build": "tsc -b tsconfig.esm.json && run resources",
+    "watch": "tsc -b tsconfig.esm.json -w",
     "resources": "cp src/graphics/util/2d.vert.glsl dist/esm/graphics/util && cp src/graphics/util/2d.frag.glsl dist/esm/graphics/util",
     "clean": "rimraf dist"
   },
@@ -16,10 +16,10 @@
     "@highduck/anijson": "0.0.1",
     "@highduck/math": "0.0.1",
     "@types/howler": "^2.1.2",
-    "howler": "^2.1.3"
+    "howler": "^2.2.0"
   },
   "devDependencies": {
     "rimraf": "^3.0.2",
-    "typescript": "^3.9.2"
+    "typescript": "^3.9.3"
   }
 }

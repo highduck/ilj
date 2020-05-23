@@ -14,12 +14,6 @@ const CMD = [
     'S'.charCodeAt(0)
 ];
 
-export const enum EdgeSelectionBit {
-    FillStyle0 = 1,
-    FillStyle1 = 2,
-    Stroke = 4
-}
-
 /**
  explanation:
  https://stackoverflow.com/questions/4077200/whats-the-meaning-of-the-non-numerical-values-in-the-xfls-edge-definition

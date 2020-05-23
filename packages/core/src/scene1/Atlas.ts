@@ -5,7 +5,7 @@ import {AssetRef, Resources} from "../util/Resources";
 import {Sprite} from "./Sprite";
 import {loadJSON} from "../util/load";
 import {declTypeID} from "../util/TypeID";
-import {Vec2} from "@highduck/math";
+import {Rect} from "@highduck/math";
 import {AtlasJson, SpriteFlag} from "@highduck/anijson";
 import {destroyCanvas, destroyImage, loadImage, loadSplitAlpha} from "../util/loadImage";
 
@@ -96,6 +96,10 @@ export class Atlas implements Disposable {
         for (const page of meta.pages) {
             const texture = new Texture(engine.graphics);
             texture.generateMipMaps = page.mipmap ?? true;
+            if (page.spot !== undefined) {
+                const rc = page.spot;
+                texture.spot = new Rect(rc[0], rc[1], rc[2], rc[3]);
+            }
             if (page.mask === undefined) {
                 const atlasPagePath = pathJoin(basePath, page.img);
                 console.debug("Load atlas page ", atlasPagePath);
@@ -112,11 +116,6 @@ export class Atlas implements Disposable {
             }
             // await texture.loadBasis(atlasPagePath.replace('.png', '.basis'));
             Resources.reset(Texture, page.img, texture);
-
-            const white: Sprite | undefined = this.sprites.get('old/rect')?.get();
-            if (white !== undefined && white.texture.data === texture) {
-                texture.whitePoint = new Vec2(white.tex.centerX, white.tex.centerY);
-            }
         }
     }
 }

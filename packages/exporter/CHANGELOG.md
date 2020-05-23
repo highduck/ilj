@@ -1,0 +1,2 @@
+- Added trim sprites feature
+- Changed export `SymbolItem` as sprite if no timeline and only a ONE drawing layer

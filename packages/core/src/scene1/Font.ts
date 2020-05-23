@@ -32,7 +32,7 @@ export class Font {
     debugMaxSize = 0;
 
     constructor(private engine: Engine, data: FontJson) {
-        this.unitsPerEM = data.units_per_em;
+        this.unitsPerEM = data.unitsPerEM;
         this.bitmapSizeTable = data.sizes;
         for (const g of data.glyphs) {
             if (g.sprite) {
@@ -115,7 +115,7 @@ export class Font {
 
             }
 
-            cx += sc * gdata.json.advance_width;
+            cx += sc * gdata.json.advanceX;
         }
     }
 
@@ -160,7 +160,7 @@ export class Font {
                 x + g.box[0] * sc, y - g.box[3] * sc,
                 x + g.box[2] * sc, y - g.box[1] * sc,
             );
-            x += g.advance_width * sc;
+            x += g.advanceX * sc;
         }
         return boundsBuilder.getResultRect(out);
     }
@@ -190,7 +190,7 @@ export class Font {
                 continue;
             }
 
-            const w = gdata.json.advance_width * sc;
+            const w = gdata.json.advanceX * sc;
             boundsBuilder.addRect(cx, cy - size, w, size);
             cx += w;
         }

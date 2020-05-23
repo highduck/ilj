@@ -8,20 +8,15 @@ export type SpriteJson = [
     number, number, number, number, // rect
     number, number, number, number, // tex coords
     number // flags
-]
-
-// {
-//     name: string;
-//     rc: [number, number, number, number];
-//     uv: [number, number, number, number];
-//     flags: SpriteFlag;
-// }
+];
 
 export interface AtlasPageJson {
     width: number;
     height: number;
     img: string;
     mask?: string;
+    // spot is a opaque white rect zone is available
+    spot?: [number, number, number, number];
 
     // generate mip maps (default: true)
     mipmap?: boolean;

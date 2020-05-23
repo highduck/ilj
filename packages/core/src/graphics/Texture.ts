@@ -1,6 +1,6 @@
 import {Graphics} from "./Graphics";
 import {declTypeID} from "../util/TypeID";
-import {Vec2} from "@highduck/math";
+import {Rect, Vec2} from "@highduck/math";
 
 const enum TextureType {
     Color32,
@@ -47,7 +47,7 @@ export class Texture {
     target: GLenum;
     texture: WebGLTexture;
     type: TextureType = TextureType.Color32;
-    whitePoint?: Vec2;
+    spot?: Rect;
 
     generateMipMaps = false;
     hasMipMap = false;

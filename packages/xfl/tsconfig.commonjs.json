@@ -10,12 +10,6 @@
   "references": [
     {
       "path": "../math/tsconfig.commonjs.json"
-    },
-    {
-      "path": "../anijson/tsconfig.commonjs.json"
-    },
-    {
-      "path": "../binpack/tsconfig.commonjs.json"
     }
   ],
   "include": [

@@ -1,4 +1,4 @@
-import {PackerState, packNodes} from "@highduck/binpack";
+import {InputOptions, InputRect, Method, pack, PackResult} from "../src";
 
 const names = [
     "any",
@@ -18,30 +18,48 @@ const packerStats = {
     time: 0,
     flip: true
 };
-const packer = new PackerState();
-for (let i = 0; i < 150; ++i) {
-    packer.add(
-        Math.round(5 + 0.75 * i * Math.random()),
-        Math.round(5 + 0.75 * i * Math.random()),
-        1,
-        undefined
-    );
+
+const inputOptions: InputOptions = {
+    maxWidth: 512,
+    maxHeight: 512,
+    method: Method.All,
+    rotate: true
+};
+
+const inputRects:InputRect[] = [];
+
+let packerOutput: PackResult = {
+    pages: [],
+    notPacked: [],
+    rotate: false,
+    method: Method.All
+};
+
+for (let i = 0; i < 250; ++i) {
+    inputRects.push({
+        w: Math.round(5 + 0.75 * i * Math.random()),
+        h: Math.round(5 + 0.75 * i * Math.random()),
+        padding: 1
+    });
 }
 
-function pack() {
+function dopack() {
     const ts = performance.now();
     // packerStats.method = 2;
-    packNodes(packer, packerStats.method, packerStats.flip);
+    inputOptions.method = packerStats.method;
+    inputOptions.rotate = packerStats.flip;
+    packerOutput = pack(inputRects, inputOptions);
     packerStats.time = performance.now() - ts;
-    packerStats.w = packer.w;
-    packerStats.h = packer.h;
+    const page = packerOutput.pages[0];
+    packerStats.w = page.w;
+    packerStats.h = page.h;
     packerStats.bw = 0;
     packerStats.bh = 0;
-    for (let i = 0; i < packer.rects.length; ++i) {
-        const rc = packer.rects[i];
+    for (let i = 0; i < page.rects.length; ++i) {
+        const rc = page.rects[i];
         let r = rc.x + rc.w;
         let b = rc.y + rc.h;
-        if (packer.isRotated(i)) {
+        if (rc.rotated) {
             r = rc.x + rc.h;
             b = rc.y + rc.w;
         }
@@ -57,16 +75,19 @@ function pack() {
     console.log(`${packerStats.bw}x${packerStats.bh} : ${packerStats.flip} ${names[packerStats.method]}`);
 }
 
-pack();
+dopack();
 
-setInterval(() => {
+const btn = document.createElement('button');
+btn.onclick = () => {
     ++packerStats.method;
     if (packerStats.method >= names.length) {
         packerStats.method = 0;
         packerStats.flip = !packerStats.flip;
     }
-    pack();
-}, 1500);
+    dopack();
+};
+document.body.appendChild(btn);
+// setInterval(, 1500);
 
 const canvas = document.getElementById('gameview') as HTMLCanvasElement;
 canvas.width = 2048;
@@ -78,31 +99,28 @@ canvas.style.height = `${canvas.height / dpr}px`;
 const ctx = canvas.getContext('2d', {alpha: false})!;
 
 function draw() {
+    ctx.resetTransform();
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    for (const page of packerOutput.pages) {
+        ctx.strokeStyle = '#000';
 
-    ctx.strokeStyle = '#000';
+        ctx.beginPath();
+        ctx.rect(0, 0, page.w, page.h);
+        ctx.closePath();
+        ctx.fillStyle = '#8B8';
+        ctx.fill();
+        ctx.stroke();
 
-    ctx.beginPath();
-    ctx.rect(0, 0, packer.w, packer.h);
-    ctx.closePath();
-    ctx.fillStyle = '#8B8';
-    ctx.fill();
-    ctx.stroke();
+        // ctx.beginPath();
+        // ctx.rect(0, 0, packerStats.bw, packerStats.bh);
+        // ctx.closePath();
+        // ctx.fillStyle = '#999';
+        // ctx.fill();
 
-    ctx.beginPath();
-    ctx.rect(0, 0, packerStats.bw, packerStats.bh);
-    ctx.closePath();
-    ctx.fillStyle = '#999';
-    ctx.fill();
-
-    const pp = 2;
-    const pp2 = pp << 1;
-    for (let idx = 0; idx < packer.rects.length; ++idx) {
-        if (packer.isPacked(idx)) {
-            const rc = packer.rects[idx];
-            if (!packer.isRotated(idx)) {
+        for (const rc of page.rects) {
+            if (!rc.rotated) {
                 ctx.beginPath();
-                ctx.rect(rc.x + pp, rc.y + pp, rc.w - pp2, rc.h - pp2);
+                ctx.rect(rc.x, rc.y, rc.w, rc.h);
                 ctx.closePath();
 
                 ctx.fillStyle = '#393';
@@ -116,7 +134,7 @@ function draw() {
                 ctx.stroke();
             } else {
                 ctx.beginPath();
-                ctx.rect(rc.x + pp, rc.y + pp, rc.h - pp2, rc.w - pp2);
+                ctx.rect(rc.x, rc.y, rc.h, rc.w);
                 ctx.closePath();
 
                 ctx.fillStyle = '#993';
@@ -130,14 +148,17 @@ function draw() {
                 ctx.stroke();
             }
         }
-    }
 
-    ctx.font = 'bold 38px arial';
-    ctx.fillStyle = '#000';
-    ctx.fillText(`Method #${packerStats.method}: ${names[packerStats.method]}`, 10, packer.h + 40);
-    ctx.fillText(`Allow Flip: ${packerStats.flip}`, 10, packer.h + 80);
-    ctx.fillText(`Fill: ${100 * packerStats.w * packerStats.h / (packerStats.bw * packerStats.bh)}`, 10, packer.h + 120);
-    ctx.fillText(`Time: ${packerStats.time} ms`, 10, packer.h + 160);
+        ctx.font = 'bold 38px arial';
+        ctx.fillStyle = '#000';
+        ctx.fillText(`Method #${packerStats.method}: ${names[packerStats.method]}`, 10, page.h + 40);
+        ctx.fillText(`Allow Flip: ${packerStats.flip}`, 10, page.h + 80);
+        ctx.fillText(`Fill: ${100 * packerStats.w * packerStats.h / (packerStats.bw * packerStats.bh)}`, 10, page.h + 120);
+        ctx.fillText(`Time: ${packerStats.time} ms`, 10, page.h + 160);
+        ctx.fillText(`Page: ${page.method} ${page.rects.length}`, 10, page.h + 220);
+
+        ctx.translate(page.w + 10, 0);
+    }
 }
 
 function mainLoop(time: number) {

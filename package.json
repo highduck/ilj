@@ -8,8 +8,6 @@
   "workspaces": [
     "capacitor",
     "packages/*",
-    "tools/*",
-    "test",
-    "test-xfl"
+    "projects/*"
   ]
 }

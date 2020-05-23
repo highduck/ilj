@@ -160,13 +160,13 @@ class MaxRects {
         });
     }
 
-    choose(best: Placement, width: number, height: number, place: PlaceFunction, allowFlip: boolean) {
+    choose(best: Placement, width: number, height: number, place: PlaceFunction, rotate: boolean) {
         best.matched = false;
         for (const rc of this.free) {
             if (rc.w >= width && rc.h >= height) {
                 place(best, rc, width, height);
             }
-            if (allowFlip && rc.w >= height && rc.h >= width) {
+            if (rotate && rc.w >= height && rc.h >= width) {
                 place(best, rc, height, width);
             }
         }
@@ -309,21 +309,12 @@ export class PackerState {
     ) {
     }
 
-
-    add(width: number, height: number, padding: number, userData: any): boolean {
-        // filter empty input as well
-        if (width > 0 && height > 0) {
-            const w = Math.max(0, width + (padding << 1));
-            const h = Math.max(0, height + (padding << 1));
-            // filter ultra-big entries
-            if (w <= this.maxWidth && h <= this.maxHeight) {
-                this.rects.push({x: 0, y: 0, w: w, h: h});
-                this.userData.push(userData);
-                this.flags.push(Flag.Empty);
-                return true;
-            }
-        }
-        return false;
+    add(width: number, height: number, userData: any): void {
+        console.assert(width > 0 && height > 0);
+        console.assert(width <= this.maxWidth && height <= this.maxHeight);
+        this.rects.push({x: 0, y: 0, w: width, h: height});
+        this.userData.push(userData);
+        this.flags.push(Flag.Empty);
     }
 
     get size() {
@@ -343,14 +334,23 @@ export class PackerState {
     }
 }
 
-// // input sizes
-// // output: rects & indices to original
+// input sizes
+// output: rects & indices to original
 
-function tryPack(maxRects: MaxRects, rects: Rect[], flags: Flag[], method: PlaceFunction, allowFlip: boolean): boolean {
+function tryPack(maxRects: MaxRects, rects: Rect[], flags: Flag[], method: PlaceFunction, rotate: boolean, outStats: {
+    packed: number,
+    area: number,
+    boundsArea: number
+}) {
     maxRects.reset();
     for (let i = 0; i < flags.length; ++i) {
         flags[i] = Flag.Empty;
     }
+
+    outStats.packed = 0;
+    outStats.area = 0;
+    let r = 0;
+    let b = 0;
 
     const best: Placement = {x: 0, y: 0, w: 0, h: 0, A: 0, B: 0, matched: false};
     const total = rects.length;
@@ -360,7 +360,7 @@ function tryPack(maxRects: MaxRects, rects: Rect[], flags: Flag[], method: Place
         for (let i = 0; i < total; ++i) {
             if ((flags[i] & Flag.Packed) === 0) {
                 const rect = rects[i];
-                maxRects.choose(best, rect.w, rect.h, method, allowFlip)
+                maxRects.choose(best, rect.w, rect.h, method, rotate)
                 if (best.matched) {
                     bestIndex = i;
                 }
@@ -368,7 +368,7 @@ function tryPack(maxRects: MaxRects, rects: Rect[], flags: Flag[], method: Place
         }
 
         if (bestIndex < 0) {
-            return false;
+            return;
         }
 
         maxRects.place({
@@ -383,9 +383,19 @@ function tryPack(maxRects: MaxRects, rects: Rect[], flags: Flag[], method: Place
         rect.y = best.y;
 
         flags[bestIndex] |= rect.w !== best.w ? (Flag.Packed | Flag.Rotated) : Flag.Packed;
-    }
 
-    return true;
+        ++outStats.packed;
+        outStats.area += best.w * best.h;
+
+        if (r < best.x + best.w) {
+            r = best.x + best.w;
+        }
+
+        if (b < best.y + best.h) {
+            b = best.y + best.h;
+        }
+        outStats.boundsArea = r * b;
+    }
 }
 
 /////////////
@@ -413,10 +423,24 @@ function estimateSize(sz: RectSize, area: number, maxWidth: number, maxHeight: n
     }
 }
 
-function tryPackState(state: PackerState, method: Method, allowFlip: boolean): boolean {
+interface PackStatus {
+    method: Method;
+    packed: number;
+    total: number;
+    area: number;
+    boundsArea: number;
+}
+
+function tryPackState(state: PackerState, method: Method, rotate: boolean): PackStatus {
     const rects = state.rects;
     const flags = state.flags;
-
+    const status: PackStatus = {
+        method,
+        packed: 0,
+        total: state.rects.length,
+        area: 0,
+        boundsArea: 0
+    };
     const maxRects = state.maxRects;
     maxRects.resize(state.w, state.h);
 
@@ -428,26 +452,149 @@ function tryPackState(state: PackerState, method: Method, allowFlip: boolean): b
         bestShortSideFit
     ];
 
-    if (method >= 1) {
-        return tryPack(maxRects, rects, flags, methods[(method - 1) % methods.length], allowFlip);
+    if (method === Method.All) {
+        let bestPlacedArea: number = 0;
+        let bestBoundsArea: number = state.w * state.h;
+        for (let i = 0; i < methods.length; ++i) {
+            tryPack(maxRects, rects, flags, methods[i], rotate, status);
+            if (status.packed === status.total) {
+                status.method = i + 1;
+                return status;
+            }
+
+            if (status.boundsArea < bestBoundsArea) {
+                status.method = i + 1;
+                bestBoundsArea = status.boundsArea;
+            }
+
+            if (status.area > bestPlacedArea) {
+                status.method = i + 1;
+                bestPlacedArea = status.area;
+                bestBoundsArea = status.boundsArea;
+            }
+        }
+        tryPack(maxRects, rects, flags, methods[status.method - 1], rotate, status);
+        return status;
     }
 
-    for (const method of methods) {
-        if (tryPack(maxRects, rects, flags, method, allowFlip)) {
-            return true;
-        }
-    }
-    return false;
+    tryPack(maxRects, rects, flags, methods[method - 1], rotate, status);
+    return status;
 }
 
-export function packNodes(state: PackerState, method: Method = Method.All, allowFlip: boolean = true): boolean {
+export function packNodes(state: PackerState, method: Method = Method.All, rotate: boolean = true): PackStatus {
     state.w = state.h = packStartSize;
     estimateSize(state, getRectsArea(state.rects), state.maxWidth, state.maxHeight);
-    while (!tryPackState(state, method, allowFlip)) {
+    let status = tryPackState(state, method, rotate);
+    while (status.packed < status.total) {
         if (state.h >= state.maxHeight && state.w >= state.maxWidth) {
-            return false;
+            return status;
         }
         nextSize(state);
+        status = tryPackState(state, method, rotate)
     }
-    return true;
+    return status;
+}
+
+export interface InputRect {
+    w: number;
+    h: number;
+    padding?: number;
+    data?: any;
+}
+
+export interface InputOptions {
+    maxWidth: number;
+    maxHeight: number;
+    method?: Method;
+    rotate?: boolean;
+}
+
+export interface OutputRect {
+    x: number;
+    y: number;
+    w: number;
+    h: number;
+    data?: any;
+    rotated: boolean;
+}
+
+export interface OutputPage {
+    rects: OutputRect[];
+    w: number;
+    h: number;
+    method: Method;
+}
+
+export interface PackResult {
+    pages: OutputPage[];
+    notPacked: InputRect[];
+
+    // original settings which used to pack
+    rotate: boolean;
+    method: Method;
+}
+
+export function pack(rects: InputRect[], options: InputOptions): PackResult {
+    const method = options.method ?? Method.All;
+    const rotate = options.rotate ?? true;
+    const maxW = options.maxWidth;
+    const maxH = options.maxWidth;
+
+    const pages: OutputPage[] = [];
+    let left = rects.concat();
+    const notPacked: InputRect[] = [];
+
+    while (left.length > 0) {
+        const state = new PackerState(maxW, maxH);
+
+        for (const rect of left) {
+            if (rect.w > 0 && rect.h > 0) {
+                const padding = Math.max(0, Math.ceil(rect.padding ?? 0));
+                const w = rect.w + (padding << 1);
+                const h = rect.h + (padding << 1);
+                if (w <= maxW && h <= maxH) {
+                    state.add(w, h, rect);
+                    continue;
+                }
+            }
+            notPacked.push(rect);
+        }
+
+        left.length = 0;
+
+        const status = packNodes(state, method, rotate);
+        const page: OutputPage = {
+            w: state.w,
+            h: state.h,
+            rects: [],
+            method: status.method
+        };
+
+        for (let i = 0; i < state.rects.length; ++i) {
+            if (!state.isPacked(i)) {
+                left.push(state.userData[i]);
+            } else {
+                const rect = state.userData[i] as InputRect;
+                const rc = state.rects[i];
+                const p = Math.max(0, rect.padding ?? 0);
+                page.rects.push({
+                    x: rc.x + p,
+                    y: rc.y + p,
+                    w: rc.w - (p << 1),
+                    h: rc.h - (p << 1),
+                    rotated: state.isRotated(i),
+                    data: rect.data
+                });
+            }
+        }
+
+        pages.push(page);
+    }
+
+    return {
+        pages,
+        notPacked,
+        rotate,
+        method
+    };
 }

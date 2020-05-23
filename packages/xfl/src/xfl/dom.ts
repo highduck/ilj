@@ -269,7 +269,7 @@ export const enum TweenTarget {
 export interface DOMEase {
     _target?: TweenTarget; // all
     _intensity?: number; // -100 .. 100
-    _method?:string; // "quadIn" TODO:
+    _method?: string; // "quadIn" TODO:
 }
 
 export interface DOMCustomEase {
@@ -331,7 +331,7 @@ export interface DOMFrame {
 
     _labelType?: LabelType; // def: None
     // flag for Anchor label
-    _bookmark?:boolean; // def: false
+    _bookmark?: boolean; // def: false
 
     // start frame index
     _index: number; // seems like no default, 0 and 1 printed explicitly
@@ -354,7 +354,7 @@ export interface DOMFrame {
 
     _keyMode?: number;
 
-    _easeMethodName?:string; //
+    _easeMethodName?: string; //
 
     _acceleration?: number;
     _hasCustomEase?: boolean;
@@ -611,3 +611,14 @@ export interface SoundEnvelope {
     SoundEnvelopePoint?: SoundEnvelopePoint | SoundEnvelopePoint[];
 }
 
+export const enum EdgeSelectionBit {
+    FillStyle0 = 1,
+    FillStyle1 = 2,
+    Stroke = 4
+}
+
+export interface DecodedBitmap {
+    width: number;
+    height: number;
+    data: Uint8Array;
+}

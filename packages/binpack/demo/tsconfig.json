@@ -12,11 +12,16 @@
     "declaration": true,
     "outDir": "./dist/esm",
     "noEmitOnError": true,
-    "allowSyntheticDefaultImports": true,
-    "esModuleInterop": true,
-    "experimentalDecorators": true,
-    "downlevelIteration": true,
-    "baseUrl": "."
+    //"allowSyntheticDefaultImports": false,
+    //"esModuleInterop": false,
+    //"experimentalDecorators": false,
+    //"downlevelIteration": false,
+    "baseUrl": ".",
+    "paths": {
+      "@highduck/binpack": [
+        "../src/index.ts"
+      ]
+    }
   },
   "files": [
     "./index.ts"

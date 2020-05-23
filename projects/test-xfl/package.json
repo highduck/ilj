@@ -1,0 +1,20 @@
+{
+  "name": "test-xfl",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "ci": "run prepare && run build",
+    "start": "ilj build -l",
+    "build": "ilj build",
+    "prepare": "ilj export",
+    "ts:typecheck": "tsc --noEmit && echo looks good"
+  },
+  "devDependencies": {
+    "@highduck/cli": "0.0.1",
+    "@highduck/live-inspector": "0.0.1",
+    "typescript": "^3.9.3"
+  },
+  "dependencies": {
+    "@highduck/core": "0.0.1"
+  }
+}

@@ -32,9 +32,9 @@
     "@capacitor/android": "^2.1.0",
     "@capacitor/ios": "^2.1.0",
     "rimraf": "^3.0.2",
-    "rollup": "^2.10.2",
+    "rollup": "^2.10.8",
     "rollup-plugin-node-resolve": "^5.2.0",
-    "typescript": "^3.9.2"
+    "typescript": "^3.9.3"
   },
   "files": [
     "dist/",

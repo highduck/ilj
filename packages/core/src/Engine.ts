@@ -33,15 +33,25 @@ import {updateFastScripts} from "./scene1/extra/FastScript";
 import {updateDynamicFonts} from "./rtfont/DynamicFontAtlas";
 import {Layout} from "./scene1/extra/Layout";
 import {updateLayout} from "./scene1/extra/LayoutSystem";
+import {awaitDocument} from "./util/awaitDocument";
 
 export interface InitConfig {
     canvas?: HTMLCanvasElement;
-    width?: number;
-    height?: number;
+    width: number;
+    height: number;
 }
 
-const DEFAULT_WIDTH = 768;
-const DEFAULT_HEIGHT = 1024;
+function createLiveInspector() {
+    if (process.env.NODE_ENV === 'development') {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('dev')) {
+            try {
+                require("@highduck/live-inspector").DevApp.init();
+            } catch {
+            }
+        }
+    }
+}
 
 export class Engine {
     static current: Engine;
@@ -75,17 +85,11 @@ export class Engine {
     readonly aniFactory: AniFactory;
     readonly audio: AudioMan;
 
-    constructor(config: InitConfig = {}) {
+    constructor(config: InitConfig) {
         Engine.setCurrentContext(this);
 
         if (config.canvas === undefined) {
             config.canvas = initCanvas();
-        }
-        if (config.width === undefined) {
-            config.width = DEFAULT_WIDTH;
-        }
-        if (config.height === undefined) {
-            config.height = DEFAULT_HEIGHT;
         }
 
         this.graphics = new Graphics(config.canvas);
@@ -241,46 +245,13 @@ export class Engine {
 
     private static setCurrentContext(engine: Engine) {
         Engine.current = engine;
-        (window as EngineHolder).ilj_shared_engine = engine;
     }
 
-    private static findSharedContext(): Engine | undefined {
-        for (const o of [opener as OptionalEngineHolder, window as OptionalEngineHolder]) {
-            if (o != null && o.ilj_shared_engine != null) {
-                return o.ilj_shared_engine;
-            }
-        }
-        return undefined;
-    }
-
-    static restore(): boolean {
-        const maybeEngine = Engine.findSharedContext();
-        if (maybeEngine !== undefined) {
-            Engine.setCurrentContext(maybeEngine);
-            return true;
-        }
-        return false;
-    }
-
-    static enableInspector() {
-        if (process.env.NODE_ENV === 'development') {
-            const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.has('dev')) {
-                const engine = Engine.current;
-                const {DevApp} = require("@highduck/live-inspector");
-                try {
-                    DevApp.CURRENT = engine.resolve(DevApp);
-                    DevApp.init();
-                } catch {
-                    engine.register(new DevApp(engine));
-                }
-            }
-        }
+    static async init(config: InitConfig) {
+        await awaitDocument();
+        const engine = new Engine(config);
+        createLiveInspector();
+        engine.start();
+        return engine;
     }
 }
-
-interface EngineHolder {
-    ilj_shared_engine?: Engine | null | undefined;
-}
-
-type OptionalEngineHolder = EngineHolder | undefined | null;
