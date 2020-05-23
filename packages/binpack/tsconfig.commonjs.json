@@ -3,11 +3,15 @@
   "compilerOptions": {
     "composite": true,
     "module": "commonjs",
-    "outDir": "dist/commonjs"
+    "outDir": "dist/commonjs",
+    "rootDir": "./src"
   },
   "references": [],
+  "include": [
+    "./src/**/*.ts"
+  ],
   "files": [
-    "src/index.ts"
+    "./src/index.ts"
   ],
   "exclude": [
     "**/node_modules",

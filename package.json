@@ -1,9 +1,9 @@
 {
   "scripts": {
     "upgrade": "yarn upgrade-interactive",
-    "all:build": "yarn workspaces foreach -ptv run build",
-    "all:ci": "yarn workspaces foreach -ptv run ci",
-    "all:clean": "yarn workspaces foreach -pv run clean"
+    "all:build": "yarn workspaces foreach --topological-dev -p -v run build",
+    "all:ci": "yarn workspaces foreach --topological-dev -p -v run ci",
+    "all:clean": "yarn workspaces foreach -p -v run clean"
   },
   "private": true,
   "workspaces": [

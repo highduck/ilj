@@ -3,11 +3,15 @@
   "compilerOptions": {
     "composite": true,
     "module": "esnext",
-    "outDir": "dist/esm"
+    "outDir": "dist/esm",
+    "rootDir": "./src"
   },
   "references": [],
+  "include": [
+    "./src/**/*.ts"
+  ],
   "files": [
-    "src/index.ts"
+    "./src/index.ts"
   ],
   "exclude": [
     "**/node_modules",

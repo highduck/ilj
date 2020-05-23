@@ -16,14 +16,21 @@
     "esModuleInterop": true,
     "experimentalDecorators": true,
     "downlevelIteration": true,
-    "baseUrl": ".",
-    "paths": {
-      "@highduck/binpack": [
-        "../src/index.ts"
-      ]
-    }
+    "composite": true
   },
+  "references": [
+    {
+      "path": "../tsconfig.commonjs.json"
+    }
+  ],
   "files": [
     "./index.ts"
+  ],
+  "include": [
+    "./*.ts"
+  ],
+  "exclude":[
+    "dist/**",
+    "**/node_modules"
   ]
 }

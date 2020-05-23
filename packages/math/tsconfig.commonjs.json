@@ -3,7 +3,8 @@
   "compilerOptions": {
     "composite": true,
     "module": "commonjs",
-    "outDir": "dist/commonjs"
+    "outDir": "dist/commonjs",
+    "rootDir": "./src"
   },
   "references": [],
   "include": [
