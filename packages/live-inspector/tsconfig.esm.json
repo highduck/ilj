@@ -2,7 +2,7 @@
   "extends": "./tsconfig.base.json",
   "references": [
     {
-      "path": "../../packages/core/tsconfig.esm.json"
+      "path": "../core/tsconfig.esm.json"
     }
   ]
 }

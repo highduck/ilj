@@ -1,7 +1,7 @@
 PODS:
-  - Capacitor (2.0.1):
-    - CapacitorCordova (= 2.0.1)
-  - CapacitorCordova (2.0.1)
+  - Capacitor (2.1.0):
+    - CapacitorCordova (= 2.1.0)
+  - CapacitorCordova (2.1.0)
   - Google-Mobile-Ads-SDK (7.57.0):
     - GoogleAppMeasurement (~> 6.0)
   - GoogleAppMeasurement (6.4.1):
@@ -33,11 +33,12 @@ PODS:
   - nanopb/encode (0.3.9011)
 
 DEPENDENCIES:
-  - "Capacitor (from `../../../../node_modules/@capacitor/ios`)"
+  - Capacitor
   - Google-Mobile-Ads-SDK
 
 SPEC REPOS:
   https://cdn.cocoapods.org/:
+    - Capacitor
     - CapacitorCordova
   https://github.com/CocoaPods/Specs.git:
     - Google-Mobile-Ads-SDK
@@ -45,18 +46,14 @@ SPEC REPOS:
     - GoogleUtilities
     - nanopb
 
-EXTERNAL SOURCES:
-  Capacitor:
-    :path: "../../../../node_modules/@capacitor/ios"
-
 SPEC CHECKSUMS:
-  Capacitor: 893baa42b33635ddf23d29d23d2a7f33f7c08bc7
-  CapacitorCordova: 9fee2eb6780331b6ff09710d6a7d1f2e4707f1b9
+  Capacitor: 2566c6028c2f9f222631354ff160bdcbb29a37ca
+  CapacitorCordova: ec9566f41e4c5de373f372a5908e586f98581dd9
   Google-Mobile-Ads-SDK: ec897018b9ab9b447e7aa4876e7f75aba13ba2de
   GoogleAppMeasurement: e49be3954045b17d046f271b9cc1ec052bad9702
   GoogleUtilities: ad0f3b691c67909d03a3327cc205222ab8f42e0e
   nanopb: 18003b5e52dab79db540fe93fe9579f399bd1ccd
 
-PODFILE CHECKSUM: 5a48bd4adafd2d4fb19e95f35d5da4ae61a37693
+PODFILE CHECKSUM: 586e14552fa7ffd9a04e3c6660a22135f0a2ef1f
 
 COCOAPODS: 1.9.1

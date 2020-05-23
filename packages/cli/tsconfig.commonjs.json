@@ -4,12 +4,12 @@
     "composite": true,
     "module": "commonjs",
     "outDir": "dist/commonjs",
-    "rootDir": "src",
+    "rootDir": "./src",
     "esModuleInterop": true
   },
   "references": [
     {
-      "path": "../../packages/exporter/tsconfig.commonjs.json"
+      "path": "../exporter/tsconfig.commonjs.json"
     }
   ],
   "files": [

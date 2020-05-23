@@ -18,8 +18,7 @@
     "esModuleInterop": true,
     "experimentalDecorators": true,
     "downlevelIteration": true,
-    "allowJs": true,
-    "rootDir": "./src"
+    "allowJs": true
   },
   "files": [
     "src/index.ts"

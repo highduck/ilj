@@ -6,7 +6,7 @@
   },
   "scripts": {
     "ci": "run build && ilj",
-    "build": "tsc -b tsconfig.commonjs.json",
+    "build": "tsc -b tsconfig.commonjs.json --verbose",
     "watch": "tsc -b tsconfig.commonjs.json -w --verbose",
     "clean": "rimraf dist/"
   },

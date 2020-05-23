@@ -7,7 +7,6 @@
     "strict": true,
     "declaration": true,
     "declarationDir": "dist/types",
-    "rootDir": "src",
     "allowSyntheticDefaultImports": true,
     "downlevelIteration": true,
     "noEmitOnError": true,

@@ -18,3 +18,13 @@ Until we have no native tools for checking, just clean and build library
 - Build Web
 - Build Android
 - Install and Build iOS
+
+## Android
+
+Add Android SDK path to your environment `ANDROID_SDK_ROOT` variable.
+
+- MacOS: edit your `~/.bash_profile`
+ 
+```shell script
+export ANDROID_SDK_ROOT=/Users/USERNAME/Library/Android/sdk
+```

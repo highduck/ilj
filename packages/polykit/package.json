@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "main": "dist/esm/index.js",
   "module": "dist/esm/index.js",
-  "types": "dist/esm/index.d.ts",
+  "types": "dist/types/index.d.ts",
   "scripts": {
     "ci": "run build",
     "build": "tsc",

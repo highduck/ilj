@@ -8,7 +8,6 @@
     "outDir": "dist/esm",
     "declarationDir": "dist/types",
     "declaration": true,
-    "rootDir": "src",
     "allowSyntheticDefaultImports": true,
     "downlevelIteration": true,
     "noEmitOnError": true,
