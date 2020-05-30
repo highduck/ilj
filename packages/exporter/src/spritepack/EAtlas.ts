@@ -1,9 +1,8 @@
 import {AtlasJson, AtlasPageJson} from "@highduck/anijson";
 import {packSprites} from "./Packing";
-import {makeDirs} from "../utilsNode";
+import {logDebug, makeDirs} from "../env";
 import path from "path";
 import fs from "fs";
-import {logDebug} from "../debug";
 import {EImage} from "./EImage";
 import {ESprite} from "./ESprite";
 import {saveAlphaMaskPNG, saveJPEG, savePNG} from "../imagefile/save";

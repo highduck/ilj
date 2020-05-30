@@ -6,21 +6,21 @@ import pako from 'pako';
 
 export function decodeBitmap(data: Uint8Array): DecodedBitmap {
     const reader = new BufferReader(data.buffer);
-    const signature = reader.readU16();
-    if (signature === Signature.ARGB) {
+    const sig = reader.readU16();
+    if (sig === Signature.ARGB) {
         return readBitmapARGB(reader);
-    } else if (signature === Signature.CLUT) {
+    } else if (sig === Signature.CLUT) {
         return readBitmap256(reader);
-    } else if (signature === Signature.JPEG) {
+    } else if (sig === Signature.JPEG) {
         return readBitmapJPEG(reader);
     }
 
-    throw `Unknown signature: 0x${signature.toString(16)}`;
+    throw `Unknown signature: 0x${sig.toString(16).toUpperCase()}`;
 }
 
 // thanks to https://github.com/charrea6/flash-hd-upscaler/blob/master/images.py
 const enum Signature {
-    JPEG = 0xd8ff,
+    JPEG = 0xD8FF,
     ARGB = 0x0503,
     CLUT = 0x0303
 }

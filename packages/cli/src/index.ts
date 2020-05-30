@@ -5,16 +5,12 @@ import {build} from "./iljwebpack/build";
 import {loadConfig} from "./proj/loadConfig";
 import console from "./common/log";
 import {appicon} from "./bins/appicon";
-import {exportAssets, exportMarketingAssets} from "./export/Export";
-import {optimizeImageFile} from "@highduck/exporter";
 import {NProject} from "./proj/NProject";
+import {exportAssets, optimizeImageFile} from "@highduck/exporter";
 
 const args = yargs
     .command('export', 'export assets', {}, async (args) => {
         await exportAssets("assets", "public/assets");
-    })
-    .command('market', 'export marketing assets', {}, (_) => {
-        exportMarketingAssets("assets/res", "gen", "export/market");
     })
     .command('optimize', 'optimize png and jpeg images with glob pattern',
         (yargs) => yargs.options({input: {type: 'array', array: true, alias: "i", default: []}}),

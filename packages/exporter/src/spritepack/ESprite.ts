@@ -1,7 +1,7 @@
 import {Rect} from "@highduck/math";
 import {SpriteFlag, SpriteJson} from "@highduck/anijson";
 import {EImage} from "./EImage";
-import {logDebug} from "../debug";
+import {logDebug} from "../env";
 
 export class ESprite {
 

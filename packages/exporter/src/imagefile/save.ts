@@ -1,7 +1,7 @@
 import path from "path";
 import fs from "fs";
 import jpeg from "jpeg-js";
-import {makeDirs} from "../utilsNode";
+import {makeDirs} from "../env";
 import {optimizeImageFile} from "./optimize";
 import {encode} from 'fast-png';
 

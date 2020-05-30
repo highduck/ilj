@@ -13,9 +13,9 @@
   },
   "devDependencies": {
     "rimraf": "^3.0.2",
-    "rollup": "^2.10.8",
+    "rollup": "^2.11.2",
     "rollup-plugin-node-resolve": "^5.2.0",
-    "rollup-plugin-terser": "^6.0.1",
-    "typescript": "^3.9.3"
+    "rollup-plugin-terser": "^6.1.0",
+    "typescript": "^3.9.4"
   }
 }

@@ -1,46 +1,99 @@
-import {AnimateDoc} from "@highduck/xfl";
-import {AnimateDocExporter} from "./anif/AnimateDocExporter";
-import {EAtlas} from "./spritepack/EAtlas";
-import {loadCanvasContext} from "./anif/rasterizer/SkiaHelpers";
+import {makeDirs} from "./nodejs/utils";
 import fs from "fs";
 import path from "path";
-import {makeDirs} from "./utilsNode";
+import {BundleDef} from "./export/BundleDef";
+import {BundleItem, BundleItemType} from "@highduck/anijson";
+import {EAtlas} from "./spritepack/EAtlas";
+import * as glob from "glob";
+import {copySound} from "./sounds/copySound";
+import {createAtlas, exportFlashAsset} from "./export/Export";
 
-export * from './spritepack/EAtlas';
 export * from './imagefile/optimize';
 
-const atlases = new Map<string, EAtlas>();
+export async function exportAssets(input: string, output: string) {
+    makeDirs(output);
+    const bundle = JSON.parse(fs.readFileSync(path.join(input, "bundle.json"), 'utf8')) as BundleDef;
 
-export function createAtlas(name: string): EAtlas {
-    const atlas = new EAtlas(name);
-    atlases.set(name, atlas);
-    return atlas;
-}
+    const list: BundleItem[] = [];
+    const atlases: EAtlas[] = [];
+    const atlasMetas = [];
 
-export function getAtlasList(): string[] {
-    return [...atlases.keys()];
-}
-
-export async function exportFlashAsset(name: string, filepath: string, destDir: string, atlas: string) {
-    const doc = AnimateDoc.openFromPath(filepath);
-    await loadCanvasContext();
-    const exporter = new AnimateDocExporter(doc);
-    exporter.buildLibrary();
-
-    let atlasInstance = atlases.get(atlas);
-    if (atlasInstance === undefined) {
-        atlasInstance = new EAtlas(name);
-        atlases.set(name, atlasInstance);
+    if (bundle.items === undefined) {
+        console.warn('empty "items"');
+        return;
     }
 
-    exporter.buildSprites(atlasInstance);
-    makeDirs(destDir);
+    for (const def of bundle.items) {
+        if (def.type === 'atlas') {
+            atlases.push(createAtlas(def.id));
+            atlasMetas.push(def);
+            // will add item at the end
+        }
+    }
 
-    // saveDebugImages(destDir, mainAtlas);
+    for (const def of bundle.items) {
+        if (def.type === 'flash') {
+            await exportFlashAsset(
+                def.id,
+                path.join(input, def.path ?? def.id),
+                output,
+                def.atlas ?? def.id
+            );
+            list.push({
+                type: BundleItemType.Ani,
+                id: def.id
+            });
+        }
+    }
 
-    // save test scene
-    fs.writeFileSync(
-        path.join(destDir, name + '.ani.json'),
-        JSON.stringify(exporter.exportLibrary().serialize())
-    );
+    for (const item of bundle.items) {
+        if (item.type === 'font') {
+            const filepath = item.path ?? (item.id + '.ttf');
+            fs.copyFileSync(
+                path.join(input, filepath),
+                path.join(output, filepath)
+            );
+            list.push({
+                type: BundleItemType.Font,
+                id: item.id,
+                size: item.size ?? 30,
+                path: filepath
+            });
+        }
+    }
+
+    for (const item of bundle.items) {
+        if (item.type === 'audio') {
+            const compress = item.compress ?? false;
+            const files = glob.sync(path.join(input, item.glob));
+            for (const file of files) {
+                const rel = path.relative(input, file);
+                copySound(file, path.join(output, rel), compress);
+                const pp = path.parse(rel);
+                list.push({
+                    type: BundleItemType.Audio,
+                    path: rel,
+                    id: path.join(pp.dir, pp.name)
+                });
+            }
+        }
+    }
+
+    for (let i = 0; i < atlasMetas.length; ++i) {
+        const meta = atlasMetas[i];
+        const atlas = atlases[i];
+        atlas.trimSprites();
+        atlas.addSpot();
+        atlas.pack();
+        atlas.save(output, meta.format ?? 'png', meta.jpeg?.quality ?? 80, meta.png?.quant ?? false);
+        atlas.dispose();
+        list.push({
+            type: BundleItemType.Atlas,
+            id: meta.id
+        });
+    }
+
+    fs.writeFileSync(path.join(output, 'bundle.json'), JSON.stringify({
+        items: list
+    }));
 }

@@ -1,7 +1,7 @@
 import {CanvasKit, SkImage, SkShader, SkSurface} from "canvaskit-wasm";
 import {DecodedBitmap, FillStyle} from "@highduck/xfl";
 import {destroyPMASurface, makePMASurface} from "./SkiaHelpers";
-import {logWarning} from "../../debug";
+import {logWarning} from "../../env";
 import {TransformModel} from "../render/TransformModel";
 import {Matrix2D} from "@highduck/math";
 import {convertMatrix, convertSpreadMethod} from "./SkiaFunctions";

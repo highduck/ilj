@@ -27,8 +27,7 @@ import {EAtlas} from "../spritepack/EAtlas";
 import {renderShapes} from "./rasterizer/RenderToSprite";
 import {FilterType, TweenTargetType} from "@highduck/anijson";
 import {extractTweenDelta, KeyframeTransform, setupFrameFromElement} from "./AnimationUtils";
-import {logAssert, logDebug, logWarning} from "../debug";
-import {savePNG} from "../imagefile/save";
+import {logAssert, logDebug, logWarning} from "../env";
 
 function convertTweenTarget(target: TweenTarget): TweenTargetType {
     switch (target) {

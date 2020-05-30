@@ -2,7 +2,7 @@ import {Rect} from "@highduck/math";
 import {TransformModel} from "./TransformModel";
 import {ShapeProcessor} from "./ShapeProcessor";
 import {ElementType, LayerType, AnimateDoc, Element} from "@highduck/xfl";
-import {logWarning} from "../../debug";
+import {logWarning} from "../../env";
 
 export class DomScanner {
     name?: string;

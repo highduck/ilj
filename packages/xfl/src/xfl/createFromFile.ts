@@ -4,7 +4,7 @@ import path from "path";
 import {XFLEntry} from "./XFLEntry";
 import {FLAEntry} from "./FLAEntry";
 import {logWarning} from "./debug";
-import AdmZip from "adm-zip";
+import {Zip} from "@eliasku/zipfile";
 
 function isDir(p: string) {
     return fs.existsSync(p) && fs.lstatSync(p).isDirectory();
@@ -16,7 +16,7 @@ function isFile(p: string) {
 
 function loadFLA(filepath: string): FLAEntry {
     const buffer = fs.readFileSync(filepath);
-    const zipFile = new AdmZip(new Buffer(buffer));
+    const zipFile = new Zip(new Uint8Array(buffer));
     return new FLAEntry("", zipFile);
 }
 

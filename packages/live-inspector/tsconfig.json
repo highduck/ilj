@@ -4,10 +4,10 @@
     "baseUrl": "./",
     "paths": {
       "@highduck/core": [
-        "../../packages/core/src/index.ts"
+        "../core/src/index.ts"
       ],
       "@highduck/math": [
-        "../../packages/math/src/index.ts"
+        "../math/src/index.ts"
       ]
     }
   },

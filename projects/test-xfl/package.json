@@ -12,7 +12,7 @@
   "devDependencies": {
     "@highduck/cli": "0.0.1",
     "@highduck/live-inspector": "0.0.1",
-    "typescript": "^3.9.3"
+    "typescript": "^3.9.4"
   },
   "dependencies": {
     "@highduck/core": "0.0.1"

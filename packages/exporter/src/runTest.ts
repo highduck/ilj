@@ -1,4 +1,4 @@
-import {createAtlas, exportFlashAsset} from "./index";
+import {createAtlas, exportFlashAsset} from "./export/Export";
 
 async function runTest() {
     const atlasName = "main";

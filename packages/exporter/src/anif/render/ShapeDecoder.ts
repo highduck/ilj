@@ -5,7 +5,7 @@ import {RenderBatch} from "./RenderBatch";
 import {RenderOp} from "./RenderOp";
 import {ShapeEdge} from "./ShapeEdge";
 import {EdgeSelectionBit, Element} from "@highduck/xfl";
-import {logDebug, logError, logWarning} from "../../debug";
+import {logDebug, logError, logWarning} from "../../env";
 
 const enum CommandSymbol {
     MOVE_TO = 0, // '!'

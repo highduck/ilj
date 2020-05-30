@@ -4,13 +4,13 @@
     "baseUrl": ".",
     "paths": {
       "@highduck/math": [
-        "../../packages/math/src/index.ts"
+        "../math/src/index.ts"
       ],
       "@highduck/xfl": [
-        "../../packages/xfl/src/index.ts"
+        "../xfl/src/index.ts"
       ],
       "@highduck/anijson": [
-        "../../packages/anijson/src/index.ts"
+        "../anijson/src/index.ts"
       ]
     }
   }

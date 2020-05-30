@@ -1,11 +1,11 @@
 import {Entry} from "./Entry";
-import AdmZip from "adm-zip";
+import {Zip} from '@eliasku/zipfile';
 
 export class FLAEntry extends Entry {
 
-    zipFile: AdmZip;
+    zipFile: Zip;
 
-    constructor(path: string, zipFile: AdmZip, root?: Entry) {
+    constructor(path: string, zipFile: Zip, root?: Entry) {
         super(path, root);
         this.zipFile = zipFile;
     }
@@ -16,16 +16,14 @@ export class FLAEntry extends Entry {
 
     text(): string {
         if (this._text === undefined) {
-            const entry = this.zipFile.getEntry(this.path);
-            this._text = entry.getData().toString('utf-8');
+            this._text = this.zipFile.readAsText(this.path);
         }
         return this._text;
     }
 
     buffer(): Uint8Array {
         if (this._buffer === undefined) {
-            const entry = this.zipFile.getEntry(this.path);
-            this._buffer = new Uint8Array(entry.getData());
+            this._buffer = this.zipFile.readFile(this.path) ?? new Uint8Array(0);
         }
         return this._buffer;
     }
