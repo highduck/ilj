@@ -11,7 +11,7 @@
     "test": "run clean && run build && node dist/commonjs/runTest.js"
   },
   "dependencies": {
-    "@eliasku/zipfile": "1.0.0-beta.0",
+    "@eliasku/zipfile": "1.0.0-beta.1",
     "@highduck/math": "0.0.1",
     "fast-xml-parser": "^3.17.3",
     "he": "^1.2.0",
