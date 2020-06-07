@@ -11,16 +11,7 @@ import {
     TweenTarget,
     TweenType
 } from "@highduck/xfl";
-import {
-    SgDynamicText,
-    SgEasing,
-    SgFile,
-    SgFilterData,
-    SgMovie,
-    SgMovieFrame,
-    SgMovieLayer,
-    SgNode
-} from "./SgModel";
+import {SgDynamicText, SgEasing, SgFile, SgFilterData, SgMovie, SgMovieFrame, SgMovieLayer, SgNode} from "./SgModel";
 import {Matrix2D, Rect} from "@highduck/math";
 import {DomScanner, estimateBounds} from "./render/DomScanner";
 import {EAtlas} from "../spritepack/EAtlas";

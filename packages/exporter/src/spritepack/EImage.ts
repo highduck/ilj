@@ -179,7 +179,9 @@ export class EImage {
 
         rcSrc.x = rcSrc.x + rcDst.x - x;
         rcSrc.y = rcSrc.y + rcDst.y - y;
+        // noinspection JSSuspiciousNameCombination
         rcSrc.width = rcDst.height;
+        // noinspection JSSuspiciousNameCombination
         rcSrc.height = rcDst.width;
 
         if (rcSrc.empty || rcDst.empty) {

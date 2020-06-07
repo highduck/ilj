@@ -7,6 +7,11 @@ import WebpackDevServer from "webpack-dev-server";
 import {syncPlatformProject} from "../platforms/syncPlatformProject";
 import * as ip from "internal-ip";
 import {deleteFolderRecursive} from "../common/utility";
+import fs from "fs";
+import getPackagePath from "../common/getPackagePath";
+
+export type BuildMode = 'development' | 'production';
+export type PlatformType = 'web' | 'android' | 'ios';
 
 export interface NProjectConfigDto {
     name?: string;
@@ -14,31 +19,58 @@ export interface NProjectConfigDto {
 }
 
 export interface NTargetConfigDto {
-    platform?: NPlatformType;
-    // basedir: string;
-    // approot: string;
-    www?: string;
-    root?: string;
+    name?: string; // override name
+    platform?: PlatformType;
+    www?: string; // by default './www'
+    root?: string; //  by default '{basedir}/{target.name}/'
+    main?: string; // main module package name
 }
-
-export type NPlatformType = 'web' | 'android' | 'ios';
 
 export class NProjectTarget {
 
-    platform: NPlatformType;
+    platform: PlatformType;
     www: string;
+
+    // base dir for target package
     root: string;
+
+    mainModule?: string;
+
+    get appdir(): string {
+        return path.join(this.root, this.www);
+    }
 
     constructor(readonly name: string, config?: NTargetConfigDto) {
         this.platform = config?.platform ?? 'web';
         this.www = config?.www ?? 'www';
-        this.root = config?.root ?? name;
+        this.root = config?.root ?? '.';
+        this.mainModule = config?.main;
+    }
+
+    static load(basedir: string): NProjectTarget | undefined {
+        let config: NTargetConfigDto | undefined = undefined;
+        try {
+            config = require(path.resolve(basedir, "ilj.target.js")) as NTargetConfigDto;
+        } catch {
+        }
+        let name = config?.name ?? autoResolveName(basedir, 'test');
+        const target = new NProjectTarget(name, config);
+        target.root = basedir;
+        if (target.mainModule) {
+            target.root = fs.realpathSync(getPackagePath(target.mainModule, basedir));
+            if (!fs.existsSync(target.root)) {
+                console.error(`Main package ${target.mainModule} not found`);
+                console.info(`not exists: ${target.root}`);
+                return undefined;
+            }
+        }
+        return target;
     }
 }
 
 export interface NRunOptions {
     target?: string;
-    mode?: string;
+    mode?: BuildMode;
     live?: boolean;
     analyze?: boolean;
 }
@@ -55,8 +87,7 @@ export class NProject {
         if (config?.name !== undefined) {
             this.name = config?.name;
         } else {
-            const npmjson = require(path.resolve(basedir, 'package.json'));
-            this.name = npmjson.name ?? "ilj-project";
+            this.name = autoResolveName(basedir, 'ilj-project');
         }
 
         const targetsObj = config?.targets ?? {};
@@ -106,7 +137,7 @@ export class NProject {
         });
     }
 
-    createCompiler(target: NProjectTarget, mode: string, analyzer: boolean = false, live: boolean = false):webpack.Compiler {
+    createCompiler(target: NProjectTarget, mode: BuildMode, analyzer: boolean = false, live: boolean = false): webpack.Compiler {
         const config = createWebpackConfig2(
             target.name,
             target.www,
@@ -115,11 +146,11 @@ export class NProject {
             mode,
             analyzer,
             live
-        ) as webpack.Configuration;
+        );
         return webpack(config);
     }
 
-    async compile(compiler:webpack.Compiler, target: NProjectTarget, live: boolean = false) {
+    async compile(compiler: webpack.Compiler, target: NProjectTarget, live: boolean = false) {
         return new Promise((resolve, reject) => {
             if (live) {
                 const devServer = createDevServerConfig(this.basedir);
@@ -148,4 +179,18 @@ export class NProject {
             }
         });
     }
+}
+
+
+function autoResolveName(dir: string, defaultName = 'local') {
+    let name = '';
+    try {
+        const packageConfig = require(path.resolve(dir, 'package.json'));
+        name = packageConfig.name;
+        if (!name) {
+            name = path.basename(path.resolve(dir));
+        }
+    } catch {
+    }
+    return name || defaultName;
 }

@@ -1,7 +1,7 @@
 import {RenderBatch} from "../render/RenderBatch";
 import {Rect} from "@highduck/math";
 import {BlendMode} from "@highduck/xfl";
-import {destroyPMASurface, getCanvasKit, makePMASurface} from "./SkiaHelpers";
+import {destroyPMASurface, CanvasKit, makePMASurface} from "./SkiaHelpers";
 import {SkiaRenderer} from "./SkiaRenderer";
 import {blitDownSample} from "./SkiaFunctions";
 import {RenderOp} from "../render/RenderOp";
@@ -21,7 +21,7 @@ export interface RenderOptions {
 function createSprite(name: string, scale: number, rc: Rect, image: EImage) {
     const data = new ESprite();
     data.scale = scale;
-    data.padding = Math.max(1, scale);
+    data.padding = Math.max(1, Math.ceil(scale));
     data.name = name;
     data.rc.copyFrom(rc);
     data.source.width = image.width;
@@ -73,9 +73,7 @@ function renderGeneralBatches(bounds: Rect,
     const ssw = Math.trunc(w * upscale);
     const ssh = Math.trunc(h * upscale);
 
-    const ck = getCanvasKit();
-
-    const surface = makePMASurface(ck, ssw, ssh);
+    const surface = makePMASurface(ssw, ssh);
     const canvas = surface.getCanvas();
 
     // BEGIN
@@ -96,21 +94,22 @@ function renderGeneralBatches(bounds: Rect,
     surface.flush();
     canvas.restore();
 
-    const imageSurface = ck.MakeSurface(w, h);
+    const imageSurface = CanvasKit.MakeSurface(w, h);
     blitDownSample(imageSurface, surface, ssw, ssh, upscale, BlendMode.normal);
     imageSurface.flush();
 
     renderer.dispose();
 
-    destroyPMASurface(ck, surface);
+    destroyPMASurface(surface);
     // END
 
     const data = imageSurface.getCanvas().readPixels(
         0, 0, w, h,
-        ck.AlphaType.Unpremul,
-        ck.ColorType.RGBA_8888,
+        CanvasKit.AlphaType.Unpremul,
+        CanvasKit.ColorType.RGBA_8888,
+        CanvasKit.SkColorSpace.SRGB,
         4 * w
-    ) as Uint8Array | undefined;
+    );
 
     imageSurface.dispose();
 
@@ -151,9 +150,8 @@ function renderLowQuality(bounds: Rect,
     if (w <= 0 || h <= 0) {
         return undefined;
     }
-    const ck = getCanvasKit();
 
-    const surface = makePMASurface(ck, w, h);
+    const surface = makePMASurface(w, h);
     const canvas = surface.getCanvas();
 
     // BEGIN
@@ -176,14 +174,15 @@ function renderLowQuality(bounds: Rect,
 
     const data = canvas.readPixels(
         0, 0, w, h,
-        ck.AlphaType.Unpremul,
-        ck.ColorType.RGBA_8888,
+        CanvasKit.AlphaType.Unpremul,
+        CanvasKit.ColorType.RGBA_8888,
+        CanvasKit.SkColorSpace.SRGB,
         4 * w
-    ) as Uint8Array | undefined;
+    );
 
     renderer.dispose();
 
-    destroyPMASurface(ck, surface);
+    destroyPMASurface(surface);
 
     if (data !== undefined) {
         return createSprite(options.name, scale, rc, new EImage(w, h, data));

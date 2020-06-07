@@ -27,15 +27,15 @@
   "license": "MIT",
   "dependencies": {
     "@capacitor/core": "^2.1.2",
-    "firebase": "^7.14.6"
+    "firebase": "^7.15.0"
   },
   "devDependencies": {
     "@capacitor/android": "^2.1.2",
     "@capacitor/ios": "^2.1.2",
     "rimraf": "^3.0.2",
-    "rollup": "^2.11.2",
+    "rollup": "^2.14.0",
     "rollup-plugin-node-resolve": "^5.2.0",
-    "typescript": "^3.9.4"
+    "typescript": "^3.9.5"
   },
   "files": [
     "dist/",

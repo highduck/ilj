@@ -1,8 +1,8 @@
 import {Color4, Matrix2D} from "@highduck/math";
-import {CanvasKit, SkBlendMode, SkMatrix, SkPaint, SkShader, SkSurface, SkTileMode} from "canvaskit-wasm";
-import {BlendMode, FillType, SpreadMethod, FillStyle} from "@highduck/xfl";
+import {SkBlendMode, SkMatrix, SkPaint, SkShader, SkSurface, SkTileMode} from "canvaskit-wasm";
+import {BlendMode, FillStyle, FillType, SpreadMethod} from "@highduck/xfl";
 import {TransformModel} from "../render/TransformModel";
-import {getCanvasKit} from "./SkiaHelpers";
+import {CanvasKit} from "./SkiaHelpers";
 
 export function convertMatrix(m: Matrix2D): SkMatrix {
     return [
@@ -12,11 +12,12 @@ export function convertMatrix(m: Matrix2D): SkMatrix {
     ];
 }
 
-export function setPaintColor(ck: CanvasKit, paint: SkPaint, r: number, g: number, b: number, a: number) {
-    paint.setColor((ck as any).Color4f(r, g, b, a));
+export function setPaintColor(paint: SkPaint, r: number, g: number, b: number, a: number) {
+    paint.setColor(CanvasKit.Color4f(r, g, b, a));
 }
 
-export function convertBlendMode(ck: CanvasKit, mode: BlendMode): SkBlendMode {
+export function convertBlendMode(mode: BlendMode): SkBlendMode {
+    const ck = CanvasKit;
     switch (mode) {
         case BlendMode.last:
             return ck.BlendMode.SrcOver;
@@ -53,19 +54,19 @@ export function convertBlendMode(ck: CanvasKit, mode: BlendMode): SkBlendMode {
 }
 
 
-export function convertSpreadMethod(ck: CanvasKit, spreadMethod?: SpreadMethod): SkTileMode {
+export function convertSpreadMethod(spreadMethod?: SpreadMethod): SkTileMode {
     if (spreadMethod === SpreadMethod.extend) {
-        return ck.TileMode.Clamp;
+        return CanvasKit.TileMode.Clamp;
     } else if (spreadMethod === SpreadMethod.repeat) {
-        return ck.TileMode.Repeat;
+        return CanvasKit.TileMode.Repeat;
     } else if (spreadMethod === SpreadMethod.reflect) {
-        return ck.TileMode.Mirror;
+        return CanvasKit.TileMode.Mirror;
     }
-    return ck.TileMode.Decal;
+    return CanvasKit.TileMode.Decal;
 }
 
-export function createFillShader(ck: CanvasKit, fill: FillStyle, transform: TransformModel): SkShader {
-    const tileMode = convertSpreadMethod(ck, fill.spreadMethod);
+export function createFillShader(fill: FillStyle, transform: TransformModel): SkShader {
+    const tileMode = convertSpreadMethod(fill.spreadMethod);
 
     const colors = [];
     const positions = [];
@@ -78,28 +79,31 @@ export function createFillShader(ck: CanvasKit, fill: FillStyle, transform: Tran
         const color = new Color4();
         color.copyFrom(entry.color);
         transform.transformColor(color);
-        colors.push((ck as any).Color4f(color.r, color.g, color.b, color.a));
+        colors.push(CanvasKit.Color4f(color.r, color.g, color.b, color.a));
         positions.push(entry.ratio);
     }
 
     switch (fill.type) {
         case FillType.linear:
-            return ((ck as any).SkShader.MakeLinearGradient([-819.2, 0], [819.2, 0],
-                colors, positions, (tileMode as any) as number, localMatrix, 0) as SkShader);
+            return CanvasKit.SkShader.MakeLinearGradient(
+                [-819.2, 0], [819.2, 0],
+                colors, positions, tileMode, localMatrix, 0
+            );
         case FillType.radial:
-            return ((ck as any).SkShader.MakeTwoPointConicalGradient([0, 0], 0, [0, 0], 819.2,
-                colors, positions, (tileMode as any) as number, localMatrix, 0) as SkShader);
+            return CanvasKit.SkShader.MakeTwoPointConicalGradient(
+                [0, 0], 0, [0, 0], 819.2,
+                colors, positions, tileMode, localMatrix, 0
+            );
         default:
             throw ("error: " + fill.type);
     }
 }
 
 export function blitDownSample(destSurface: SkSurface, srcSurface: SkSurface, x: number, y: number, upscale: number, blendMode: BlendMode) {
-    const ck = getCanvasKit();
-    const paint = new ck.SkPaint();
+    const paint = new CanvasKit.SkPaint();
     paint.setAntiAlias(false);
-    paint.setBlendMode(convertBlendMode(ck, blendMode));
-    paint.setFilterQuality(ck.FilterQuality.High);
+    paint.setBlendMode(convertBlendMode(blendMode));
+    paint.setFilterQuality(CanvasKit.FilterQuality.High);
     const image = srcSurface.makeImageSnapshot();
     const canvas = destSurface.getCanvas();
     canvas.save();

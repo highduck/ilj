@@ -3,7 +3,7 @@ import path from "path";
 import fs from 'fs';
 import {EAtlas} from "../spritepack/EAtlas";
 import {AnimateDoc} from "@highduck/xfl";
-import {loadCanvasContext} from "../anif/rasterizer/SkiaHelpers";
+import {initCanvasKit} from "../anif/rasterizer/SkiaHelpers";
 import {AnimateDocExporter} from "../anif/AnimateDocExporter";
 
 const atlases = new Map<string, EAtlas>();
@@ -16,7 +16,7 @@ export function createAtlas(name: string): EAtlas {
 
 export async function exportFlashAsset(name: string, filepath: string, destDir: string, atlas: string) {
     const doc = AnimateDoc.openFromPath(filepath);
-    await loadCanvasContext();
+    await initCanvasKit();
     const exporter = new AnimateDocExporter(doc);
     exporter.buildLibrary();
 

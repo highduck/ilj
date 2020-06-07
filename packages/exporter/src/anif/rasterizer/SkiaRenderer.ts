@@ -1,15 +1,14 @@
-import {CanvasKit, SkBlendMode, SkCanvas, SkPaint, SkPath} from "canvaskit-wasm";
+import {SkBlendMode, SkCanvas, SkPaint, SkPath} from "canvaskit-wasm";
 import {TransformModel} from "../render/TransformModel";
 import {DecodedBitmap, FillStyle, FillType, LineCaps, LineJoints, StrokeStyle} from "@highduck/xfl";
 import {RenderCommand} from "../render/RenderCommand";
 import {RenderOp} from "../render/RenderOp";
-import {destroyPMASurface, getCanvasKit, makePMASurface} from "./SkiaHelpers";
+import {CanvasKit, destroyPMASurface, makePMASurface} from "./SkiaHelpers";
 import {Matrix2D} from "@highduck/math";
 import {BitmapFillInstance} from "./BitmapFillShader";
 import {convertBlendMode, convertMatrix, createFillShader, setPaintColor} from "./SkiaFunctions";
 
 export class SkiaRenderer {
-    readonly ck: CanvasKit;
     readonly transform = new TransformModel();
 
     fill_flag_ = false;
@@ -28,17 +27,16 @@ export class SkiaRenderer {
     path: undefined | SkPath = undefined;
 
     constructor(readonly canvas: SkCanvas, aa: boolean) {
-        this.ck = getCanvasKit();
-        this.paintStroke = new this.ck.SkPaint();
+        this.paintStroke = new CanvasKit.SkPaint();
         this.paintStroke.setAntiAlias(aa);
-        this.paintStroke.setStyle(this.ck.PaintStyle.Stroke);
-        this.paintSolidFill = new this.ck.SkPaint();
+        this.paintStroke.setStyle(CanvasKit.PaintStyle.Stroke);
+        this.paintSolidFill = new CanvasKit.SkPaint();
         this.paintSolidFill.setAntiAlias(aa);
-        this.paintSolidFill.setStyle(this.ck.PaintStyle.Fill);
-        this.paintShaderFill = new this.ck.SkPaint();
+        this.paintSolidFill.setStyle(CanvasKit.PaintStyle.Fill);
+        this.paintShaderFill = new CanvasKit.SkPaint();
         this.paintShaderFill.setAntiAlias(aa);
-        this.paintShaderFill.setStyle(this.ck.PaintStyle.Fill);
-        this.blendMode = this.ck.BlendMode.SrcOver;
+        this.paintShaderFill.setStyle(CanvasKit.PaintStyle.Fill);
+        this.blendMode = CanvasKit.BlendMode.SrcOver;
     }
 
     dispose() {
@@ -57,27 +55,27 @@ export class SkiaRenderer {
 
     setTransform(transform: TransformModel) {
         this.transform.copyFrom(transform);
-        this.blendMode = convertBlendMode(this.ck, transform.blendMode);
+        this.blendMode = convertBlendMode(transform.blendMode);
     }
 
     drawBitmap(bitmap: DecodedBitmap) {
-        const surface = makePMASurface(this.ck, bitmap.width, bitmap.height);
-        // const surface = this.ck.MakeSurface(bitmap.width, bitmap.height);
+        const surface = makePMASurface(bitmap.width, bitmap.height);
+        // const surface = .MakeSurface(bitmap.width, bitmap.height);
         surface.getCanvas().writePixels(bitmap.data, bitmap.width, bitmap.height, 0, 0);
         const image = surface.makeImageSnapshot();
 
         this.canvas.save();
         this.canvas.concat(convertMatrix(this.transform.matrix));
-        const paint = new this.ck.SkPaint();
+        const paint = new CanvasKit.SkPaint();
         paint.setBlendMode(this.blendMode);
         paint.setAntiAlias(false);
-        paint.setFilterQuality(this.ck.FilterQuality.None);
+        paint.setFilterQuality(CanvasKit.FilterQuality.None);
         this.canvas.drawImage(image, 0, 0, paint);
         this.canvas.flush();
         paint.delete();
         image.delete();
         // surface.dispose();
-        destroyPMASurface(this.ck, surface);
+        destroyPMASurface(surface);
     }
 
     private createOvalPath(cmd: RenderCommand, matrix: Matrix2D): SkPath {
@@ -100,7 +98,7 @@ export class SkiaRenderer {
         const cx = l + (r - l) / 2;
         const cy = t + (b - t) / 2;
         const inner = cmd.v[7];
-        const path = new this.ck.SkPath();
+        const path = new CanvasKit.SkPath();
 
         // path.arcTo({fLeft: l, fTop: t, fRight: r, fBottom: b}, a0, sweep, true);
         path.addArc({fLeft: l, fTop: t, fRight: r, fBottom: b}, a0, sweep);
@@ -130,7 +128,7 @@ export class SkiaRenderer {
         const t = cmd.v[1];
         const r = cmd.v[2];
         const b = cmd.v[3];
-        const path = new this.ck.SkPath();
+        const path = new CanvasKit.SkPath();
         const maxRadius = Math.min((b - t) / 2, (r - l) / 2);
         const r1 = Math.min(maxRadius, cmd.v[4]);
         const r2 = Math.min(maxRadius, cmd.v[5]);
@@ -152,13 +150,13 @@ export class SkiaRenderer {
     drawCmdPath(cmd: RenderCommand, path: SkPath) {
         let paint = this.setFillStyle(cmd.fill);
         if (paint) {
-            paint.setStyle(this.ck.PaintStyle.Fill);
+            paint.setStyle(CanvasKit.PaintStyle.Fill);
             this.canvas.drawPath(path, paint);
             this.canvas.flush();
         }
         paint = this.setStrokeStyle(cmd.stroke);
         if (paint) {
-            paint.setStyle(this.ck.PaintStyle.Stroke);
+            paint.setStyle(CanvasKit.PaintStyle.Stroke);
             this.canvas.drawPath(path, paint);
             this.canvas.flush();
         }
@@ -237,8 +235,8 @@ export class SkiaRenderer {
             if (this.path !== undefined) {
                 this.path.delete();
             }
-            this.path = new this.ck.SkPath();
-            this.path.setFillType(this.ck.FillType.EvenOdd);
+            this.path = new CanvasKit.SkPath();
+            this.path.setFillType(CanvasKit.FillType.EvenOdd);
             this.open_flag_ = true;
         }
     }
@@ -251,7 +249,7 @@ export class SkiaRenderer {
                 if (fillStyle.entries && fillStyle.entries.length > 0) {
                     const c = fillStyle.entries[0].color.copy();
                     this.transform.transformColor(c);
-                    setPaintColor(this.ck, paint, c.r, c.g, c.b, c.a);
+                    setPaintColor(paint, c.r, c.g, c.b, c.a);
                 } else {
                     throw "bad data";
                 }
@@ -262,14 +260,14 @@ export class SkiaRenderer {
                         if (this.bitmapFillImage) {
                             this.bitmapFillImage.dispose();
                         }
-                        this.bitmapFillImage = new BitmapFillInstance(this.ck, fillStyle.bitmap);
+                        this.bitmapFillImage = new BitmapFillInstance(fillStyle.bitmap);
                         paint.setShader(this.bitmapFillImage.makeShader(fillStyle, this.transform));
                     } else {
                         paint = this.paintSolidFill;
-                        setPaintColor(this.ck, paint, 0, 0, 0, 0)
+                        setPaintColor(paint, 0, 0, 0, 0)
                     }
                 } else {
-                    paint.setShader(createFillShader(this.ck, fillStyle, this.transform));
+                    paint.setShader(createFillShader(fillStyle, this.transform));
                 }
             }
             paint.setBlendMode(this.blendMode);
@@ -289,25 +287,25 @@ export class SkiaRenderer {
         const solid = strokeStyle.solid;
         switch (solid.caps) {
             case LineCaps.none:
-                paint.setStrokeCap(this.ck.StrokeCap.Butt);
+                paint.setStrokeCap(CanvasKit.StrokeCap.Butt);
                 break;
             case LineCaps.round:
-                paint.setStrokeCap(this.ck.StrokeCap.Round);
+                paint.setStrokeCap(CanvasKit.StrokeCap.Round);
                 break;
             case LineCaps.square:
-                paint.setStrokeCap(this.ck.StrokeCap.Square);
+                paint.setStrokeCap(CanvasKit.StrokeCap.Square);
                 break;
         }
 
         switch (solid.joints) {
             case LineJoints.miter:
-                paint.setStrokeJoin(this.ck.StrokeJoin.Miter);
+                paint.setStrokeJoin(CanvasKit.StrokeJoin.Miter);
                 break;
             case LineJoints.round:
-                paint.setStrokeJoin(this.ck.StrokeJoin.Round);
+                paint.setStrokeJoin(CanvasKit.StrokeJoin.Round);
                 break;
             case LineJoints.bevel:
-                paint.setStrokeJoin(this.ck.StrokeJoin.Bevel);
+                paint.setStrokeJoin(CanvasKit.StrokeJoin.Bevel);
                 break;
         }
 
@@ -326,7 +324,7 @@ export class SkiaRenderer {
                 if (this.fill_flag_) {
                     const paint = this.setFillStyle(this.fill_style_);
                     if (paint) {
-                        paint.setStyle(this.ck.PaintStyle.Fill);
+                        paint.setStyle(CanvasKit.PaintStyle.Fill);
                         this.canvas.drawPath(this.path, paint);
                     }
                 }
@@ -334,7 +332,7 @@ export class SkiaRenderer {
                 if (this.stroke_flag_) {
                     const paint = this.setStrokeStyle(this.stroke_style_);
                     if (paint) {
-                        paint.setStyle(this.ck.PaintStyle.Stroke);
+                        paint.setStyle(CanvasKit.PaintStyle.Stroke);
                         this.canvas.drawPath(this.path, paint);
                     }
                 }

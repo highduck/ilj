@@ -99,6 +99,7 @@ export class Atlas implements Disposable {
             if (page.spot !== undefined) {
                 const rc = page.spot;
                 texture.spot = new Rect(rc[0], rc[1], rc[2], rc[3]);
+                texture.spot.set(texture.spot.centerX, texture.spot.centerY, 0, 0);
             }
             if (page.mask === undefined) {
                 const atlasPagePath = pathJoin(basePath, page.img);

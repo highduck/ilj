@@ -549,7 +549,11 @@ export function pack(rects: InputRect[], options: InputOptions): PackResult {
 
         for (const rect of left) {
             if (rect.w > 0 && rect.h > 0) {
-                const padding = Math.max(0, Math.ceil(rect.padding ?? 0));
+                const padding = rect.padding ?? 0;
+                if (!Number.isInteger(padding) || padding < 0) {
+                    console.error('rect padding should be integer > 0');
+                    throw 'bad input rect data';
+                }
                 const w = rect.w + (padding << 1);
                 const h = rect.h + (padding << 1);
                 if (w <= maxW && h <= maxH) {

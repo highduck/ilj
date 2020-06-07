@@ -1,12 +1,12 @@
 import path from 'path';
 import fs from 'fs';
-import {DefinePlugin} from "webpack";
+import {Configuration, DefinePlugin, Plugin} from "webpack";
 import {BundleAnalyzerPlugin} from "webpack-bundle-analyzer";
 import getPackagePath from "../common/getPackagePath";
 import console from '../common/log';
 import CopyWebpackPlugin from "copy-webpack-plugin";
 import ForkTsCheckerWebpackPlugin from 'fork-ts-checker-webpack-plugin';
-import {ProjectConfig} from "../proj/loadConfig";
+import {BuildMode, NProjectTarget} from "../proj/NProject";
 
 // common
 
@@ -20,7 +20,7 @@ function createTsLoaderConfig(basedir: string, live: boolean) {
         console.error(`tsconfig.json not found`);
         console.info(`in path ${tsConfigPath}`);
     }
-    return {
+    const config = {
         loader: require.resolve('ts-loader'),
         options: {
             transpileOnly: false,
@@ -28,16 +28,18 @@ function createTsLoaderConfig(basedir: string, live: boolean) {
             configFile: path.resolve(basedir, 'tsconfig.json')
         }
     };
+    console.debug(config);
+    return config;
 }
 
-export function createWebpackConfig(projectConfig: ProjectConfig, mode?: string, analyzer: boolean = false, live: boolean = false): any {
-    const baseDir = projectConfig.basedir;
+export function createWebpackConfig(projectConfig: NProjectTarget, mode?: BuildMode, analyzer: boolean = false, live: boolean = false): Configuration {
+    const baseDir = projectConfig.root;
     const platform = projectConfig.platform;
     const targetName = projectConfig.name;
     if (!mode) {
         mode = 'production';
     }
-    createWebpackConfig2(targetName, projectConfig.appdir, baseDir, platform, mode, analyzer, live);
+    return createWebpackConfig2(targetName, projectConfig.appdir, baseDir, platform, mode, analyzer, live);
 }
 
 export function createDevServerConfig(baseDir: string) {
@@ -59,20 +61,23 @@ export function createDevServerConfig(baseDir: string) {
     };
 }
 
+function castToPlugin(a:any):Plugin {
+    return a as Plugin;
+}
 
 export function createWebpackConfig2(
     target: string,
     wwwdir: string,
     basedir: string,
     platform: string,
-    mode: string,
+    mode: BuildMode,
     analyzer: boolean,
     live: boolean
-): any {
+): Configuration {
     const getPath = (...segments: string[]) => path.resolve(basedir, ...segments);
 
     const isDevelopment = mode !== 'production';
-    const config = {
+    const config: Configuration = {
         stats: 'minimal',
         mode: mode,
         entry: getPath("./src/index.ts"),
@@ -109,11 +114,11 @@ export function createWebpackConfig2(
             ]
         },
         plugins: [
-            new CopyWebpackPlugin(({
+            castToPlugin(new CopyWebpackPlugin({
                 patterns: [{
                     from: getPath("./public")
                 }]
-            } as any) as undefined),
+            })),
             new DefinePlugin({
                 'process.env.PRODUCTION': JSON.stringify(!isDevelopment),
                 'process.env.PLATFORM': JSON.stringify(platform),
@@ -122,16 +127,16 @@ export function createWebpackConfig2(
             new ForkTsCheckerWebpackPlugin({
                 tsconfig: getPath('tsconfig.json'),
                 typescript: require.resolve('typescript'),
-            }),
+            })
         ]
     };
 
-    if (live) {
-        config.resolve.alias["@highduck/core"] = getTsModuleSrc('@highduck/core', basedir);
-        config.resolve.alias["@highduck/anijson"] = getTsModuleSrc('@highduck/anijson', basedir);
-        config.resolve.alias["@highduck/math"] = getTsModuleSrc('@highduck/math', basedir);
-        config.resolve.alias["@highduck/live-inspector"] = getTsModuleSrc('@highduck/live-inspector', basedir);
-    }
+    // if (live) {
+        config.resolve!.alias!["@highduck/core"] = getTsModuleSrc('@highduck/core', basedir);
+        config.resolve!.alias!["@highduck/anijson"] = getTsModuleSrc('@highduck/anijson', basedir);
+        config.resolve!.alias!["@highduck/math"] = getTsModuleSrc('@highduck/math', basedir);
+        config.resolve!.alias!["@highduck/live-inspector"] = getTsModuleSrc('@highduck/live-inspector', basedir);
+    // }
 
     if (isDevelopment) {
         (config as any).devtool = 'inline-source-map';
@@ -141,9 +146,9 @@ export function createWebpackConfig2(
     }
 
     if (analyzer) {
-        config.plugins.push(new BundleAnalyzerPlugin({
+        config.plugins!.push(castToPlugin(new BundleAnalyzerPlugin({
             analyzerMode: 'static'
-        }));
+        })));
         (config.optimization as any).concatenateModules = false;
     }
 
@@ -152,6 +157,8 @@ export function createWebpackConfig2(
             '@capacitor/core': '{Capacitor: Capacitor, Plugins: Capacitor.Plugins}'
         });
     }
+
+    // console.debug(config);
 
     return config;
 }

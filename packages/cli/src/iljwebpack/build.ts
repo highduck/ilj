@@ -7,10 +7,10 @@ import WebpackDevServer from "webpack-dev-server";
 import * as ip from "internal-ip";
 import {syncPlatformProject} from "../platforms/syncPlatformProject";
 import lconsole from "../common/log";
-import {ProjectConfig} from "../proj/loadConfig";
+import {BuildMode, NProjectTarget} from "../proj/NProject";
 
-export async function build(projectConfig: ProjectConfig, mode: string, analyzer: boolean = false, live: boolean = false) {
-    const baseDir = projectConfig.basedir;
+export async function build(projectConfig: NProjectTarget, mode: BuildMode, analyzer: boolean = false, live: boolean = false) {
+    const baseDir = projectConfig.root;
     const config = createWebpackConfig(projectConfig, mode, analyzer, live);
     return new Promise((resolve, reject) => {
         const compiler = webpack(config as webpack.Configuration);
@@ -35,7 +35,7 @@ export async function build(projectConfig: ProjectConfig, mode: string, analyzer
                 }
 
                 if (!err && !stats.hasErrors()) {
-                    syncPlatformProject(projectConfig.platform, projectConfig.approot);
+                    syncPlatformProject(projectConfig.platform, projectConfig.root);
                 }
             });
         }
