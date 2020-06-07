@@ -30,8 +30,7 @@ const args = yargs
             const target = NProjectTarget.load(process.cwd());
             console.debug(target);
             if(target) {
-                // clean target output folder
-                deleteFolderRecursive(target.appdir);
+                target.deleteWWW();
                 await build(
                     target,
                     args.mode as BuildMode,

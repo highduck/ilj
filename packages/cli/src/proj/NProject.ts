@@ -21,30 +21,27 @@ export interface NProjectConfigDto {
 export interface NTargetConfigDto {
     name?: string; // override name
     platform?: PlatformType;
-    www?: string; // by default './www'
-    root?: string; //  by default '{basedir}/{target.name}/'
+    pathToTarget?: string; //  by default '{basedir}/{target.name}/'
     main?: string; // main module package name
 }
 
 export class NProjectTarget {
 
     platform: PlatformType;
-    www: string;
 
     // base dir for target package
-    root: string;
+    targetPath: string;
 
+    mainPath: string;
     mainModule?: string;
 
-    get appdir(): string {
-        return path.join(this.root, this.www);
-    }
+    _pathToTarget?: string;
 
     constructor(readonly name: string, config?: NTargetConfigDto) {
         this.platform = config?.platform ?? 'web';
-        this.www = config?.www ?? 'www';
-        this.root = config?.root ?? '.';
+        this.mainPath = this.targetPath = '.';
         this.mainModule = config?.main;
+        this._pathToTarget = config?.pathToTarget;
     }
 
     static load(basedir: string): NProjectTarget | undefined {
@@ -55,16 +52,22 @@ export class NProjectTarget {
         }
         let name = config?.name ?? autoResolveName(basedir, 'test');
         const target = new NProjectTarget(name, config);
-        target.root = basedir;
+        target.targetPath = path.resolve(basedir, target._pathToTarget ?? '.');
+        target.mainPath = target.targetPath;
         if (target.mainModule) {
-            target.root = fs.realpathSync(getPackagePath(target.mainModule, basedir));
-            if (!fs.existsSync(target.root)) {
+            console.info("main package: " + target.mainModule);
+            target.mainPath = fs.realpathSync(getPackagePath(target.mainModule, basedir));
+            if (!fs.existsSync(target.mainPath)) {
                 console.error(`Main package ${target.mainModule} not found`);
-                console.info(`not exists: ${target.root}`);
+                console.info(`not exists: ${target.mainPath}`);
                 return undefined;
             }
         }
         return target;
+    }
+
+    deleteWWW() {
+        deleteFolderRecursive(path.join(this.targetPath, 'www'));
     }
 }
 
@@ -93,8 +96,8 @@ export class NProject {
         const targetsObj = config?.targets ?? {};
         for (const t of Object.keys(targetsObj)) {
             const target = new NProjectTarget(t, targetsObj[t]);
-            target.root = path.resolve(basedir, target.root);
-            target.www = path.resolve(target.root, target.www);
+            target.targetPath = path.resolve(basedir, target._pathToTarget ?? '.');
+            target.mainPath = basedir;
             this.targets.set(t, target);
         }
     }
@@ -111,7 +114,7 @@ export class NProject {
         }
 
         // clean web content output
-        deleteFolderRecursive(target.www);
+        target.deleteWWW();
 
         const compiler = this.createCompiler(target, mode, analyze, live);
         await this.compile(compiler, target, live);
@@ -140,8 +143,8 @@ export class NProject {
     createCompiler(target: NProjectTarget, mode: BuildMode, analyzer: boolean = false, live: boolean = false): webpack.Compiler {
         const config = createWebpackConfig2(
             target.name,
-            target.www,
-            this.basedir,
+            target.targetPath,
+            target.mainPath,
             target.platform,
             mode,
             analyzer,
@@ -173,7 +176,7 @@ export class NProject {
                     }
 
                     if (!err && !stats.hasErrors()) {
-                        syncPlatformProject(target.platform, target.root);
+                        syncPlatformProject(target.platform, target.targetPath);
                     }
                 });
             }

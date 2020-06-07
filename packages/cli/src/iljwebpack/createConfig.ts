@@ -33,13 +33,12 @@ function createTsLoaderConfig(basedir: string, live: boolean) {
 }
 
 export function createWebpackConfig(projectConfig: NProjectTarget, mode?: BuildMode, analyzer: boolean = false, live: boolean = false): Configuration {
-    const baseDir = projectConfig.root;
     const platform = projectConfig.platform;
     const targetName = projectConfig.name;
     if (!mode) {
         mode = 'production';
     }
-    return createWebpackConfig2(targetName, projectConfig.appdir, baseDir, platform, mode, analyzer, live);
+    return createWebpackConfig2(targetName, projectConfig.targetPath, projectConfig.mainPath, platform, mode, analyzer, live);
 }
 
 export function createDevServerConfig(baseDir: string) {
@@ -61,28 +60,28 @@ export function createDevServerConfig(baseDir: string) {
     };
 }
 
-function castToPlugin(a:any):Plugin {
+function castToPlugin(a: any): Plugin {
     return a as Plugin;
 }
 
 export function createWebpackConfig2(
     target: string,
-    wwwdir: string,
-    basedir: string,
+    targetPath: string,
+    mainPath: string,
     platform: string,
     mode: BuildMode,
     analyzer: boolean,
     live: boolean
 ): Configuration {
-    const getPath = (...segments: string[]) => path.resolve(basedir, ...segments);
+    const getMainPath = (...segments: string[]) => path.resolve(mainPath, ...segments);
 
     const isDevelopment = mode !== 'production';
     const config: Configuration = {
         stats: 'minimal',
         mode: mode,
-        entry: getPath("./src/index.ts"),
+        entry: getMainPath("./src/index.ts"),
         output: {
-            path: wwwdir,
+            path: path.join(targetPath, 'www'),
             filename: "bundle.js"
         },
         optimization: {},
@@ -94,14 +93,14 @@ export function createWebpackConfig2(
             plugins: [],
             extensions: [".ts", ".tsx", ".js", ".jsx", ".glsl", ".css"],
             alias: {
-                "@AppConfig": getPath('src/AppConfig')
+                "@AppConfig": getMainPath('src/AppConfig')
             } as any
         },
         module: {
             rules: [
                 {
                     test: /\.tsx?$/,
-                    use: [createTsLoaderConfig(basedir, live)]
+                    use: [createTsLoaderConfig(mainPath, live)]
                 },
                 {
                     test: /\.glsl$/,
@@ -116,7 +115,7 @@ export function createWebpackConfig2(
         plugins: [
             castToPlugin(new CopyWebpackPlugin({
                 patterns: [{
-                    from: getPath("./public")
+                    from: getMainPath("./public")
                 }]
             })),
             new DefinePlugin({
@@ -125,17 +124,17 @@ export function createWebpackConfig2(
                 'process.env.TARGET': JSON.stringify(target),
             }),
             new ForkTsCheckerWebpackPlugin({
-                tsconfig: getPath('tsconfig.json'),
+                tsconfig: getMainPath('tsconfig.json'),
                 typescript: require.resolve('typescript'),
             })
         ]
     };
 
     // if (live) {
-        config.resolve!.alias!["@highduck/core"] = getTsModuleSrc('@highduck/core', basedir);
-        config.resolve!.alias!["@highduck/anijson"] = getTsModuleSrc('@highduck/anijson', basedir);
-        config.resolve!.alias!["@highduck/math"] = getTsModuleSrc('@highduck/math', basedir);
-        config.resolve!.alias!["@highduck/live-inspector"] = getTsModuleSrc('@highduck/live-inspector', basedir);
+    config.resolve!.alias!["@highduck/core"] = getTsModuleSrc('@highduck/core', mainPath);
+    config.resolve!.alias!["@highduck/anijson"] = getTsModuleSrc('@highduck/anijson', mainPath);
+    config.resolve!.alias!["@highduck/math"] = getTsModuleSrc('@highduck/math', mainPath);
+    config.resolve!.alias!["@highduck/live-inspector"] = getTsModuleSrc('@highduck/live-inspector', mainPath);
     // }
 
     if (isDevelopment) {
