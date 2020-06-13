@@ -1,24 +1,15 @@
 {
   "compilerOptions": {
-    "target": "es5",
     "module": "esnext",
+    "target": "esnext",
     "moduleResolution": "node",
     "sourceMap": true,
     "strict": true,
     "declaration": true,
-    "declarationDir": "dist/types",
-    "allowSyntheticDefaultImports": true,
-    "downlevelIteration": true,
+    "outDir": "dist",
     "noEmitOnError": true,
-    "lib": [
-      "dom",
-      "scripthost",
-      "es5",
-      "es2019",
-      "es2015.promise",
-      "es2015.collection",
-      "es2015.iterable"
-    ]
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true
   },
   "exclude": [
     "**/node_modules",

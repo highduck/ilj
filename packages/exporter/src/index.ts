@@ -4,7 +4,7 @@ import path from "path";
 import {BundleDef} from "./export/BundleDef";
 import {BundleItem, BundleItemType} from "@highduck/anijson";
 import {EAtlas} from "./spritepack/EAtlas";
-import * as glob from "glob";
+import glob from "glob";
 import {copySound} from "./sounds/copySound";
 import {createAtlas, exportFlashAsset} from "./export/Export";
 

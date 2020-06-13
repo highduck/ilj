@@ -2,14 +2,17 @@
   "extends": "./tsconfig.base.json",
   "compilerOptions": {
     "composite": true,
-    "module": "commonjs",
-    "outDir": "dist/commonjs",
-    "rootDir": "./src",
-    "esModuleInterop": true
+    "rootDir": "./src"
   },
   "references": [
     {
-      "path": "../exporter/tsconfig.commonjs.json"
+      "path": "../exporter/tsconfig.esm.json"
+    },
+    {
+      "path": "../../tools/build-code/tsconfig.json"
+    },
+    {
+      "path": "../../tools/export-android/tsconfig.json"
     }
   ],
   "files": [

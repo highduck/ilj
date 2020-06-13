@@ -2,23 +2,20 @@
   "extends": "./tsconfig.base.json",
   "compilerOptions": {
     "composite": true,
-    "module": "commonjs",
-    "outDir": "dist/commonjs",
     "rootDir": "./src",
-    "esModuleInterop": true
   },
   "references": [
     {
-      "path": "../math/tsconfig.commonjs.json"
+      "path": "../math/tsconfig.esm.json"
     },
     {
-      "path": "../anijson/tsconfig.commonjs.json"
+      "path": "../anijson/tsconfig.esm.json"
     },
     {
-      "path": "../binpack/tsconfig.commonjs.json"
+      "path": "../binpack/tsconfig.esm.json"
     },
     {
-      "path": "../xfl/tsconfig.commonjs.json"
+      "path": "../xfl/tsconfig.esm.json"
     }
   ],
   "include": [

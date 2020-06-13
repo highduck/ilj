@@ -1,0 +1,29 @@
+{
+  "name": "@highduck/export-android",
+  "version": "0.0.1",
+  "bin": {
+    "ilj-export-android": "./export-android.js"
+  },
+  "scripts": {
+    "ci": "run build",
+    "build": "tsc -b --force",
+    "watch": "tsc -b -w --force",
+    "clean": "rimraf ./dist/"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.js",
+  "type": "module",
+  "dependencies": {
+    "@capacitor/android": "^2.2.0",
+    "@capacitor/cli": "^2.2.0",
+    "@capacitor/core": "^2.2.0",
+    "@capacitor/ios": "^2.2.0",
+    "rimraf": "^3.0.2"
+  },
+  "devDependencies": {
+    "@types/node": "^14.0.13",
+    "@types/resolve": "^1.17.1",
+    "@types/rimraf": "^3.0.0",
+    "typescript": "^3.9.5"
+  }
+}

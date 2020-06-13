@@ -1,14 +1,31 @@
-import path from 'path';
-import fs from 'fs';
-import {Configuration, DefinePlugin, Plugin} from "webpack";
-import {BundleAnalyzerPlugin} from "webpack-bundle-analyzer";
-import getPackagePath from "../common/getPackagePath";
-import console from '../common/log';
+import webpack from "webpack";
+import WebpackBundleAnalyzer from "webpack-bundle-analyzer";
 import CopyWebpackPlugin from "copy-webpack-plugin";
 import ForkTsCheckerWebpackPlugin from 'fork-ts-checker-webpack-plugin';
+
+import resolve from 'resolve';
+import fs from 'fs';
+import path from 'path';
+
+import getPackagePath from "../common/getPackagePath";
+import console from '../common/log';
 import {BuildMode, NProjectTarget} from "../proj/NProject";
 
+const {BundleAnalyzerPlugin} = WebpackBundleAnalyzer;
+
+type Configuration = webpack.Configuration;
+const {DefinePlugin} = webpack;
+type Plugin = webpack.Plugin;
+
 // common
+
+function reqRes(id: string) {
+    // TODO: think we need resolve relates to this library
+    return resolve.sync(id);
+    // const r= path.dirname(path.resolve(id, 'package.json'));
+    // console.info(r);
+    // return r;
+}
 
 function getTsModuleSrc(id: string, from: string): string {
     return path.join(getPackagePath(id, from), "src/index.ts");
@@ -21,7 +38,7 @@ function createTsLoaderConfig(basedir: string, live: boolean) {
         console.info(`in path ${tsConfigPath}`);
     }
     const config = {
-        loader: require.resolve('ts-loader'),
+        loader: reqRes('ts-loader'),
         options: {
             transpileOnly: false,
             experimentalWatchApi: false,
@@ -104,11 +121,11 @@ export function createWebpackConfig2(
                 },
                 {
                     test: /\.glsl$/,
-                    loader: require.resolve('webpack-glsl-loader')
+                    loader: reqRes('webpack-glsl-loader')
                 },
                 {
                     test: /\.css$/i,
-                    use: [require.resolve('style-loader'), require.resolve('css-loader')]
+                    use: [reqRes('style-loader'), reqRes('css-loader')]
                 },
             ]
         },
@@ -125,7 +142,7 @@ export function createWebpackConfig2(
             }),
             new ForkTsCheckerWebpackPlugin({
                 tsconfig: getMainPath('tsconfig.json'),
-                typescript: require.resolve('typescript'),
+                typescript: reqRes('typescript'),
             })
         ]
     };

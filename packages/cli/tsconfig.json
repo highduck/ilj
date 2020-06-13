@@ -3,14 +3,14 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "@highduck/math": [
-        "../math/src/index.ts"
+      "@highduck/tools-build-code": [
+        "../../tools/build-code/src/index.ts"
       ],
-      "@highduck/xfl": [
-        "../xfl/src/index.ts"
+      "@highduck/export-android": [
+        "../../tools/export-android/src/index.ts"
       ],
-      "@highduck/anijson": [
-        "../anijson/src/index.ts"
+      "@highduck/exporter": [
+        "../exporter/src/index.ts"
       ]
     }
   }

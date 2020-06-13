@@ -1,15 +1,15 @@
 {
   "name": "@highduck/live-inspector",
   "version": "0.0.1",
-  "main": "dist/esm/index.js",
-  "module": "dist/esm/index.js",
-  "types": "dist/types/index.d.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "type": "module",
   "scripts": {
     "ci": "run build",
     "build": "tsc -b tsconfig.esm.json && run resources",
     "watch": "tsc -b tsconfig.esm.json -w",
     "clean": "rimraf dist/",
-    "resources": "cp src/dev.css dist/esm"
+    "resources": "cp src/dev.css dist"
   },
   "devDependencies": {
     "@types/jquery": "^3.3.38",

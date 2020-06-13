@@ -3,6 +3,7 @@ ext {
     androidxJunitVersion =  project.hasProperty('androidxJunitVersion') ? rootProject.ext.androidxJunitVersion : '1.1.1'
     androidxEspressoCoreVersion =  project.hasProperty('androidxEspressoCoreVersion') ? rootProject.ext.androidxEspressoCoreVersion : '3.2.0'
     androidxAppCompatVersion =  project.hasProperty('androidxAppCompatVersion') ? rootProject.ext.androidxAppCompatVersion : '1.2.0-beta01'
+    firebaseBoMVersion =  project.hasProperty('firebaseBoMVersion') ? rootProject.ext.firebaseBoMVersion : '25.4.1'
 }
 
 buildscript {
@@ -11,7 +12,7 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.6.1'
+        classpath 'com.android.tools.build:gradle:4.0.0'
     }
 }
 
@@ -35,6 +36,10 @@ android {
     lintOptions {
         abortOnError false
     }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
 }
 
 repositories {
@@ -50,9 +55,11 @@ dependencies {
     androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
     androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
 
-    // plugin dependencies
     implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion"
-    implementation 'com.google.firebase:firebase-analytics:17.3.0'
-    implementation 'com.google.firebase:firebase-crashlytics:17.0.0-beta03'
-    implementation 'com.google.firebase:firebase-perf:19.0.5'
+
+    // plugin dependencies
+    implementation platform("com.google.firebase:firebase-bom:$firebaseBoMVersion")
+    implementation 'com.google.firebase:firebase-analytics'
+    implementation 'com.google.firebase:firebase-crashlytics'
+    implementation 'com.google.firebase:firebase-perf'
 }

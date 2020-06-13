@@ -1,19 +1,20 @@
 {
   "name": "@highduck/xfl",
   "version": "0.0.1",
-  "main": "dist/commonjs/index.js",
-  "types": "dist/types/index.d.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "type": "module",
   "scripts": {
-    "ci": "run test",
-    "build": "tsc -b tsconfig.commonjs.json",
-    "watch": "tsc -b tsconfig.commonjs.json -w",
+    "ci": "run build && run test",
+    "build": "tsc -b tsconfig.esm.json --force",
+    "watch": "tsc -b tsconfig.esm.json -w",
     "clean": "rimraf dist/",
-    "test": "run clean && run build && node dist/commonjs/runTest.js"
+    "test": "node --es-module-specifier-resolution=node dist/runTest.js"
   },
   "dependencies": {
-    "@eliasku/zipfile": "1.0.0-beta.1",
+    "@eliasku/zipfile": "1.0.0-beta.3",
     "@highduck/math": "0.0.1",
-    "fast-xml-parser": "^3.17.3",
+    "fast-xml-parser": "^3.17.4",
     "he": "^1.2.0",
     "jpeg-js": "^0.4.0",
     "pako": "^1.0.11"
@@ -21,7 +22,7 @@
   "devDependencies": {
     "@types/he": "^1.1.1",
     "@types/jpeg-js": "^0.3.7",
-    "@types/node": "^14.0.11",
+    "@types/node": "^14.0.13",
     "@types/pako": "^1.0.1",
     "rimraf": "^3.0.2",
     "typescript": "^3.9.5"

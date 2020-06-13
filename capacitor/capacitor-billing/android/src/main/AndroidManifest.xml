@@ -1,3 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
           package="highduck.capacitor.billing">
+
+    <uses-permission android:name="com.android.vending.BILLING" />
 </manifest>

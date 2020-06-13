@@ -1,6 +1,5 @@
 import path from 'path';
-
-const fxp = require('fast-xml-parser');
+import fxp from 'fast-xml-parser';
 
 export class Entry {
 

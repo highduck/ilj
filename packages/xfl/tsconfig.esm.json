@@ -2,13 +2,15 @@
   "extends": "./tsconfig.base.json",
   "compilerOptions": {
     "composite": true,
-    "module": "commonjs",
-    "outDir": "dist/commonjs",
     "rootDir": "./src"
   },
-  "references": [],
+  "references": [
+    {
+      "path": "../math/tsconfig.esm.json"
+    }
+  ],
   "include": [
-    "src/*.ts"
+    "src/**/*.ts"
   ],
   "exclude": [
     "**/node_modules",

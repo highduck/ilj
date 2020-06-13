@@ -2,16 +2,18 @@
   "extends": "./tsconfig.base.json",
   "compilerOptions": {
     "composite": true,
-    "module": "commonjs",
-    "outDir": "dist/commonjs",
     "rootDir": "./src"
   },
-  "references": [],
-  "include": [
-    "./src/**/*.ts"
+  "references": [
+    {
+      "path": "../tsconfig.json"
+    }
   ],
   "files": [
-    "./src/index.ts"
+    "src/index.ts"
+  ],
+  "include": [
+    "src/**/*.ts"
   ],
   "exclude": [
     "**/node_modules",

@@ -2,9 +2,9 @@ import {registerWebPlugin, WebPlugin} from '@capacitor/core';
 import {FirebaseProtocol, LogEventParams, ScreenParams, UserIDParams, UserPropParams} from './definitions';
 import appConfig from '@AppConfig';
 
-import * as firebase from 'firebase/app';
+import firebase from 'firebase/app';
 import 'firebase/analytics';
-import 'firebase/performance';
+// import 'firebase/performance';
 
 class FirebasePluginWeb extends WebPlugin implements FirebaseProtocol {
 
@@ -19,7 +19,7 @@ class FirebasePluginWeb extends WebPlugin implements FirebaseProtocol {
 
         firebase.initializeApp(firebaseConfig);
         firebase.analytics();
-        firebase.performance();
+        // firebase.performance();
     }
 
     async disable(): Promise<void> {

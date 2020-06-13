@@ -1,7 +1,7 @@
 import {spawnSync} from "child_process";
 import fs from "fs";
 import path from "path";
-import * as glob from "glob";
+import glob from "glob";
 import console from "./log";
 
 export function replace_all(str: string, search: string, replacement: string): string {

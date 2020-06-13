@@ -2,22 +2,25 @@
   "name": "@highduck/cli",
   "version": "0.0.1",
   "bin": {
-    "ilj": "./ilj.js"
+    "ilj": "ilj.js"
   },
   "scripts": {
-    "ci": "run build && ilj",
-    "build": "tsc -b tsconfig.commonjs.json --verbose",
-    "watch": "tsc -b tsconfig.commonjs.json -w --verbose",
+    "ci": "run build && ilj --help",
+    "build": "tsc -b tsconfig.esm.json --verbose",
+    "watch": "tsc -b tsconfig.esm.json --watch --force --verbose",
     "clean": "rimraf dist/"
   },
-  "main": "./dist/commonjs/index.js",
-  "types": "./dist/types/index.d.js",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.js",
+  "type": "module",
   "dependencies": {
-    "@capacitor/cli": "^2.1.2",
+    "@capacitor/cli": "^2.2.0",
     "@highduck/anijson": "0.0.1",
+    "@highduck/export-android": "^0.0.1",
     "@highduck/exporter": "0.0.1",
+    "@highduck/tools-build-code": "^0.0.1",
     "app-icon": "^0.13.2",
-    "chalk": "^4.0.0",
+    "chalk": "^4.1.0",
     "copy-webpack-plugin": "^6.0.2",
     "css-loader": "^3.5.3",
     "fork-ts-checker-webpack-plugin": "^4.1.6",
@@ -36,8 +39,8 @@
   },
   "devDependencies": {
     "@types/copy-webpack-plugin": "^6.0.0",
-    "@types/node": "^14.0.11",
-    "@types/pngquant-bin": "^4.0.0",
+    "@types/glob": "^7.1.2",
+    "@types/node": "^14.0.13",
     "@types/resolve": "^1.17.1",
     "@types/webpack": "^4.41.17",
     "@types/webpack-bundle-analyzer": "^3.8.0",

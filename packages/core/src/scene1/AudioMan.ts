@@ -1,6 +1,6 @@
 import {Engine} from "../Engine";
-import {Howl, Howler} from "howler";
 import {ObservableValue} from "../util/ObservableValue";
+import {Howl, Howler as HowlerStatic} from 'howler';
 
 export class AudioMan {
 
@@ -16,8 +16,8 @@ export class AudioMan {
     private _muteLockers: number = 0;
 
     constructor(readonly engine: Engine) {
-        Howler.autoSuspend = false;
-        Howler.autoUnlock = true;
+        HowlerStatic.autoSuspend = false;
+        HowlerStatic.autoUnlock = true;
 
         this.soundEnabled.changed.on((enabled) =>
             localStorage.setItem("sound", enabled ? "1" : "0")
@@ -91,6 +91,6 @@ export class AudioMan {
     }
 
     private updateMute() {
-        Howler.mute(this._muteLockers > 0 || this._muteGlobal);
+        HowlerStatic.mute(this._muteLockers > 0 || this._muteGlobal);
     }
 }

@@ -1,4 +1,12 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
           package="highduck.capacitor.admob">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <application>
+        <!-- AdMob -->
+        <meta-data
+                android:name="com.google.android.gms.ads.APPLICATION_ID"
+                android:value="@string/admod_app_id" />
+    </application>
 </manifest>
   

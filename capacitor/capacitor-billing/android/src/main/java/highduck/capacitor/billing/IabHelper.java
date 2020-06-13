@@ -654,11 +654,7 @@ public class IabHelper {
             final IabResult result_f = result;
             final Inventory inv_f = inv;
             if (!mDisposed && listener != null) {
-                handler.post(new Runnable() {
-                    public void run() {
-                        listener.onQueryInventoryFinished(result_f, inv_f);
-                    }
-                });
+                handler.post(() -> listener.onQueryInventoryFinished(result_f, inv_f));
             }
         })).start();
     }
@@ -976,7 +972,6 @@ public class IabHelper {
         return BILLING_RESPONSE_RESULT_OK;
     }
 
-
     void consumeAsyncInternal(final List<Purchase> purchases,
                               final OnConsumeFinishedListener singleListener,
                               final OnConsumeMultiFinishedListener multiListener) {
@@ -995,18 +990,10 @@ public class IabHelper {
 
             flagEndAsync();
             if (!mDisposed && singleListener != null) {
-                handler.post(new Runnable() {
-                    public void run() {
-                        singleListener.onConsumeFinished(purchases.get(0), results.get(0));
-                    }
-                });
+                handler.post(() -> singleListener.onConsumeFinished(purchases.get(0), results.get(0)));
             }
             if (!mDisposed && multiListener != null) {
-                handler.post(new Runnable() {
-                    public void run() {
-                        multiListener.onConsumeMultiFinished(purchases, results);
-                    }
-                });
+                handler.post(() -> multiListener.onConsumeMultiFinished(purchases, results));
             }
         })).start();
     }

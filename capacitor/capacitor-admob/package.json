@@ -2,19 +2,14 @@
   "name": "@highduck/capacitor-admob",
   "version": "0.0.1",
   "description": "AdMob plugin for capacitor",
-  "main": "dist/plugin.js",
-  "module": "dist/esm/index.js",
-  "types": "dist/esm/index.d.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "type": "module",
   "scripts": {
     "ci": "run build",
-    "js:clean": "rimraf ./dist",
-    "js:transpile": "tsc --module ES2015 --target ES5 --outDir dist/esm",
-    "build": "run js:clean && run js:transpile",
-    "clean": "run js:clean && run android:clean && run ios:clean",
-    "watch": "tsc --watch",
-    "prepublishOnly": "run js:build",
-    "rollup": "rollup --config rollup.config.js",
-    "check": "run clean && run android:release && run ios:install && run ios:build",
+    "clean": "rimraf ./dist/ ./android/.gradle/ ./android/.idea/ ./android/build/",
+    "build": "tsc",
+    "check": "run clean && run android && run ios",
     "ios:clean": "cd ios && xcodebuild clean -workspace Plugin.xcworkspace -scheme Plugin",
     "ios:install": "cd ios && pod install --repo-update",
     "ios:build": "cd ios && xcodebuild build -workspace Plugin.xcworkspace -scheme Plugin -destination 'platform=iOS Simulator,name=iPhone 11 Pro Max,OS=13.2.2'",
@@ -26,14 +21,12 @@
   "author": "eliasku",
   "license": "MIT",
   "dependencies": {
-    "@capacitor/core": "^2.1.2"
+    "@capacitor/core": "^2.2.0"
   },
   "devDependencies": {
-    "@capacitor/android": "^2.1.2",
-    "@capacitor/ios": "^2.1.2",
+    "@capacitor/android": "^2.2.0",
+    "@capacitor/ios": "^2.2.0",
     "rimraf": "^3.0.2",
-    "rollup": "^2.14.0",
-    "rollup-plugin-node-resolve": "^5.2.0",
     "typescript": "^3.9.5"
   },
   "files": [

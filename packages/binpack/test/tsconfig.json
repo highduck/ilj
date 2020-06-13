@@ -1,26 +1,20 @@
 {
   "compilerOptions": {
-    "lib": [
-      "ES2019",
-      "DOM"
-    ],
-    "module": "commonjs",
-    "target": "es5",
+    "module": "esnext",
+    "target": "esnext",
     "moduleResolution": "node",
     "sourceMap": true,
     "strict": true,
     "declaration": true,
-    "outDir": "./dist/commonjs",
+    "outDir": "./dist",
     "noEmitOnError": true,
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
-    "experimentalDecorators": true,
-    "downlevelIteration": true,
     "composite": true
   },
   "references": [
     {
-      "path": "../tsconfig.commonjs.json"
+      "path": "../tsconfig.esm.json"
     }
   ],
   "files": [

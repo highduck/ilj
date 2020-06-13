@@ -1,24 +1,18 @@
 {
   "compilerOptions": {
-    "allowSyntheticDefaultImports": true,
-    "declaration": true,
-    "experimentalDecorators": true,
-    "lib": [
-      "dom",
-      "es2015"
-    ],
-    "module": "es2015",
+    "outDir": "dist",
+    "module": "esnext",
+    "target": "esnext",
     "moduleResolution": "node",
+    "declaration": true,
+    "allowSyntheticDefaultImports": true,
     "noImplicitAny": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "incremental": true,
-    "outDir": "dist/esm",
     "sourceMap": true,
-    "target": "es2015",
     "baseUrl": "./",
     "paths": {
-      "@AppConfig": ["src/config.ts"]
+      "@AppConfig": ["./src/config.ts"]
     }
   },
   "files": [

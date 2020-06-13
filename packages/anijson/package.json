@@ -1,14 +1,12 @@
 {
   "name": "@highduck/anijson",
   "version": "0.0.1",
-  "main": "dist/commonjs/index.js",
-  "module": "dist/esm/index.js",
-  "types": "dist/types/index.d.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "type": "module",
   "scripts": {
     "ci": "run build",
-    "build": "run build:esm && run build:commonjs",
-    "build:esm": "tsc -p tsconfig.esm.json",
-    "build:commonjs": "tsc -p tsconfig.commonjs.json",
+    "build": "tsc -p tsconfig.esm.json",
     "clean": "rimraf dist"
   },
   "sideEffects": false,

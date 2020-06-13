@@ -15,7 +15,7 @@
     "typescript": "^3.9.5"
   },
   "dependencies": {
-    "@capacitor/core": "^2.1.2",
+    "@capacitor/core": "^2.2.0",
     "@highduck/core": "0.0.1",
     "@highduck/math": "0.0.1",
     "@highduck/polykit": "0.0.1"

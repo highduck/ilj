@@ -27,7 +27,7 @@ async function loadItems(items: BundleItem[]) {
                 if (font.id && font.path) {
                     loaders.push(
                         DynamicFont
-                            .load(engine, font.id, font.path, font.size ?? 16, texturesScale)
+                            .load(engine, font.id, font.path, font.size !== undefined ? font.size : 16, texturesScale)
                             .then((res: DynamicFont) => {
                                 Resources.reset(DynamicFont, font.id, res);
                             })
@@ -51,7 +51,7 @@ export async function loadBundle() {
         let lazyItems: BundleItem[] = [];
         let normalItems: BundleItem[] = [];
         for (const item of bundle.items) {
-            const lazy = item.lazy ?? (item.type === BundleItemType.Audio);
+            const lazy = item.lazy !== undefined ? item.lazy : (item.type === BundleItemType.Audio);
             if (lazy) {
                 lazyItems.push(item);
             } else {

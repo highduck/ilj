@@ -1,4 +1,4 @@
-import {InputOptions, InputRect, Method, pack, PackResult} from "../src";
+import {InputOptions, InputRect, Method, pack, PackResult} from "@highduck/binpack";
 
 const names = [
     "any",
@@ -100,7 +100,8 @@ const ctx = canvas.getContext('2d', {alpha: false})!;
 
 function draw() {
     ctx.resetTransform();
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#FFF';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
     for (const page of packerOutput.pages) {
         ctx.strokeStyle = '#000';
 
@@ -110,12 +111,6 @@ function draw() {
         ctx.fillStyle = '#8B8';
         ctx.fill();
         ctx.stroke();
-
-        // ctx.beginPath();
-        // ctx.rect(0, 0, packerStats.bw, packerStats.bh);
-        // ctx.closePath();
-        // ctx.fillStyle = '#999';
-        // ctx.fill();
 
         for (const rc of page.rects) {
             if (!rc.rotated) {

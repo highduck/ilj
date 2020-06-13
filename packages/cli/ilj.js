@@ -1,9 +1,12 @@
-#! /usr/bin/env node
+#!/usr/bin/env node --experimental-specifier-resolution=node
+
+import path from 'path';
+import fs from 'fs';
+import {fileURLToPath} from 'url';
+import ts from 'typescript';
+import {spawn} from 'child_process';
 
 console.debug('🚀 ilj tools 🚀');
-
-const path = require('path');
-const fs = require('fs');
 
 const verboseEnabled = process.argv.indexOf("-v") > 0;
 const tsMode = process.argv.indexOf("--ts") > 0;
@@ -14,32 +17,35 @@ function trace(msg) {
     }
 }
 
-const compiledEntryPath = path.resolve(__dirname, 'dist/commonjs/index.js');
+function run(file) {
+    spawn('node', [
+        '--experimental-specifier-resolution=node',
+        file,
+        ...process.argv.splice(2)
+    ], {
+        cwd: process.cwd(),
+        detached: true,
+        stdio: "inherit"
+    });
+    // import(file);
+}
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const compiledEntryPath = path.resolve(__dirname, 'dist/index.js');
 
 if (fs.existsSync(compiledEntryPath) && !tsMode) {
-    trace(`running compiled js ${compiledEntryPath}`);
-    require(compiledEntryPath);
+    trace(`Run pre-compiled: ${compiledEntryPath}`);
+    run(compiledEntryPath);
 } else {
-
-    // const opts = {
-    //     project: path.resolve(__dirname, "tsconfig.commonjs.json"),
-    //     dir: __dirname
-    // };
-    // trace(`running ts-node version: ${opts.project} in ${opts.dir}`);
-    // require('ts-node').register(opts);
-    //
-    // trace("loading index.ts");
-    // require('./src/index.ts');
-    if (compile(path.resolve(__dirname, "tsconfig.commonjs.json"))) {
-        require(compiledEntryPath);
+    trace(`Build TypeScript project...`);
+    if (compile(path.resolve(__dirname, "tsconfig.esm.json"))) {
+        run(compiledEntryPath);
     } else {
         process.exit(1);
     }
 }
 
 function compile(configPath) {
-    const ts = require('typescript');
-
     function reportDiagnostics(diagnostics) {
         diagnostics.forEach(diagnostic => {
             let message = "Error";

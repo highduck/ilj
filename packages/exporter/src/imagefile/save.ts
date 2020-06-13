@@ -3,7 +3,7 @@ import fs from "fs";
 import jpeg from "jpeg-js";
 import {makeDirs} from "../env";
 import {optimizeImageFile} from "./optimize";
-import {encode} from 'fast-png';
+import fastpng from 'fast-png';
 
 type ImageData = {
     width: number,
@@ -13,7 +13,7 @@ type ImageData = {
 
 export function savePNG(filepath: string, image: ImageData, quantization: boolean = false) {
     makeDirs(path.dirname(filepath));
-    const result = encode({
+    const result = fastpng.encode({
         width: image.width,
         height: image.height,
         data: image.data,
@@ -38,7 +38,7 @@ export function saveAlphaMaskPNG(filepath: string, image: ImageData) {
         }
     }
 
-    const alphaMaskData = encode({
+    const alphaMaskData = fastpng.encode({
         width: image.width,
         height: image.height,
         data: alphaMask,

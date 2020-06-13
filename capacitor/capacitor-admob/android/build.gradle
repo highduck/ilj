@@ -3,6 +3,7 @@ ext {
     androidxJunitVersion =  project.hasProperty('androidxJunitVersion') ? rootProject.ext.androidxJunitVersion : '1.1.1'
     androidxEspressoCoreVersion =  project.hasProperty('androidxEspressoCoreVersion') ? rootProject.ext.androidxEspressoCoreVersion : '3.2.0'
     androidxAppCompatVersion =  project.hasProperty('androidxAppCompatVersion') ? rootProject.ext.androidxAppCompatVersion : '1.2.0-beta01'
+    firebaseBoMVersion =  project.hasProperty('firebaseBoMVersion') ? rootProject.ext.firebaseBoMVersion : '25.4.1'
 }
 
 buildscript {
@@ -11,7 +12,7 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.6.2'
+        classpath 'com.android.tools.build:gradle:4.0.0'
     }
 }
 
@@ -55,8 +56,8 @@ dependencies {
     androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
 
     // plugin dependencies
-    //implementation 'com.google.android.gms:play-services-ads:18.3.0'
-    implementation 'com.google.firebase:firebase-ads:19.0.1'
+    implementation platform("com.google.firebase:firebase-bom:$firebaseBoMVersion")
+    implementation 'com.google.firebase:firebase-ads'
 
     implementation 'androidx.coordinatorlayout:coordinatorlayout:1.1.0'
     implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion"

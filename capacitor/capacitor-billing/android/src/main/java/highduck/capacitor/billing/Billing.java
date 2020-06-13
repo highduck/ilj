@@ -49,19 +49,16 @@ public class Billing extends Plugin {
     private IabHelper iabHelper = null;
     private boolean billingInitialized = false;
 
-    private static String getBase64EncodedPublicKey() {
-        return Config.getString(CONFIG_PREFIX + "play_store_key", "");
+    private String getBase64EncodedPublicKey() {
+        return bridge.getConfig().getString(CONFIG_PREFIX + "play_store_key", "");
     }
 
-    private static boolean shouldSkipPurchaseVerification() {
-        return Config.getBoolean(CONFIG_PREFIX + "skip_verification", false);
+    private boolean shouldSkipPurchaseVerification() {
+        return bridge.getConfig().getBoolean(CONFIG_PREFIX + "skip_verification", false);
     }
 
-    protected boolean initializeBillingHelper() {
-        if (iabHelper != null) {
-            Log.d(TAG, "Billing already initialized");
-            return true;
-        }
+    @Override
+    public void load() {
         Context context = this.getActivity();
         String base64EncodedPublicKey = getBase64EncodedPublicKey();
         boolean skipPurchaseVerification = shouldSkipPurchaseVerification();
@@ -69,15 +66,10 @@ public class Billing extends Plugin {
             iabHelper = new IabHelper(context, base64EncodedPublicKey);
             iabHelper.setSkipPurchaseVerification(skipPurchaseVerification);
             billingInitialized = false;
-            return true;
         }
-        Log.d(TAG, "Unable to initialize billing");
-        return false;
-    }
-
-    @Override
-    public void load() {
-        initializeBillingHelper();
+        else {
+            Log.d(TAG, "Unable to initialize billing");
+        }
     }
 
     @PluginMethod()

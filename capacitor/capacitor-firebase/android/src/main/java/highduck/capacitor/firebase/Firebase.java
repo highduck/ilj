@@ -72,12 +72,7 @@ public class Firebase extends Plugin {
         try {
             final String screenName = call.getString("name");
             final String className = call.getString("class", null);
-            getActivity().runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    analytics.setCurrentScreen(getActivity(), screenName, className);
-                }
-            });
+            getActivity().runOnUiThread(() -> analytics.setCurrentScreen(getActivity(), screenName, className));
             call.success();
         } catch (Exception e) {
             call.reject(e.getLocalizedMessage(), e);
@@ -145,11 +140,8 @@ public class Firebase extends Plugin {
     @PluginMethod()
     public void forceCrash(PluginCall call) {
         // Remove child from AdViewLayout
-        getActivity().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                throw new RuntimeException("Test Crash");
-            }
+        getActivity().runOnUiThread(() -> {
+            throw new RuntimeException("Test Crash");
         });
     }
 }

@@ -60,9 +60,15 @@ export function setLocale(base: any, data?: any) {
 const EMPTY_TOKENS: StringToken[] = [];
 
 export function getStringTokens(key: string): StringToken[] {
-    return _store.locale.get(key) ??
-        _store.variables.get(key) ??
-        EMPTY_TOKENS;
+    let r = _store.locale.get(key);
+    if(r !== undefined) {
+        return r;
+    }
+    r = _store.variables.get(key);
+    if(r !== undefined) {
+        return r;
+    }
+    return EMPTY_TOKENS;
 }
 
 export function renderString(tokens: StringToken[]): string {

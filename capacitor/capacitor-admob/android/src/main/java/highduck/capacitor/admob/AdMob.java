@@ -45,13 +45,14 @@ public class AdMob extends Plugin {
 
     @Override
     public void load() {
-        final String appId = Config.getString("plugins.AdMob.appId", "ca-app-pub-3940256099942544~3347511713");
-        final String[] testDevices = Config.getArray("plugins.AdMob.testDevices", new String[0]);
+        final Config config = bridge.getConfig();
+        final String appId = config.getString("plugins.AdMob.appId", "ca-app-pub-3940256099942544~3347511713");
+        final String[] testDevices = config.getArray("plugins.AdMob.testDevices", new String[0]);
         final Context context = this.getContext();
-        final RequestConfiguration config = new RequestConfiguration.Builder()
+        final RequestConfiguration requestConfig = new RequestConfiguration.Builder()
                 .setTestDeviceIds(Arrays.asList(testDevices))
                 .build();
-        MobileAds.setRequestConfiguration(config);
+        MobileAds.setRequestConfiguration(requestConfig);
         MobileAds.initialize(context, appId);
         mViewGroup = (ViewGroup) ((ViewGroup) ((Activity) getActivity()).findViewById(android.R.id.content)).getChildAt(0);
     }
@@ -94,66 +95,63 @@ public class AdMob extends Plugin {
         final Context context = getContext();
         try {
             // Run AdMob In Main UI Thread
-            getActivity().runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    if (mAdView == null) {
-                        mAdView = new AdView(context);
-                        mAdView.setAdUnitId(adId);
+            getActivity().runOnUiThread(() -> {
+                if (mAdView == null) {
+                    mAdView = new AdView(context);
+                    mAdView.setAdUnitId(adId);
 
-                        mAdView.setAdListener(new AdListener() {
-                            @Override
-                            public void onAdLoaded() {
-                                notifyListeners("onAdLoaded", new JSObject().put("value", true));
-                                super.onAdLoaded();
-                            }
+                    mAdView.setAdListener(new AdListener() {
+                        @Override
+                        public void onAdLoaded() {
+                            notifyListeners("onAdLoaded", new JSObject().put("value", true));
+                            super.onAdLoaded();
+                        }
 
-                            @Override
-                            public void onAdFailedToLoad(int i) {
-                                notifyListeners("onAdFailedToLoad", new JSObject().put("errorCode", i));
-                                super.onAdFailedToLoad(i);
-                            }
+                        @Override
+                        public void onAdFailedToLoad(int i) {
+                            notifyListeners("onAdFailedToLoad", new JSObject().put("errorCode", i));
+                            super.onAdFailedToLoad(i);
+                        }
 
-                            @Override
-                            public void onAdOpened() {
-                                notifyListeners("onAdOpened", new JSObject().put("value", true));
-                                super.onAdOpened();
-                            }
+                        @Override
+                        public void onAdOpened() {
+                            notifyListeners("onAdOpened", new JSObject().put("value", true));
+                            super.onAdOpened();
+                        }
 
-                            @Override
-                            public void onAdClosed() {
-                                notifyListeners("onAdClosed", new JSObject().put("value", true));
-                                super.onAdClosed();
-                            }
-                        });
-                    }
-                    mAdView.setAdSize(AdMob.getAdSize(adSize));
-                    // Setup AdView Layout
-
-                    mAdViewLayout = new RelativeLayout(getContext());
-                    mAdViewLayout.setHorizontalGravity(Gravity.CENTER_HORIZONTAL);
-                    mAdViewLayout.setVerticalGravity(Gravity.BOTTOM);
-
-                    final CoordinatorLayout.LayoutParams mAdViewLayoutParams = new CoordinatorLayout.LayoutParams(
-                            CoordinatorLayout.LayoutParams.WRAP_CONTENT,
-                            CoordinatorLayout.LayoutParams.WRAP_CONTENT
-                    );
-
-                    mAdViewLayoutParams.gravity = AdMob.getAdPosition(adPosition);
-
-                    // Remove child from AdViewLayout
-                    if (mAdView.getParent() != null) {
-                        ((ViewGroup) mAdView.getParent()).removeView(mAdView);
-                    }
-                    mAdViewLayout.setLayoutParams(mAdViewLayoutParams);
-                    // Add AdView into AdViewLayout
-                    mAdViewLayout.addView(mAdView);
-
-                    // Add AdViewLayout top of the WebView
-                    mViewGroup.addView(mAdViewLayout);
-
-                    mAdView.loadAd(new AdRequest.Builder().build());
+                        @Override
+                        public void onAdClosed() {
+                            notifyListeners("onAdClosed", new JSObject().put("value", true));
+                            super.onAdClosed();
+                        }
+                    });
                 }
+                mAdView.setAdSize(AdMob.getAdSize(adSize));
+                // Setup AdView Layout
+
+                mAdViewLayout = new RelativeLayout(getContext());
+                mAdViewLayout.setHorizontalGravity(Gravity.CENTER_HORIZONTAL);
+                mAdViewLayout.setVerticalGravity(Gravity.BOTTOM);
+
+                final CoordinatorLayout.LayoutParams mAdViewLayoutParams = new CoordinatorLayout.LayoutParams(
+                        CoordinatorLayout.LayoutParams.WRAP_CONTENT,
+                        CoordinatorLayout.LayoutParams.WRAP_CONTENT
+                );
+
+                mAdViewLayoutParams.gravity = AdMob.getAdPosition(adPosition);
+
+                // Remove child from AdViewLayout
+                if (mAdView.getParent() != null) {
+                    ((ViewGroup) mAdView.getParent()).removeView(mAdView);
+                }
+                mAdViewLayout.setLayoutParams(mAdViewLayoutParams);
+                // Add AdView into AdViewLayout
+                mAdViewLayout.addView(mAdView);
+
+                // Add AdViewLayout top of the WebView
+                mViewGroup.addView(mAdViewLayout);
+
+                mAdView.loadAd(new AdRequest.Builder().build());
             });
 
             call.success(new JSObject().put("value", true));
@@ -226,54 +224,51 @@ public class AdMob extends Plugin {
     public void prepareInterstitial(final PluginCall call) {
         final String adId = call.getString("adId", "ca-app-pub-3940256099942544/1033173712");
         try {
-            getActivity().runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    if (mInterstitialAd == null) {
-                        mInterstitialAd = new InterstitialAd(getContext());
-                        mInterstitialAd.setAdUnitId(adId);
-                        mInterstitialAd.setImmersiveMode(true);
+            getActivity().runOnUiThread(() -> {
+                if (mInterstitialAd == null) {
+                    mInterstitialAd = new InterstitialAd(getContext());
+                    mInterstitialAd.setAdUnitId(adId);
+                    mInterstitialAd.setImmersiveMode(true);
 
-                        mInterstitialAd.setAdListener(new AdListener() {
-                            @Override
-                            public void onAdLoaded() {
-                                // Code to be executed when an ad finishes loading.
-                                notifyListeners("onAdLoaded", new JSObject().put("value", true));
-                                super.onAdLoaded();
-                            }
+                    mInterstitialAd.setAdListener(new AdListener() {
+                        @Override
+                        public void onAdLoaded() {
+                            // Code to be executed when an ad finishes loading.
+                            notifyListeners("onAdLoaded", new JSObject().put("value", true));
+                            super.onAdLoaded();
+                        }
 
-                            @Override
-                            public void onAdFailedToLoad(int errorCode) {
-                                // Code to be executed when an ad request fails.
-                                notifyListeners("onAdFailedToLoad", new JSObject().put("errorCode", errorCode));
-                                super.onAdFailedToLoad(errorCode);
-                            }
+                        @Override
+                        public void onAdFailedToLoad(int errorCode) {
+                            // Code to be executed when an ad request fails.
+                            notifyListeners("onAdFailedToLoad", new JSObject().put("errorCode", errorCode));
+                            super.onAdFailedToLoad(errorCode);
+                        }
 
-                            @Override
-                            public void onAdOpened() {
-                                // Code to be executed when the ad is displayed.
-                                notifyListeners("onAdOpened", new JSObject().put("value", true));
-                                super.onAdOpened();
-                            }
+                        @Override
+                        public void onAdOpened() {
+                            // Code to be executed when the ad is displayed.
+                            notifyListeners("onAdOpened", new JSObject().put("value", true));
+                            super.onAdOpened();
+                        }
 
-                            @Override
-                            public void onAdLeftApplication() {
-                                // Code to be executed when the user has left the app.
-                                notifyListeners("onAdLeftApplication", new JSObject().put("value", true));
-                                super.onAdLeftApplication();
-                            }
+                        @Override
+                        public void onAdLeftApplication() {
+                            // Code to be executed when the user has left the app.
+                            notifyListeners("onAdLeftApplication", new JSObject().put("value", true));
+                            super.onAdLeftApplication();
+                        }
 
-                            @Override
-                            public void onAdClosed() {
-                                // Code to be executed when when the interstitial ad is closed.
-                                notifyListeners("onAdClosed", new JSObject().put("value", true));
-                                super.onAdClosed();
-                            }
-                        });
-                    }
-
-                    mInterstitialAd.loadAd(new AdRequest.Builder().build());
+                        @Override
+                        public void onAdClosed() {
+                            // Code to be executed when when the interstitial ad is closed.
+                            notifyListeners("onAdClosed", new JSObject().put("value", true));
+                            super.onAdClosed();
+                        }
+                    });
                 }
+
+                mInterstitialAd.loadAd(new AdRequest.Builder().build());
             });
 
             call.success(new JSObject().put("value", true));

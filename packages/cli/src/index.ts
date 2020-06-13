@@ -1,13 +1,16 @@
 import path from "path";
 import yargs from "yargs";
-import {deleteFolderRecursive, execute, isFile} from "./common/utility";
+import {copyFolderRecursiveSync} from "./common/utility";
 import {build} from "./iljwebpack/build";
 import console from "./common/log";
 import {appicon} from "./bins/appicon";
-import {BuildMode, NProject, NProjectTarget} from "./proj/NProject";
+import {BuildMode, NProjectTarget} from "./proj/NProject";
 import {exportAssets, optimizeImageFile} from "@highduck/exporter";
+import {build as newBuild} from '@highduck/tools-build-code';
+import {exportAndroid} from '@highduck/export-android';
 
 const args = yargs
+    .scriptName('ilj')
     .command('export', 'export assets', {}, async (args) => {
         await exportAssets("assets", "public/assets");
     })
@@ -29,7 +32,7 @@ const args = yargs
         }), async (args) => {
             const target = NProjectTarget.load(process.cwd());
             console.debug(target);
-            if(target) {
+            if (target) {
                 target.deleteWWW();
                 await build(
                     target,
@@ -73,6 +76,36 @@ const args = yargs
         }),
         (args) => {
             appicon('generate');
+        })
+    .command('bc', 'Build TypeScript project and compile JavaScript bundle', (yargs) => yargs.options({
+            proj: {
+                type: 'boolean',
+                alias: "p",
+                default: false
+            }
+        }),
+        async (args) => {
+            const platform = 'android';
+            const target = platform;
+            const verbose = true;
+            const dest = path.join('dist/www', target);
+            if (!args.proj) {
+                await newBuild({
+                    bundle: {
+                        modules: false,
+                        mode: 'production',
+                        target: target,
+                        platform: platform,
+                        stats: true,
+                        dir: dest,
+                        verbose
+                    },
+                    verbose
+                });
+                await exportAssets("assets", path.join(dest, 'assets'));
+                copyFolderRecursiveSync('public_' + target, dest);
+            }
+            exportAndroid();
         })
     .onFinishCommand(
         (_) => {
