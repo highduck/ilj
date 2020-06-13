@@ -10,8 +10,5 @@ dist/
 *.tsbuildinfo
 
 # yarn
-.yarn/cache
-.yarn/build-state.yml
-.yarn/install-state.gz
-.yarn/unplugged
+.yarn/
 .pnp.*

@@ -1,5 +1,5 @@
 import {Entry} from "./Entry";
-import {Zip} from '@eliasku/zipfile';
+import {Zip} from '@highduck/zipfile';
 
 export class FLAEntry extends Entry {
 

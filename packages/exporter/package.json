@@ -8,7 +8,7 @@
     "ci": "run build && run test",
     "build": "tsc -b tsconfig.esm.json --force",
     "watch": "tsc -b tsconfig.esm.json -w",
-    "test": "node --es-module-specifier-resolution=node dist/runTest.js",
+    "test": "node --experimental-specifier-resolution=node dist/runTest.js",
     "clean": "rimraf dist/ output/"
   },
   "dependencies": {

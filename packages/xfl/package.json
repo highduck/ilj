@@ -9,11 +9,11 @@
     "build": "tsc -b tsconfig.esm.json --force",
     "watch": "tsc -b tsconfig.esm.json -w",
     "clean": "rimraf dist/",
-    "test": "node --es-module-specifier-resolution=node dist/runTest.js"
+    "test": "node --experimental-specifier-resolution=node dist/runTest.js"
   },
   "dependencies": {
-    "@eliasku/zipfile": "1.0.0-beta.3",
     "@highduck/math": "0.0.1",
+    "@highduck/zipfile": "1.0.0",
     "fast-xml-parser": "^3.17.4",
     "he": "^1.2.0",
     "jpeg-js": "^0.4.0",

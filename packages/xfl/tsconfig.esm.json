@@ -7,6 +7,9 @@
   "references": [
     {
       "path": "../math/tsconfig.esm.json"
+    },
+    {
+      "path": "../zipfile/tsconfig.esm.json"
     }
   ],
   "include": [

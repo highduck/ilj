@@ -4,7 +4,7 @@ import path from "path";
 import {XFLEntry} from "./XFLEntry";
 import {FLAEntry} from "./FLAEntry";
 import {logWarning} from "./debug";
-import {Zip} from "@eliasku/zipfile";
+import {Zip} from "@highduck/zipfile";
 
 function isDir(p: string) {
     return fs.existsSync(p) && fs.lstatSync(p).isDirectory();
