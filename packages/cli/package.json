@@ -23,7 +23,7 @@
     "chalk": "^4.1.0",
     "copy-webpack-plugin": "^6.0.2",
     "css-loader": "^3.5.3",
-    "fork-ts-checker-webpack-plugin": "^4.1.6",
+    "fork-ts-checker-webpack-plugin": "^5.0.0",
     "glob": "^7.1.6",
     "internal-ip": "^6.0.0",
     "resolve": "^1.17.0",
