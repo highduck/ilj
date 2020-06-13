@@ -1,0 +1,33 @@
+{
+  "compilerOptions": {
+    "module": "esnext",
+    "target": "esnext",
+    "moduleResolution": "node",
+    "sourceMap": true,
+    "strict": true,
+    "outDir": "dist/esm",
+    "allowSyntheticDefaultImports": true,
+    "baseUrl": ".",
+    "paths": {
+      "@highduck/core": [
+        "../core/src"
+      ]
+    },
+    "composite": true,
+    "rootDir": "./src"
+  },
+  "references": [
+    {
+      "path": "../core/tsconfig.esm.json"
+    },
+    {
+      "path": "../polykit"
+    }
+  ],
+  "include": [
+    "./src/**/*.ts"
+  ],
+  "exclude": [
+    "**/node_modules"
+  ]
+}

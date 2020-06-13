@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "ci": "run build && run test",
-    "build": "tsc -b tsconfig.esm.json",
+    "build": "tsc -b -f tsconfig.esm.json",
     "demo:build": "run build && cd demo && tsc -b && rollup -c rollup.config.js && rollup -c rollup.legacy.js",
     "clean": "rimraf dist/ && rimraf demo/dist/ && rimraf test/dist/",
     "test": "cd test && tsc -b && node dist/index.js"

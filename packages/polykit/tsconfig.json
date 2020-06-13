@@ -1,19 +1,18 @@
 {
   "compilerOptions": {
-    "target": "es5",
+    "target": "esnext",
     "module": "esnext",
     "moduleResolution": "node",
     "sourceMap": true,
     "strict": true,
-    "outDir": "dist/esm",
-    "declarationDir": "dist/types",
+    "outDir": "dist",
     "declaration": true,
-    "allowSyntheticDefaultImports": true,
-    "downlevelIteration": true,
-    "noEmitOnError": true
+    "composite": true,
+    "rootDir": "src"
   },
-  "files": [
-    "src/index.ts"
+  "include": [
+    "./src/index.ts",
+    "./src/Poly2Tri.ts"
   ],
   "exclude": [
     "**/node_modules",

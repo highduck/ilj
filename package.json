@@ -3,13 +3,14 @@
     "upgrade": "yarn upgrade-interactive",
     "all:build": "yarn workspaces foreach --topological-dev -p -v run build",
     "all:ci": "yarn workspaces foreach --topological-dev -p -v run ci",
-    "all:clean": "yarn workspaces foreach -p -v run clean"
+    "all:clean": "yarn workspaces foreach -p -v run clean",
+    "capacitor:check": "yarn workspaces foreach -v run check",
+    "capacitor:clean": "yarn workspaces foreach -p -v run clean",
+    "capacitor:ios": "yarn workspaces foreach -p -v run ios",
+    "capacitor:android": "yarn workspaces foreach -v run android"
   },
   "private": true,
   "workspaces": [
-    "capacitor",
-    "packages/*",
-    "projects/*",
-    "tools/*"
+    "packages/*"
   ]
 }

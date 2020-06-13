@@ -1,0 +1,21 @@
+{
+  "name": "test-app",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "ci": "ilj build -v",
+    "start": "ilj start",
+    "build": "ilj build -v"
+  },
+  "devDependencies": {
+    "@highduck/cli": "0.0.1",
+    "@highduck/live-inspector": "0.0.1",
+    "typescript": "^3.9.5"
+  },
+  "dependencies": {
+    "@capacitor/core": "^2.2.0",
+    "@highduck/core": "0.0.1",
+    "@highduck/math": "0.0.1",
+    "@highduck/polykit": "0.0.1"
+  }
+}

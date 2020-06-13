@@ -1,0 +1,39 @@
+{
+  "compilerOptions": {
+    "composite": true,
+    "rootDir": "src",
+    "module": "esnext",
+    "target": "esnext",
+    "moduleResolution": "node",
+    "sourceMap": true,
+    "strict": true,
+    "outDir": "dist/esm",
+    "allowSyntheticDefaultImports": true,
+    "baseUrl": "./",
+    "paths": {
+      "@highduck/math": [
+        "../math/src"
+      ],
+      "@highduck/anijson": [
+        "../anijson/src"
+      ],
+      "@highduck/core": [
+        "../core/src"
+      ],
+      "@highduck/live-inspector": [
+        "../dev-inspector/src"
+      ]
+    }
+  },
+  "references": [
+    {
+      "path": "../core/tsconfig.esm.json"
+    }
+  ],
+  "include": [
+    "./src/**/*.ts"
+  ],
+  "exclude": [
+    "**/node_modules"
+  ]
+}

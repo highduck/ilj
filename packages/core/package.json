@@ -6,8 +6,8 @@
   "type": "module",
   "scripts": {
     "ci": "run build",
-    "build": "tsc -b tsconfig.esm.json && run resources",
-    "watch": "tsc -b tsconfig.esm.json -w",
+    "build": "tsc -b -f tsconfig.esm.json && run resources",
+    "watch": "tsc -b -f -w tsconfig.esm.json",
     "resources": "cp src/graphics/util/2d.vert.glsl dist/graphics/util && cp src/graphics/util/2d.frag.glsl dist/graphics/util",
     "clean": "rimraf dist"
   },

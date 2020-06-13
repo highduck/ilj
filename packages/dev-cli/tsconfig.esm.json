@@ -1,0 +1,28 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "composite": true,
+    "rootDir": "./src"
+  },
+  "references": [
+    {
+      "path": "../dev-content-processor/tsconfig.esm.json"
+    },
+    {
+      "path": "../dev-build-code/tsconfig.json"
+    },
+    {
+      "path": "../dev-export-android/tsconfig.json"
+    }
+  ],
+  "files": [
+    "src/index.ts"
+  ],
+  "include": [
+    "src/**/*.ts"
+  ],
+  "exclude": [
+    "**/node_modules",
+    "dist/**"
+  ]
+}
