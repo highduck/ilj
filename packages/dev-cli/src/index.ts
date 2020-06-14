@@ -86,7 +86,6 @@ const args = yargs
             proj: {
                 desc: "only project generation",
                 type: 'boolean',
-                alias: "p",
                 default: false
             }
         }),
@@ -95,7 +94,7 @@ const args = yargs
             const target = platform;
             const verbose = args.verbose as boolean;
             const dest = `dist/www/${target}`;
-            // if (args.proj === false) {
+            if (args.proj === false) {
                 await ccBuild({
                     bundle: {
                         mode: args.mode as BuildMode,
@@ -109,7 +108,7 @@ const args = yargs
                 });
                 await exportAssets("assets", path.join(dest, 'assets'));
                 copyFolderRecursiveSync('public_' + target, dest);
-            // }
+            }
             if (platform === 'android') {
                 exportAndroid();
             }
