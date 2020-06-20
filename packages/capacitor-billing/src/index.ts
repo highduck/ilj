@@ -12,12 +12,13 @@ export async function getBilling(): Promise<BillingProtocol> {
         const billing = require('@capacitor/core').Plugins.Billing as BillingProtocol;
         if (billing) {
             await billing.initialize();
-            instance = billing;
             console.log("Billing init OK");
+            instance = billing;
+            return billing;
         }
     } catch (err) {
         console.log("Billing unavailable");
         console.warn(err);
     }
-    return instance;
+    throw 'error';
 }

@@ -1,4 +1,3 @@
-import {Engine} from "@highduck/core";
 import {h, render} from "preact";
 import {EditorContext} from "./dev/EditorContext";
 

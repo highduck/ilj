@@ -15,12 +15,12 @@ import {Transform2D} from "./scene1/display/Transform2D";
 import {ButtonSystem} from "./scene1/ani/ButtonSystem";
 import {Entity} from "./ecs/Entity";
 import {updateMovieClips} from "./scene1/display/MovieClipSystem";
-import {SceneTimeSystem} from "./scene1/ani/SceneTimeSystem";
+import {updateSceneTimeNodes} from "./scene1/ani/SceneTimeSystem";
 import {ParticleSystem} from "./scene1/particles/ParticleSystem";
 import {Constructor, ConstructorWithID, getTypeID} from "./util/TypeID";
 import {AniFactory} from "./scene1/ani/AniFactory";
 import {TrailUpdateSystem} from "./scene1/particles/TrailUpdateSystem";
-import {TargetFollowUpdate} from "./scene1/extra/TargetFollow";
+import {updateTargetFollow} from "./scene1/extra/TargetFollow";
 import {initCanvas} from "./util/initCanvas";
 import {Texture} from "./graphics/Texture";
 import {Program} from "./graphics/Program";
@@ -39,18 +39,6 @@ export interface InitConfig {
     canvas?: HTMLCanvasElement;
     width: number;
     height: number;
-}
-
-function createLiveInspector() {
-    if (process.env.NODE_ENV === 'development') {
-        const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.has('dev')) {
-            try {
-                require("@highduck/live-inspector").DevApp.init();
-            } catch {
-            }
-        }
-    }
 }
 
 export class Engine {
@@ -85,8 +73,13 @@ export class Engine {
     readonly aniFactory: AniFactory;
     readonly audio: AudioMan;
 
+    // DEBUG
+    // readonly statsGraph = new DevStatGraph();
+
     constructor(config: InitConfig) {
-        Engine.setCurrentContext(this);
+        Engine.current = this;
+
+        this.handleFrame = this.handleFrame.bind(this);
 
         if (config.canvas === undefined) {
             config.canvas = initCanvas();
@@ -100,10 +93,6 @@ export class Engine {
         );
         this.input = new InputState(this.view.canvas);
         this.input.dpr = this.view.dpr;
-        this.view.onResize.on(() => {
-            console.debug("GameView Resize event");
-            this.input.dpr = this.view.dpr;
-        });
 
         Resources.reset(Texture, "empty", createEmptyTexture(this.graphics));
         Resources.reset(Program, "2d", createProgram2D(this.graphics));
@@ -117,9 +106,6 @@ export class Engine {
         this.root.name = "Root";
         this.root.set(Transform2D);
         this.interactiveManager = new InteractiveManager(this);
-        this.input.onMouse.on(ev => this.interactiveManager.handleMouseEvent(ev));
-        this.input.onTouch.on(ev => this.interactiveManager.handleTouchEvent(ev));
-        this.input.onKeyboard.on(ev => this.interactiveManager.handleKeyboardEvent(ev));
         this.displaySystem = new DisplaySystem(this);
         this.buttonSystem = new ButtonSystem(this);
         this.trailUpdateSystem = new TrailUpdateSystem(this);
@@ -142,7 +128,7 @@ export class Engine {
         if (this._running !== v) {
             this._running = v;
             if (v) {
-                this.requireNextFrame();
+                requestAnimationFrame(this.handleFrame);
             }
         }
     }
@@ -151,18 +137,12 @@ export class Engine {
         return this._running;
     }
 
-    requireNextFrame() {
-        requestAnimationFrame((time: number) => {
-            this.handleFrame(time);
-        });
-    }
-
     // used for editor
-    readonly _step = () => {
+    _step() {
         if (this.running) {
             this.stop();
         }
-        this.requireNextFrame();
+        requestAnimationFrame(this.handleFrame);
     };
 
     private renderFrame() {
@@ -186,6 +166,7 @@ export class Engine {
             this.displaySystem.process();
             this.onRenderFinish.emit(rc);
         }
+        // this.statsGraph.draw();
         this.drawer.end();
 
         updateDynamicFonts();
@@ -194,14 +175,18 @@ export class Engine {
     }
 
     handleFrame(millis: number) {
+        if (this._running) {
+            requestAnimationFrame(this.handleFrame);
+        }
+
         this.time.update(millis / 1000.0);
         this.fps.update(this.time.raw);
         this.root.getOrCreate(Transform2D).rect.copyFrom(this.view.drawable);
 
         this.cameraOrderSystem.process();
         this.interactiveManager.process();
-        SceneTimeSystem(this);
-        TargetFollowUpdate(this);
+        updateSceneTimeNodes(this.root, this.time.delta);
+        updateTargetFollow();
         this.buttonSystem.process();
 
         updateFastScripts();
@@ -218,13 +203,8 @@ export class Engine {
 
         // Late Update
         processEntityAge();
-        this.input.update();
+        this.input.update(this.view.dpr);
         this.frameCompleted.emit();
-
-        // handle frame;
-        if (this._running) {
-            this.requireNextFrame();
-        }
     }
 
     // locator
@@ -243,14 +223,9 @@ export class Engine {
         throw `${id} not found`;
     }
 
-    private static setCurrentContext(engine: Engine) {
-        Engine.current = engine;
-    }
-
     static async init(config: InitConfig) {
         await awaitDocument();
         const engine = new Engine(config);
-        createLiveInspector();
         engine.start();
         return engine;
     }

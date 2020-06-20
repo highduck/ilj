@@ -7,6 +7,7 @@ import {DynamicFontAtlas} from "./DynamicFontAtlas";
 
 const LF = '\n'.charCodeAt(0);
 const BOUNDS_BUILDER_TMP = new BoundsBuilder();
+const BOUNDS_RC_TMP = new Rect();
 // const PT_2_PX = 1.33333333;
 const PT_2_PX = 1;
 
@@ -102,7 +103,7 @@ export class DynamicFont {
     estimateTextDrawZone(text: string, size: number,
                          begin: number, end: number,
                          lineHeight: number, lineSpacing: number,
-                         out?: Rect): Rect {
+                         out: Rect): Rect {
 
         const sc = (size * PT_2_PX) / this.atlas.size;
         const boundsBuilder = BOUNDS_BUILDER_TMP.reset();
@@ -153,7 +154,8 @@ export class DynamicFont {
             text, format.size,
             begin, end,
             format.lineHeight,
-            format.lineSpacing
+            format.lineSpacing,
+            BOUNDS_RC_TMP
         );
         const rcRelX = rc.x + rc.width * format.alignment.x;
         const rcRelY = rc.y + rc.height * format.alignment.y;

@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "composite": true
+  },
+  "references": [
+    {
+      "path": "packages/core/tsconfig.esm.json"
+    },
+    {
+      "path": "packages/dev-inspector/tsconfig.esm.json"
+    },
+    {
+      "path": "packages/dev-cli/tsconfig.esm.json"
+    }
+  ],
+  "files": []
+}

@@ -1,14 +1,13 @@
-import {copyFileSync, existsSync, mkdirSync, writeFileSync, readFileSync, renameSync} from "fs";
+import {mkdirSync, readFileSync, writeFileSync} from "fs";
 import path from "path";
-import {cap, copyFolderRecursiveSync} from "./utils";
-import rimraf from "rimraf";
+import {cap} from "./utils";
 import {AndroidProjectContext} from "./context";
 
 function writePkg(ctx: AndroidProjectContext) {
-    const pkgPath = path.join(ctx.tempDir, 'package.json');
+    const pkgPath = path.join(ctx.genDir, 'package.json');
 
     const dependencies: { [key: string]: string } = {};
-    for (const id of ctx.capacitorPlugins) {
+    for (const id of ctx.pkg.capacitorPlugins) {
         dependencies[id] = "*";
     }
 
@@ -22,15 +21,15 @@ function writePkg(ctx: AndroidProjectContext) {
 
 function writeCapConfig(ctx: AndroidProjectContext): any {
     const capConfig = {
-        appId: ctx.appId,
-        appName: ctx.appName,
-        backgroundColor: ctx.backgroundColor,
+        appId: ctx.pkg.appId,
+        appName: ctx.pkg.appName,
+        backgroundColor: ctx.pkg.backgroundColor,
         bundledWebRuntime: false,
         npmClient: "yarn",
         webDir: "www",
-        hideLogs: ctx.commonConfig.mode === 'production',
+        hideLogs: ctx.buildMode === 'production',
         android: {
-            webContentsDebuggingEnabled: ctx.commonConfig.mode !== 'production'
+            webContentsDebuggingEnabled: ctx.debug
         },
         plugins: {}
     }
@@ -41,31 +40,21 @@ function writeCapConfig(ctx: AndroidProjectContext): any {
         }
     } catch {
     }
-    writeFileSync(path.join(ctx.tempDir, 'capacitor.config.json'), JSON.stringify(capConfig));
+    writeFileSync(path.join(ctx.genDir, 'capacitor.config.json'), JSON.stringify(capConfig));
 }
 
 function writePubStub(dir: string) {
     console.info('make www stub');
     mkdirSync(dir);
     writeFileSync(path.join(dir, 'index.html'), '<html lang="en"></html>');
-
 }
 
 export function initAndroidProject(ctx: AndroidProjectContext) {
 
     writePkg(ctx);
     writeCapConfig(ctx);
-    writePubStub(path.join(ctx.tempDir, 'www'));
+    writePubStub(path.join(ctx.genDir, 'www'));
 
     console.log('cap add android');
-    cap(['add', 'android'], ctx.tempDir);
-
-    console.log('delete old android project');
-    rimraf.sync(ctx.androidProjDir);
-
-    console.log('move new android project');
-    renameSync(path.join(ctx.tempDir, 'android'), path.join(ctx.androidProjDir));
-    //
-    // copyFolderRecursiveSync(path.join(ctx.tempDir, 'android'),
-    //     path.join(ctx.androidProjDir));
+    cap(['add', 'android'], ctx.genDir);
 }

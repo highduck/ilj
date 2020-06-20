@@ -12,9 +12,9 @@ export class CollisionSystem {
     update() {
         const world = Engine.current.world;
 
-        const bullets = [...world.query(Bullet, Transform2D, Collision).entities()];
-        const asteroids = [...world.query(Asteroid, Transform2D, Collision).entities()];
-        const spaceships = [...world.query(Spaceship, Transform2D, Collision).entities()];
+        const bullets = [...world.query3(Bullet, Transform2D, Collision).entities()];
+        const asteroids = [...world.query3(Asteroid, Transform2D, Collision).entities()];
+        const spaceships = [...world.query3(Spaceship, Transform2D, Collision).entities()];
 
         for (const bullet of bullets) {
             const bulletTransform = bullet.get(Transform2D);

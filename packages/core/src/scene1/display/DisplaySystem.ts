@@ -2,19 +2,22 @@ import {Entity} from "../../ecs/Entity";
 import {Transform2D} from "./Transform2D";
 import {Display2D} from "./Display2D";
 import {Filters2D} from "./Filters2D";
-import {Vec2, Rect, Matrix2D} from "@highduck/math";
+import {Matrix2D, Rect, Vec2} from "@highduck/math";
 import {DrawingState} from "../../drawer/DrawingState";
 import {Engine} from "../../Engine";
-import {debugCameraGizmo, debugDrawFill, debugDrawHitTarget, debugDrawPointer} from "./SceneDebug";
 import {FilterType} from "@highduck/anijson";
+import {drawCameraDebugGizmos} from "./SceneDebug";
+import {Bounds2D} from "./Bounds2D";
+import {Camera2D} from "./Camera2D";
 
 const TMP_V2 = new Vec2();
 const TEMP_RECT = new Rect();
 
 export function invalidateTransform(engine: Engine) {
     const w = engine.world;
-    for (const transform of w.query(Transform2D)) {
-        transform.invalidateMatrix();
+    const transforms = w.components(Transform2D)
+    for (let i = 0; i < transforms.length; ++i) {
+        transforms[i].invalidateMatrix();
     }
 }
 
@@ -24,17 +27,24 @@ export class DisplaySystem {
     drawer = this.engine.drawer;
     state = this.engine.drawer.state;
 
+    // objectsAA = 0;
+
+    private _currentCamera!: Camera2D;
+
     constructor(readonly engine: Engine) {
     }
 
     process() {
+        // this.objectsAA = 0;
+
         const w = this.engine.world;
         const graphics = this.engine.graphics;
         const rc = graphics.currentFramebufferRect;
         const drawer = this.engine.drawer;
         const cameras = this.engine.cameraOrderSystem.cameras;
 
-        for (const camera of cameras) {
+        for (let i = 0; i < cameras.length; ++i) {
+            const camera = cameras[i];
             // TODO: delegate camera props update to camera-system (on addition to ordering)
             // 1. update camera props
             if (camera.syncContentScale) {
@@ -46,15 +56,9 @@ export class DisplaySystem {
                 rc.width * camera.viewport.width,
                 rc.height * camera.viewport.height,
             );
-            const screen = camera.screenRect;
-            Transform2D.getWorldMatrix(camera.entity, camera.matrix);
-            camera.matrix.scale(1 / camera.contentScale, 1 / camera.contentScale);
-            camera.matrix.translate(
-                -screen.x - camera.relativeOrigin.x * screen.width,
-                -screen.y - camera.relativeOrigin.y * screen.height
-            );
-
-            camera.worldRect.copyFrom(screen).transform(camera.matrix);
+            camera.calcMatrix(camera.debugDrawScale, camera.matrix);
+            camera.worldRect.copyFrom(camera.screenRect).transform(camera.matrix);
+            this._currentCamera = camera;
 
             camera.inverseMatrix.copyFrom(camera.matrix);
             camera.inverseMatrix.inverse();
@@ -68,27 +72,175 @@ export class DisplaySystem {
                 }
                 drawer.state.saveMatrix().concatMatrix(camera.inverseMatrix);
                 const root = camera.root ?? w.root;
+
                 this.draw(root);
-                if (camera.debugGizmoFills) {
-                    debugDrawFill(root, drawer);
+
+                if (process.env.NODE_ENV === 'development') {
+                    drawCameraDebugGizmos(camera, root);
                 }
-                if (camera.debugGizmoHitTarget) {
-                    const hitTarget = this.engine.interactiveManager.hitTarget;
-                    if (hitTarget !== undefined) {
-                        debugDrawHitTarget(hitTarget, root, drawer);
-                    }
-                }
-                if (camera.debugGizmoPointer) {
-                    debugDrawPointer(this.engine, camera);
-                }
-                if (camera.debugGizmoSelf) {
-                    debugCameraGizmo(camera, drawer);
-                }
+
                 drawer.state.restoreMatrix();
                 drawer.state.restoreScissors();
             }
         }
+
+        // this.engine.statsGraph.add(this.objectsAA);
     }
+
+    draw(e: Entity) {
+
+        if (this.processFilters(e)) {
+            return;
+        }
+
+        if (!e.visible || (e.layerMask & this.activeLayers) == 0) {
+            return;
+        }
+        const transform = e.tryGet(Transform2D);
+        if (transform !== undefined) {
+            if (transform.alpha <= 0) {
+                return;
+            }
+
+            DisplaySystem.beginTransform(this.state, transform);
+        }
+
+        let visibleCheck = true;
+        const bounds = e.tryGet(Bounds2D);
+        if (bounds !== undefined && this._currentCamera.occlusionEnabled) {
+            const worldRect = TEMP_RECT.copyFrom(bounds.rc);
+            const drawer = Engine.current.drawer;
+            worldRect.transform(drawer.state.matrix);
+            const screen = this._currentCamera.screenRect;
+            visibleCheck = worldRect.right > screen.x &&
+                worldRect.x < screen.right &&
+                worldRect.bottom > screen.y &&
+                worldRect.y < screen.bottom;
+        }
+        if (visibleCheck) {
+            const display = e.tryGet(Display2D);
+            if (display !== undefined) {
+                display.draw(this.drawer);
+                // ++this.objectsAA;
+            }
+
+            let child = e.childFirst;
+            while (child !== undefined) {
+                this.draw(child);
+                child = child.siblingNext;
+            }
+        }
+
+        if (transform !== undefined) {
+            DisplaySystem.endTransform(this.state, transform);
+        }
+    }
+
+    static hitTest(e: Entity, x: number, y: number): Entity | undefined {
+        if (!e.visible || !e.touchable) {
+            return undefined;
+        }
+
+        const transform = e.components.get(Transform2D.TYPE_ID) as Transform2D | undefined;
+        if (transform !== undefined) {
+            if (transform.scissors !== undefined && !transform.scissors.contains(x, y)) {
+                return undefined;
+            }
+
+            if (transform.hitArea !== undefined) {
+                return transform.hitArea.contains(x, y) ? e : undefined;
+            }
+        }
+
+        let it = e.childLast;
+        while (it !== undefined) {
+            const childTransform = it.components.get(Transform2D.TYPE_ID) as Transform2D | undefined;
+            const matrix = childTransform?.matrix ?? Matrix2D.IDENTITY;
+            if (matrix.transformInverse(x, y, TMP_V2)) {
+                const hit = DisplaySystem.hitTest(it, TMP_V2.x, TMP_V2.y);
+                if (hit) {
+                    return hit;
+                }
+            }
+            it = it.siblingPrev;
+        }
+
+        const display = e.components.get(Display2D.TYPE_ID) as Display2D | undefined;
+        if (display && display.hitTest(x, y)) {
+            return e;
+        }
+
+        return undefined;
+    }
+
+    // enterNode(e: Entity): boolean {
+    //     if (this.processFilters(e)) {
+    //         return false;
+    //     }
+    //
+    //     if (!e.visible || (e.layerMask & this.activeLayers) == 0) {
+    //         return false;
+    //     }
+    //
+    //     const transform = e.tryGet(Transform2D);
+    //     if (transform !== undefined) {
+    //         if (transform.alpha <= 0) {
+    //             return false;
+    //         }
+    //
+    //         DisplaySystem.beginTransform(this.state, transform);
+    //     }
+    //
+    //     return true;
+    // }
+    //
+    // drawNode(e: Entity) {
+    //     const display = e.tryGet(Display2D);
+    //     if (display !== undefined) {
+    //         display.draw(this.drawer);
+    //         ++this.objectsAA;
+    //     }
+    // }
+    //
+    // exitNode(e: Entity) {
+    //     const transform = e.tryGet(Transform2D);
+    //     if (transform !== undefined) {
+    //         DisplaySystem.endTransform(this.state, transform);
+    //     }
+    // }
+    //
+    // draw2(e: Entity) {
+    //     let current = e.childFirst;
+    //     let prev = e;
+    //     let depth = 1;
+    //     while (current !== undefined) {
+    //         this.drawNode(current);
+    //         // if (depth === max_depth) {
+    //         //     //yield current and his siblings;
+    //         //     prev = current;
+    //         //     current = current.parent;
+    //         //     --depth;
+    //         // } else
+    //         if (current.childFirst !== undefined && (prev === current.parent || prev === current.siblingPrev)) {
+    //             prev = current;
+    //             current = current.childFirst;
+    //             ++depth;
+    //             this.enterNode(current);
+    //             // at this point, we know prev is a child of current
+    //         } else if (current.siblingNext !== undefined) {
+    //             this.exitNode(current);
+    //             prev = current;
+    //             current = current.siblingNext;
+    //             this.enterNode(current);
+    //             // exhausted the parent's children
+    //         } else {
+    //             this.exitNode(current);
+    //             prev = current;
+    //             current = current.parent;
+    //             --depth;
+    //         }
+    //     }
+    // }
 
     static beginTransform(state: DrawingState, transform: Transform2D) {
         state.saveTransform();
@@ -115,7 +267,8 @@ export class DisplaySystem {
             if (filters.enabled && !filters.processing) {
                 const colorMultiplier = state.colorMultiplier;
                 const colorOffset = state.colorOffset;
-                for (const data of filters.filters) {
+                for (let i = 0; i < filters.filters.length; ++i) {
+                    const data = filters.filters[i];
                     if (data.type === FilterType.DropShadow) {
                         filters.processing = true;
                         state.saveTransform()
@@ -167,93 +320,4 @@ export class DisplaySystem {
         return false;
     }
 
-    draw(e: Entity) {
-        if (this.processFilters(e)) {
-            return;
-        }
-
-        if (!e.visible || (e.layerMask & this.activeLayers) == 0) {
-            return;
-        }
-        const transform = e.tryGet(Transform2D);
-        if (transform) {
-            if (transform.alpha <= 0) {
-                return;
-            }
-
-            DisplaySystem.beginTransform(this.state, transform);
-        }
-//
-//    events.emit({PreDraw, this, nullptr});
-
-        const display = e.tryGet(Display2D);
-        if (display) {
-            display.draw(this.drawer);
-        }
-        //
-        // if (ecs::has<script_holder>(e)) {
-        //     auto& holder = ecs::get<script_holder>(e);
-        //     for (auto& script : holder.list) {
-        //         if (script) {
-        //             script->draw();
-        //         }
-        //     }
-        // }
-
-//    events.emit({OnDraw, this, nullptr});
-
-        let child = e.childFirst;
-        while (child !== undefined) {
-            this.draw(child);
-            child = child.siblingNext;
-        }
-
-        // if (ecs::has<script_holder>(e)) {
-        //     auto& scripts = ecs::get<script_holder>(e).list;
-        //     for (auto& script : scripts) {
-        //         script->gui_gizmo();
-        //     }
-        // }
-
-        if (transform) {
-            DisplaySystem.endTransform(this.state, transform);
-        }
-    }
-
-    static hitTest(e: Entity, x: number, y: number): Entity | undefined {
-        if (!e.visible || !e.touchable) {
-            return undefined;
-        }
-
-        const transform = e.components.get(Transform2D.TYPE_ID) as Transform2D | undefined;
-        if (transform !== undefined) {
-            if (transform.scissors !== undefined && !transform.scissors.contains(x, y)) {
-                return undefined;
-            }
-
-            if (transform.hitArea !== undefined) {
-                return transform.hitArea.contains(x, y) ? e : undefined;
-            }
-        }
-
-        let it = e.childLast;
-        while (it !== undefined) {
-            const childTransform = it.components.get(Transform2D.TYPE_ID) as Transform2D | undefined;
-            const matrix = childTransform?.matrix ?? Matrix2D.IDENTITY;
-            if (matrix.transformInverse(x, y, TMP_V2)) {
-                const hit = DisplaySystem.hitTest(it, TMP_V2.x, TMP_V2.y);
-                if (hit) {
-                    return hit;
-                }
-            }
-            it = it.siblingPrev;
-        }
-
-        const display = e.components.get(Display2D.TYPE_ID) as Display2D | undefined;
-        if (display && display.hitTest(x, y)) {
-            return e;
-        }
-
-        return undefined;
-    }
 }

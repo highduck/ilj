@@ -17,7 +17,7 @@ export class ControlSystem {
         const input = this.engine.input;
 
         // do not lock `position_t`
-        for (const [control, gun, position] of world.query(GunControls, Gun, Transform2D)) {
+        for (const [control, gun, position] of world.query3(GunControls, Gun, Transform2D)) {
             gun.shooting = input.isKeyPressed(control.trigger);
             gun.timeSinceLastShot += position.entity.dt;
             if (gun.shooting && gun.timeSinceLastShot >= gun.minimumShotInterval) {
@@ -26,7 +26,7 @@ export class ControlSystem {
             }
         }
 
-        for (const [control, motion, position] of world.query(MotionControl, Motion, Transform2D)) {
+        for (const [control, motion, position] of world.query3(MotionControl, Motion, Transform2D)) {
             const dt = position.entity.dt;
 
             const left = input.isKeyPressed(control.left);

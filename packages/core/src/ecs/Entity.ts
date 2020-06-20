@@ -2,6 +2,7 @@ import {assert} from "../util/assert";
 import {World} from "./World";
 import {ConstructorWithID} from "../util/TypeID";
 import {Engine} from "../Engine";
+import {IntMap} from "../util/IntMap";
 
 export type Passport = number;
 
@@ -21,7 +22,8 @@ function checkHierarchyValidity(a: Entity, b: Entity) {
 }
 
 export class Entity {
-    readonly components = new Map<number, object>();
+    readonly components = new IntMap<object>();
+
     name?: string;
     visible = true;
     touchable = true;
@@ -61,19 +63,11 @@ export class Entity {
         return this.world?.check(this.passport) ?? false;
     }
 
-    // TODO: somehow we need to return all components
-    initComps(...types: ConstructorWithID<object>[]): this {
-        for (const type of types) {
-            this.set(type);
-        }
-        return this;
-    }
-
-    set<T extends object>(c: ConstructorWithID<T>, ...args: any[]): T {
-        const data = new c(...args);
+    set<T extends object>(ctor: ConstructorWithID<T>): T {
+        const data = new ctor();
         (data as ComponentInternals).entity = this;
-        this.components.set(c.TYPE_ID, data);
-        this.world.ensure(c.TYPE_ID).set(this.passport & MASK_INDEX, data);
+        this.components.set(ctor.TYPE_ID, data);
+        this.world.ensure(ctor.TYPE_ID).set(this.passport & MASK_INDEX, data);
         return data;
     }
 
@@ -93,13 +87,13 @@ export class Entity {
         return this.components.has(c.TYPE_ID);
     }
 
-    getOrCreate<T extends object>(c: ConstructorWithID<T>, ...args: []): T {
-        let data = this.components.get(c.TYPE_ID);
+    getOrCreate<T extends object>(ctor: ConstructorWithID<T>): T {
+        let data = this.components.get(ctor.TYPE_ID);
         if (!data) {
-            data = new c(...args);
+            data = new ctor();
             (data as ComponentInternals).entity = this;
-            this.world.ensure(c.TYPE_ID).set(this.passport & MASK_INDEX, data);
-            this.components.set(c.TYPE_ID, data);
+            this.world.ensure(ctor.TYPE_ID).set(this.passport & MASK_INDEX, data);
+            this.components.set(ctor.TYPE_ID, data);
         }
         return data as T;
     }
@@ -110,30 +104,33 @@ export class Entity {
     }
 
     dispose() {
-        assert(this.world);
+        if (!!DEBUG) {
+            assert(this.world);
+        }
 
         // - Remove Entity from parent
         // - destroy all children
         this.removeFromParent();
         this.deleteChildren();
 
-        for (const [k, v] of this.components.entries()) {
-            const va = v as {
+        for (let i = 0, e = this.components.keys.length; i < e; ++i) {
+            const k = this.components.keys[i];
+            const v = this.components.values[i] as {
                 entity?: Entity;
                 dispose?(): void;
             };
             this.world.delete(this.passport, k);
-            if (va.dispose !== undefined) {
-                va.dispose();
+            if (v.dispose !== undefined) {
+                v.dispose();
             }
-            delete va.entity;
+            v.entity = undefined;
         }
         // we are disposing, it could not need to clear local map?
         this.components.clear();
 
         this.world.objs.delete(this.passport & MASK_INDEX);
         this.world._deallocate(this.passport);
-        delete (this as { world?: World }).world;
+        (this as { world?: World }).world = undefined;
     }
 
 
@@ -249,8 +246,10 @@ export class Entity {
     }
 
     appendStrict(child: Entity) {
-        checkHierarchyValidity(this, child);
-        assert(!child.parent);
+        if (!!DEBUG) {
+            checkHierarchyValidity(this, child);
+            assert(!child.parent);
+        }
 
         const tail = this.childLast;
         if (tail !== undefined) {
@@ -270,7 +269,10 @@ export class Entity {
      `child` will be removed from it's current parent.
      **/
     append(child: Entity) {
-        checkHierarchyValidity(this, child);
+        if (!!DEBUG) {
+            checkHierarchyValidity(this, child);
+        }
+
         if (child.parent !== undefined) {
             child.removeFromParent();
         }
@@ -279,8 +281,10 @@ export class Entity {
     }
 
     prependStrict(child: Entity) {
-        checkHierarchyValidity(this, child);
-        assert(!child.parent);
+        if (!!DEBUG) {
+            checkHierarchyValidity(this, child);
+            assert(!child.parent);
+        }
 
         const head = this.childFirst;
         if (head) {
@@ -331,8 +335,10 @@ export class Entity {
      If `childAfter` has not EntityNode component, it will be added.
      **/
     insertAfter(childAfter: Entity) {
-        checkHierarchyValidity(this, childAfter);
-        assert(this.parent);
+        if (!!DEBUG) {
+            checkHierarchyValidity(this, childAfter);
+            assert(this.parent);
+        }
 
         childAfter.removeFromParent();
         const next = this.siblingNext;
@@ -348,9 +354,11 @@ export class Entity {
     }
 
     insertBeforeStrict(childBefore: Entity) {
-        checkHierarchyValidity(this, childBefore);
-        assert(!childBefore.parent);
-        assert(this.parent);
+        if (!!DEBUG) {
+            checkHierarchyValidity(this, childBefore);
+            assert(!childBefore.parent);
+            assert(this.parent);
+        }
 
         const prev = this.siblingPrev;
         this.siblingPrev = childBefore;
@@ -371,7 +379,9 @@ export class Entity {
      If `childBefore` has not EntityNode component, it will be added.
      **/
     insertBefore(childBefore: Entity) {
-        assert(this.parent);
+        if (!!DEBUG) {
+            assert(this.parent);
+        }
 
         if (childBefore.parent !== undefined) {
             childBefore.removeFromParent();
@@ -398,7 +408,7 @@ export class Entity {
         return num;
     }
 
-    findChild(name: string): Entity | undefined {
+    find(name: string): Entity | undefined {
         let child = this.childFirst;
         while (child !== undefined) {
             if (child.name === name) {
@@ -409,19 +419,27 @@ export class Entity {
         return undefined;
     }
 
-    find(...path: string[]): Entity | undefined {
-        let node: Entity | undefined = this;
-        for (const name of path) {
-            node = node!.findChild(name);
-            if (node === undefined) {
-                break;
+    findN(name1: string, name2?: string, name3?: string): Entity | undefined {
+        let node: Entity | undefined = this.find(name1);
+        if (node !== undefined && name2 !== undefined) {
+            node = node.find(name2);
+            if (node !== undefined && name3 !== undefined) {
+                node = node.find(name3);
             }
         }
         return node;
     }
 
-    findComp<T extends object>(type: ConstructorWithID<T>, ...path: string[]): T | undefined {
-        return this.find(...path)?.tryGet(type);
+    findPath(path: string[]): Entity | undefined {
+        let node: Entity | undefined = this;
+        for (let i = 0; i < path.length; ++i) {
+            const name = path[i];
+            node = node!.find(name);
+            if (node === undefined) {
+                break;
+            }
+        }
+        return node;
     }
 
     setVisible(v: boolean): Entity {

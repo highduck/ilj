@@ -6,8 +6,8 @@ import json from '@rollup/plugin-json';
 import glslify from 'rollup-plugin-glslify';
 import commonjs from '@rollup/plugin-commonjs';
 import visualizer from 'rollup-plugin-visualizer';
-import {InputOptions, OutputOptions, Plugin, rollup, RollupWatchOptions, watch} from 'rollup';
-
+import {InputOptions, OutputOptions, Plugin, rollup, RollupWatcher, RollupWatchOptions, watch} from 'rollup';
+import postcss from 'rollup-plugin-postcss';
 import Babel from '@rollup/plugin-babel';
 import NodeResolve from '@rollup/plugin-node-resolve';
 import path from "path";
@@ -19,7 +19,7 @@ export async function compileBundle(options?: Partial<CompileBundleOptions>) {
     return rollupBuild(fillDefaults(options));
 }
 
-export async function watchBundle(options?: Partial<CompileBundleOptions>) {
+export async function watchBundle(options?: Partial<CompileBundleOptions>): Promise<RollupWatcher> {
     return new Promise((resolve, reject) => {
         const watcher = rollupWatch(fillDefaults(options));
         watcher.on('event', (event) => {
@@ -30,6 +30,9 @@ export async function watchBundle(options?: Partial<CompileBundleOptions>) {
             //   END          — finished building all bundles
             //   ERROR        — encountered an error while bundling
             console.log(event);
+            if (event.code === 'END') {
+                resolve(watcher);
+            }
         });
     })
 }
@@ -45,6 +48,10 @@ export interface CompileBundleOptions {
     dir: string;
     verbose: boolean;
     inputMain: string;
+    version: string;
+    versionCode: number;
+    debug: boolean;
+    sourceMap: boolean;
 }
 
 function fillDefaults(options?: Partial<CompileBundleOptions>): CompileBundleOptions {
@@ -52,31 +59,52 @@ function fillDefaults(options?: Partial<CompileBundleOptions>): CompileBundleOpt
     const target = options?.target ?? platform;
     const mode = options?.mode ?? 'development';
     const isProduction = mode === 'production';
-    const stats = options?.stats ?? isProduction;
+    const isDevelopment = mode === 'development';
+    const stats = options?.stats ?? !isProduction;
     const minify = options?.minify ?? isProduction;
     const modules = options?.modules ?? !isProduction;
     const compat = options?.compat ?? false;
     const dir = options?.dir ?? 'www';
     const verbose = options?.verbose ?? false;
+    // const inputMain = options?.inputMain ?? 'src/index.ts';
     const inputMain = options?.inputMain ?? 'dist/esm/index.js';
+    const version = options?.version ?? '1.0.0';
+    const versionCode = options?.versionCode ?? 1;
+    const debug = options?.debug ?? false;//!isProduction;
+    const sourceMap = options?.sourceMap ?? (stats || debug || isDevelopment);
     return {
-        platform, target, mode, stats, minify, modules, compat, dir, verbose, inputMain
+        platform, target, mode, stats, minify, modules, compat, dir, verbose,
+        inputMain, version, versionCode, debug, sourceMap
     };
 }
 
 function getTerserOptions(options: CompileBundleOptions): undefined | TerserOptions {
+    if (!options.minify) {
+        return undefined;
+    }
+
+    const opts: TerserOptions = {
+        ecma: 8,
+        compress: {
+            passes: 2
+        },
+        // mangle: {
+        //     module: !options.compat,
+        //     properties: true
+        // },
+        //module: !options.compat,
+        //toplevel: true,
+        safari10: true,
+        output: {
+            beautify: options.debug
+        }
+    };
+
     if (options.platform === 'android') {
-        return {
-            ecma: 8
-        };
+        opts.safari10 = false; // no need for android
     }
-    if (!options.compat) {
-        return {
-            ecma: 8,
-            safari10: true
-        };
-    }
-    return undefined;
+
+    return opts;
 }
 
 function getBabelConfig(options: CompileBundleOptions) {
@@ -85,26 +113,32 @@ function getBabelConfig(options: CompileBundleOptions) {
     const verbose = options.verbose;
 
     let config: any = {
+        sourceMaps: options.sourceMap,
+        // currently we always generate typescript js maps
+        inputSourceMap: true,
         babelHelpers: 'bundled',
         babelrc: false,
         exclude: /node_modules/,
-        presets: [[]]
+        presets: []
     };
 
-    if (compat) {
-        if (platform === 'android') {
-            config.presets = [[
-                "@babel/preset-env", {
-                    debug: verbose,
-                    targets: {
-                        android: 37 // 5.0 (api level 21)
-                    },
-                    useBuiltIns: "usage",
-                    corejs: 3
-                }
-            ]];
-        } else {
-            config.presets = [[
+    if (platform === 'android') {
+        // 5.0 (api level 21)
+        const androidCompat = 37;
+        const androidModern = 61;
+        config.presets.push([
+            "@babel/preset-env", {
+                debug: verbose,
+                targets: {
+                    android: compat ? androidCompat : androidModern
+                },
+                useBuiltIns: "usage",
+                corejs: 3
+            }
+        ]);
+    } else {
+        if (compat) {
+            config.presets.push([
                 "@babel/preset-env", {
                     targets: "> 0.25%, not dead",
                     useBuiltIns: "usage",
@@ -114,21 +148,21 @@ function getBabelConfig(options: CompileBundleOptions) {
                     forceAllTransforms: true,
                     debug: verbose,
                 }
-            ]];
+            ]);
+        } else {
+            config.presets.push([
+                "@babel/preset-env", {
+                    bugfixes: true,
+                    targets: {esmodules: true},
+                    debug: verbose,
+                }
+            ]);
         }
-    } else {
-        config.presets = [[
-            "@babel/preset-env", {
-                bugfixes: true,
-                targets: {esmodules: true},
-                debug: verbose,
-            }
-        ]];
     }
     return config;
 }
 
-function getRollupInput(options: CompileBundleOptions):InputOptions {
+function getRollupInput(options: CompileBundleOptions): InputOptions {
 
     const isProduction = options.mode === 'production';
 
@@ -148,7 +182,7 @@ function getRollupInput(options: CompileBundleOptions):InputOptions {
 
     if (isProduction) {
         plugins.push(strip({
-            include: /\.jsx?$/
+            include: /\.[jt]sx?$/
         }));
     }
 
@@ -159,12 +193,19 @@ function getRollupInput(options: CompileBundleOptions):InputOptions {
                 'process.env.PRODUCTION': JSON.stringify(isProduction),
                 'process.env.PLATFORM': JSON.stringify(options.platform),
                 'process.env.TARGET': JSON.stringify(options.target),
+                'process.env.APP_VERSION': JSON.stringify(options.version),
+                'process.env.APP_VERSION_CODE': JSON.stringify(options.versionCode),
+                'DEBUG': JSON.stringify(options.debug),
+                'ASSERT': JSON.stringify(options.debug)
             }
         }),
         babel(getBabelConfig(options)),
         json(),
         glslify({
             include: [/\.glsl/]
+        }),
+        postcss({
+            plugins: []
         })
     );
 
@@ -189,6 +230,7 @@ function getRollupInput(options: CompileBundleOptions):InputOptions {
     };
 
     if (!options.compat && !options.modules) {
+        input.preserveEntrySignatures = false;
         input.manualChunks = (id) => {
             if (id.includes('node_modules')) {
                 // vendor
@@ -197,24 +239,25 @@ function getRollupInput(options: CompileBundleOptions):InputOptions {
                 }
                 return 'support';
             }
+            return undefined;
         }
     }
     return input;
 }
 
 async function rollupBuild(opts: CompileBundleOptions) {
-    const isProduction = opts.mode === 'production';
     const input = getRollupInput(opts);
     const build = await rollup(input);
 
     const output: OutputOptions = {
-        sourcemap: !isProduction || opts.stats,
+        sourcemap: opts.sourceMap,
         compact: opts.minify
     };
 
     if (opts.compat) {
         output.file = path.join(opts.dir, 'all.js');
         output.format = 'iife';
+        console.log(input);
     } else {
         output.dir = path.join(opts.dir, 'modules');
         output.format = 'es';
@@ -226,16 +269,15 @@ async function rollupBuild(opts: CompileBundleOptions) {
 export function rollupWatch(opts: CompileBundleOptions) {
     const isProduction = opts.mode === 'production';
 
-    const options:RollupWatchOptions = {
+    const options: RollupWatchOptions = {
         ...getRollupInput(opts),
         output: [{
-            sourcemap: !isProduction || opts.stats,
+            sourcemap: opts.sourceMap,
             compact: opts.minify,
             dir: path.join(opts.dir, 'modules'),
             format: 'es'
         }],
-        watch: {
-        }
+        watch: {}
     };
 
     return watch(options);

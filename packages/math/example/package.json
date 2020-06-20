@@ -4,7 +4,7 @@
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "clean": "rimraf dist",
-    "watch": "tsc -p tsconfig.build.json --watch"
+    "watch": "tsc -w -p tsconfig.build.json"
   },
   "sideEffects": false,
   "devDependencies": {

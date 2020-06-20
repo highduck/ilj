@@ -4,7 +4,8 @@ const GL = WebGLRenderingContext;
 
 export enum BufferUsage {
     Static = GL.STATIC_DRAW,
-    Dynamic = GL.STREAM_DRAW
+    // dynamic instead of stream (emscripten guide)
+    Dynamic = GL.DYNAMIC_DRAW
 }
 
 export enum BufferType {
@@ -35,7 +36,7 @@ export class Buffer {
             GL.bufferData(this.type, data, this.usage);
             this.size = data.byteLength;
         } else {
-            GL.bufferData(this.type, this.size, this.usage);
+            // GL.bufferData(this.type, this.size, this.usage);
             GL.bufferSubData(this.type, 0, data);
         }
     }

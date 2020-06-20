@@ -24,7 +24,9 @@ export class Fsm {
 
     static update() {
         const w = Engine.current.world;
-        for (const fsm of w.query(Fsm)) {
+        const components = w.components(Fsm);
+        for (let i = 0; i < components.length; ++i) {
+            const fsm = components[i];
             if (fsm.state !== fsm.next) {
                 fsm.state?.onExit?.(fsm.entity);
                 fsm.next?.onEnter?.(fsm.entity);

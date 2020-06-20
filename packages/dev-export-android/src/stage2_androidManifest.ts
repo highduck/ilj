@@ -4,7 +4,7 @@ import {AndroidProjectContext} from "./context";
 
 export function patchAndroidManifest(ctx: AndroidProjectContext) {
 
-    const orientation = ctx.orientation === 'portrait' ? 'sensorPortrait' : 'sensorLandscape';
+    const orientation = ctx.pkg.orientation === 'portrait' ? 'sensorPortrait' : 'sensorLandscape';
 
     const removeStrings = [
         '<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />',
@@ -21,7 +21,7 @@ export function patchAndroidManifest(ctx: AndroidProjectContext) {
     ];
 
     console.info('replace MainActivity.java');
-    const manifestPath = path.join(ctx.androidProjDir,
+    const manifestPath = path.join(ctx.genProjDir,
         `app/src/main/AndroidManifest.xml`);
     let content = readFileSync(manifestPath, 'utf8');
     for (const k of removeStrings) {

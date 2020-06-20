@@ -9,17 +9,31 @@ async function tscAsync(args: string[]) {
             //detached: true,
             stdio: "inherit"
         });
-        child.on('close', () => {
-            resolve();
+        child.on('close', (code) => {
+            if (code === 0) {
+                resolve(code);
+            } else {
+                reject('tsc exit code: ' + code);
+            }
         });
     });
 }
 
 export interface TypeScriptCompileOptions {
-    configPath: string;
-    verbose?: boolean;
-    force?: boolean;
-    watch?: boolean;
+    tsconfig: string;
+    verbose: boolean;
+    force: boolean;
+    watch: boolean;
+    buildReferences: boolean;
+}
+
+function resolveDefaults(options?: Partial<TypeScriptCompileOptions>): TypeScriptCompileOptions {
+    const tsconfig = options?.tsconfig ?? './tsconfig.esm.json';
+    const verbose = options?.verbose ?? false;
+    const force = options?.force ?? false;
+    const watch = options?.watch ?? false;
+    const buildReferences = options?.buildReferences ?? true;
+    return {tsconfig, verbose, force, watch, buildReferences};
 }
 
 // --verbose: Prints out verbose logging to explain what’s going on (may be combined with any other flag)
@@ -27,17 +41,21 @@ export interface TypeScriptCompileOptions {
 // --clean: Deletes the outputs of the specified projects (may be combined with --dry)
 // --force: Act as if all projects are out of date
 // --watch: Watch mode (may not be combined with any flag except --verbose
-export async function buildTypeScript(options: TypeScriptCompileOptions) {
-    const args = ['--build'];
-    if (options.verbose) {
+export function buildTypeScript(options?: Partial<TypeScriptCompileOptions>) {
+    const opts = resolveDefaults(options);
+    const args: string[] = [];
+    if (opts.buildReferences) {
+        args.push('--build');
+    }
+    if (opts.verbose) {
         args.push('--verbose');
     }
-    if (options.force) {
+    if (opts.force) {
         args.push('--force');
     }
-    if (options.watch) {
+    if (opts.watch) {
         args.push('--watch');
     }
-    args.push(options.configPath);
+    args.push(opts.tsconfig);
     return tscAsync(args);
 }

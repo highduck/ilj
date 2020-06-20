@@ -1,14 +1,22 @@
 {
-  "extends": "./tsconfig.base.json",
+  "extends": "../../tsconfig.base.json",
   "compilerOptions": {
+    "noEmit": true,
     "baseUrl": ".",
+    "isolatedModules": false,
+    "rootDir": "./src",
     "paths": {
       "@highduck/math": [
-        "../math/src/index.ts"
+        "../math/src"
       ],
       "@highduck/anijson": [
-        "../anijson/src/index.ts"
+        "../anijson/src"
       ]
     }
-  }
+  },
+  "exclude": [
+    "./src",
+    "**/node_modules",
+    "dist/**"
+  ]
 }

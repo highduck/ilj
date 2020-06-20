@@ -18,6 +18,7 @@ function dispatchInteractiveEvent<T>(e: Entity, data: EventData<T>): boolean {
     if (e.touchable) {
         const receiver = e.tryGet(EventReceiver);
         if (receiver !== undefined) {
+            data.currentTarget = e;
             receiver.emit(data);
             if (data.processed) {
                 return true;
@@ -53,6 +54,12 @@ export class InteractiveManager {
     private readonly primaryMouse = new Vec2();
 
     constructor(readonly engine: Engine) {
+        this.handleMouseEvent = this.handleMouseEvent.bind(this);
+        this.handleTouchEvent = this.handleTouchEvent.bind(this);
+        this.handleKeyboardEvent = this.handleKeyboardEvent.bind(this);
+        engine.input.onMouse.on(this.handleMouseEvent);
+        engine.input.onTouch.on(this.handleTouchEvent);
+        engine.input.onKeyboard.on(this.handleKeyboardEvent);
     }
 
     get hitTarget(): Entity | undefined {
@@ -88,7 +95,8 @@ export class InteractiveManager {
             }
         }
 
-        for (const target of this.targetsCurr) {
+        for (let i = 0; i < this.targetsCurr.length; ++i) {
+            const target = this.targetsCurr[i];
             if (target.isValid) {
                 const interactive = target.tryGet(Interactive);
                 if (interactive && this.targetsPrev.indexOf(target) < 0) {
@@ -97,7 +105,8 @@ export class InteractiveManager {
             }
         }
 
-        for (const target of this.targetsPrev) {
+        for (let i = 0; i < this.targetsPrev.length; ++i) {
+            const target = this.targetsPrev[i];
             if (target.isValid) {
                 const interactive = target.tryGet(Interactive);
                 if (interactive && this.targetsCurr.indexOf(target) < 0) {
@@ -141,7 +150,8 @@ export class InteractiveManager {
         if (ev.type == "mousedown") {
             this.primaryMouse.set(ev.x, ev.y);
             this.pointerDown = true;
-            for (const target of this.targetsPrev) {
+            for (let i = 0; i < this.targetsPrev.length; ++i) {
+                const target = this.targetsPrev[i];
                 if (target.isValid) {
                     target.tryGet(Interactive)?.firePointerDown();
                 }
@@ -149,7 +159,8 @@ export class InteractiveManager {
         } else if (ev.type == "mouseup") {
             this.primaryMouse.set(ev.x, ev.y);
             this.pointerDown = false;
-            for (const target of this.targetsPrev) {
+            for (let i = 0; i < this.targetsPrev.length; ++i) {
+                const target = this.targetsPrev[i];
                 if (target.isValid) {
                     target.tryGet(Interactive)?.firePointerUp();
                 }
@@ -177,7 +188,8 @@ export class InteractiveManager {
                 this.mouseActive = false;
                 this.pointerDown = true;
                 this.process();
-                for (const target of this.targetsPrev) {
+                for (let i = 0; i < this.targetsPrev.length; ++i) {
+                    const target = this.targetsPrev[i];
                     if (target.isValid) {
                         target.tryGet(Interactive)?.firePointerDown();
                     }
@@ -190,7 +202,8 @@ export class InteractiveManager {
                 this.primaryTouchID = -1;
                 this.primaryTouch.set(0, 0);
                 this.pointerDown = false;
-                for (const target of this.targetsPrev) {
+                for (let i = 0; i < this.targetsPrev.length; ++i) {
+                    const target = this.targetsPrev[i];
                     if (target.isValid) {
                         target.tryGet(Interactive)?.firePointerUp();
                     }

@@ -1,8 +1,10 @@
 {
-  "extends": "./tsconfig.base.json",
+  "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "composite": true,
-    "rootDir": "./src"
+    "rootDir": "src",
+    "outDir": "dist",
+    "isolatedModules": false
   },
   "references": [
     {
@@ -12,7 +14,14 @@
       "path": "../anijson/tsconfig.esm.json"
     }
   ],
+  "files": [
+    "./src/index.ts"
+  ],
   "include": [
-    "./src/**/*"
+    "./src/**/*.ts"
+  ],
+  "exclude": [
+    "dist/**",
+    "**/node_modules"
   ]
 }

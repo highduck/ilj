@@ -1,8 +1,10 @@
 {
-  "extends": "./tsconfig.base.json",
+  "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "composite": true,
-    "rootDir": "./src",
+    "rootDir": "src",
+    "outDir": "dist",
+    "isolatedModules": false
   },
   "references": [
     {

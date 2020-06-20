@@ -75,8 +75,8 @@ export class RandomColorRange {
 
     copyFrom(o: RandomColorRange): this {
         this.colors.length = 0;
-        for (const c of o.colors) {
-            this.colors.push(c.copy());
+        for (let i = 0; i < o.colors.length; ++i) {
+            this.colors.push(o.colors[i].copy());
         }
         this.mode = o.mode;
         this.state = o.state;

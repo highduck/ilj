@@ -43,7 +43,7 @@ export class DrawingState {
     readonly canvasStack: number[] = [];
     canvasHead = 0;
 
-    readonly matrix: Matrix2D = new Matrix2D();
+    readonly matrix = new Matrix2D();
     readonly matrixStack: number[] = [];
     matrixHead = 0;
 
@@ -69,7 +69,7 @@ export class DrawingState {
     readonly programStack: Program[] = [];
     programHead = 0;
 
-    readonly mvp: Matrix4 = new Matrix4();
+    readonly mvp = new Matrix4();
     readonly mvpStack: number[] = [];
     mvpHead = 0;
 
@@ -90,17 +90,18 @@ export class DrawingState {
     }
 
     finish() {
-        // debug
-        assert(this.matrixHead === 0);
-        assert(this.blendingHead === 0);
-        assert(this.scissorsHead === 0);
-        assert(this.colorMultiplierHead === 0);
-        assert(this.colorOffsetHead === 0);
-        assert(this.programHead === 0);
-        assert(this.textureHead === 0);
-        assert(this.mvpHead === 0);
-        assert(this.uvHead === 0);
-        assert(this.canvasHead === 0);
+        if (!!DEBUG) {
+            assert(this.matrixHead === 0);
+            assert(this.blendingHead === 0);
+            assert(this.scissorsHead === 0);
+            assert(this.colorMultiplierHead === 0);
+            assert(this.colorOffsetHead === 0);
+            assert(this.programHead === 0);
+            assert(this.textureHead === 0);
+            assert(this.mvpHead === 0);
+            assert(this.uvHead === 0);
+            assert(this.canvasHead === 0);
+        }
 
         this.matrixHead = 0;
         this.blendingHead = 0;

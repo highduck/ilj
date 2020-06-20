@@ -1,0 +1,16 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "composite": true,
+    "rootDir": "src",
+    "outDir": "dist"
+  },
+  "include": [
+    "./src/index.ts",
+    "./src/Poly2Tri.ts"
+  ],
+  "exclude": [
+    "**/node_modules",
+    "dist/**"
+  ]
+}

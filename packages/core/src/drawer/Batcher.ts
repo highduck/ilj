@@ -1,8 +1,9 @@
-import {Buffer, BufferType, BufferUsage} from "../graphics/Buffer";
+import {Buffer, BufferType} from "../graphics/Buffer";
 import {Graphics} from "../graphics/Graphics";
 import {VERTEX_2D} from "../graphics/VertexDecl";
 import {assert} from "../util/assert";
 import {BatcherState} from "./BatcherState";
+import {BufferedBuffer} from "./BufferedBuffer";
 
 const MAX_INDICES_LIMIT = 0x100000;
 const MAX_VERTICES_LIMIT = 0xFFFF;
@@ -11,8 +12,8 @@ export class Batcher {
 
     readonly state = new BatcherState(this.graphics);
 
-    private readonly vertexBuffer: Buffer;
-    private readonly indexBuffer: Buffer;
+    private readonly vertexBuffer: BufferedBuffer;
+    private readonly indexBuffer: BufferedBuffer;
     private readonly vertexMaxSize: number;
     private readonly vertexIndexMax: number;
     private verticesCount = 0;
@@ -33,9 +34,11 @@ export class Batcher {
         const verticesLimit = MAX_VERTICES_LIMIT;
         const indicesLimit = MAX_INDICES_LIMIT;
 
-        assert(vertexMaxSize > 0 && vertexMaxSize % 4 === 0);
-        assert(verticesLimit > 0 && verticesLimit <= MAX_VERTICES_LIMIT);
-        assert(indicesLimit > 0 && indicesLimit <= MAX_INDICES_LIMIT);
+        if (!!DEBUG) {
+            assert(vertexMaxSize > 0 && vertexMaxSize % 4 === 0);
+            assert(verticesLimit > 0 && verticesLimit <= MAX_VERTICES_LIMIT);
+            assert(indicesLimit > 0 && indicesLimit <= MAX_INDICES_LIMIT);
+        }
 
         this.vertexSize = vertexMaxSize;
         this.vertexMaxSize = vertexMaxSize;
@@ -46,8 +49,8 @@ export class Batcher {
         this.vertexMemory = new Uint8Array(verticesLimit * vertexMaxSize);
         this.indexMemory = new Uint16Array(indicesLimit);
 
-        this.vertexBuffer = new Buffer(this.graphics, BufferType.Vertex, BufferUsage.Dynamic);
-        this.indexBuffer = new Buffer(this.graphics, BufferType.Index, BufferUsage.Dynamic);
+        this.vertexBuffer = new BufferedBuffer(this.graphics, BufferType.Vertex);
+        this.indexBuffer = new BufferedBuffer(this.graphics, BufferType.Index);
     }
 
     getVertexIndex(baseVertex = 0): number {
@@ -57,6 +60,11 @@ export class Batcher {
     dispose() {
         this.vertexBuffer.dispose();
         this.indexBuffer.dispose();
+    }
+
+    nextFrame() {
+        this.vertexBuffer.nextFrame();
+        this.indexBuffer.nextFrame();
     }
 
     draw() {
@@ -70,8 +78,10 @@ export class Batcher {
         if (this.state.curr.program) {
             const program = this.state.curr.program;
 
-            this.vertexBuffer.upload(new Uint8Array(this.vertexMemory.buffer, 0, this.nextVertexPointer << 2));
-            this.indexBuffer.upload(new Uint8Array(this.indexMemory.buffer, 0, this.nextIndexPointer << 1));
+            const vb = this.vertexBuffer.request();
+            const ib = this.indexBuffer.request();
+            vb.upload(new Uint8Array(this.vertexMemory.buffer, 0, this.nextVertexPointer << 2));
+            ib.upload(new Uint8Array(this.indexMemory.buffer, 0, this.nextIndexPointer << 1));
 
             program.bindAttributes();
             program.bindImage();
@@ -133,9 +143,7 @@ export class Batcher {
             this.graphics.gl.bindBuffer(ib.type, ib);
             program.bindAttributes();
             program.bindImage();
-            // program.enableVertexAttributes(vertices.vertexDeclaration);
             this.graphics.drawTriangles(indicesCount);
-            // _program.disableVertexAttributes(vertices.vertexDeclaration);
             program.unbindAttributes();
         }
     }

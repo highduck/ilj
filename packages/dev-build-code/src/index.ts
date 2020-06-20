@@ -1,64 +1,105 @@
-import {buildTypeScript} from "./tsc";
+import {buildTypeScript, TypeScriptCompileOptions} from "./tsc";
 import {compileBundle, CompileBundleOptions, watchBundle} from "./rollup";
 import rimraf from "rimraf";
 import path from "path";
-import {existsSync} from "fs";
+import {existsSync, readFileSync} from "fs";
 
 export * from './tsc';
 export * from './rollup';
 
-export interface BuildOptions {
-    compiler?: any;
-    bundle?: Partial<CompileBundleOptions>;
-    verbose?: boolean;
+export type BuildOptions = TypeScriptCompileOptions & CompileBundleOptions;
+
+function resolveTSConfig(tsconfig?: string): string {
+    if (tsconfig === undefined) {
+        for (const g of [
+            './tsconfig.esm.json',
+            './tsconfig.build.json',
+            './tsconfig.json'
+        ]) {
+            if (existsSync(g)) {
+                tsconfig = g;
+                break;
+            }
+        }
+    }
+    if (tsconfig === undefined) {
+        throw 'cannot guess default tsconfig!';
+    } else if (!existsSync(tsconfig)) {
+        throw 'tsconfig does not exist: ' + tsconfig;
+    }
+    return tsconfig;
 }
 
-export async function build(options?: BuildOptions) {
+function cleanOutput(options: Partial<BuildOptions>) {
+    console.debug('clean destination folder...');
+
+    const dir = options.dir ?? 'www';
+    try {
+        rimraf.sync(path.join(dir, 'modules'));
+        rimraf.sync(path.join(dir, 'all.js*'));
+        rimraf.sync('**/*.tsbuildinfo');
+    } catch {
+        return false;
+    }
+    return true;
+}
+
+interface Pkg {
+    version: string,
+    versionCode: number,
+    main: string
+}
+
+function setDefaults(options?: Partial<BuildOptions>): Partial<BuildOptions> {
+    const opts: Partial<BuildOptions> = options ?? {};
+    opts.tsconfig = resolveTSConfig(opts.tsconfig);
+
+    try {
+        const pkg: Partial<Pkg> = JSON.parse(readFileSync('./package.json', 'utf8'))
+        opts.inputMain = pkg.main;
+        opts.version = pkg.version;
+        opts.versionCode = pkg.versionCode;
+    } catch {
+        console.error('package.json not found, use default values');
+    }
+    return opts;
+}
+
+export async function build(options?: Partial<BuildOptions>) {
+    const opts = setDefaults(options);
+
     console.debug('build typescript...');
-    await buildTypeScript({
-        configPath: './tsconfig.esm.json',
-        verbose: options?.verbose
-    });
+    await buildTypeScript(opts);
 
-    console.debug('clean bundle...');
-    const dir = options?.bundle?.dir ?? 'www';
-    try {
-        rimraf.sync(path.join(dir, 'modules'));
-        rimraf.sync(path.join(dir, 'all.js'));
-    } catch {
-    }
+    cleanOutput(opts);
+
     console.debug('rollup to modules...');
-    await compileBundle(options?.bundle);
-    if (options?.bundle?.mode === 'production') {
+    opts.compat = false;
+    await compileBundle(opts);
+
+    if (opts.mode === 'production') {
         console.debug('rollup compat... (IIFE fallback)');
-        options.bundle.compat = true;
-        await compileBundle(options.bundle);
+        opts.compat = true;
+        await compileBundle(opts);
     }
 }
 
-export async function watch(options?: BuildOptions) {
-    console.debug('clean bundle...');
-    const dir = options?.bundle?.dir ?? 'www';
-    try {
-        rimraf.sync(path.join(dir, 'modules'));
-        rimraf.sync(path.join(dir, 'all.js'));
-    } catch {
-    }
+export async function watch(options?: Partial<BuildOptions>) {
+    const opts = setDefaults(options);
 
-    console.debug('watch typescript project...');
+    cleanOutput(opts);
+    console.debug('build all TS references before watch...');
+    opts.watch = false;
+    await buildTypeScript(opts);
 
-    let tsconfig = './tsconfig.esm.json';
-    if (!existsSync(tsconfig)) {
-        tsconfig = './tsconfig.json';
-    }
-    const tsc = buildTypeScript({
-        configPath: tsconfig,
-        verbose: options?.verbose,
-        watch: true
-    });
+    console.debug('start watch typescript project...');
+    opts.watch = true;
+    opts.force = false;
+    const tsc = buildTypeScript(opts);
 
     console.debug('watch rollup...');
-    const rollup = watchBundle(options?.bundle);
+    const watcher = await watchBundle(opts); // wait start
 
-    await Promise.race([tsc, rollup]);
+    return {watcher, tsc};
+    // await rollup;
 }

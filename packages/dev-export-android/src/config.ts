@@ -12,5 +12,8 @@ export interface AndroidSigningConfigurations {
 }
 
 export interface AndroidProjectConfiguration {
-    basedir?: string;
+    basedir: string;
+    target: string;
+    mode: 'development'|'production';
+    debug: boolean;
 }

@@ -21,7 +21,8 @@ export class Graphics {
             //preserveDrawingBuffer: true, /// dev
             antialias: false,
             desynchronized: true,
-            powerPreference: "high-performance"
+            powerPreference: "high-performance",
+            failIfMajorPerformanceCaveat: true
         };
         const GL = canvas.getContext("webgl", options);
         if (GL == null) {

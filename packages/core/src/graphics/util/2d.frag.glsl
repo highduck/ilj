@@ -7,7 +7,7 @@ varying lowp vec4 vColorOffset;
 uniform lowp sampler2D uImage0;
 
 void main() {
-    vec4 pixelColor = texture2D(uImage0, vTexCoord, -0.5);
+    lowp vec4 pixelColor = texture2D(uImage0, vTexCoord, -0.5);
     pixelColor *= vColorMult;
     gl_FragColor = pixelColor + vColorOffset * pixelColor.wwww;
 }

@@ -9,17 +9,19 @@ export class EntityAge {
     lifeRemaining = 0;
 }
 
-const LIST: Entity[] = [];
+const toDispose: Entity[] = [];
 
 export function processEntityAge() {
-    LIST.length = 0;
-    for (const age of Engine.current.world.query(EntityAge)) {
+    toDispose.length = 0;
+    const ages = Engine.current.world.components(EntityAge);
+    for (let i = 0; i < ages.length; ++i) {
+        const age = ages[i];
         age.lifeRemaining -= age.entity.dt;
         if (age.lifeRemaining <= 0) {
-            LIST[LIST.length] = age.entity;
+            toDispose[toDispose.length] = age.entity;
         }
     }
-    for (const e of LIST) {
-        e.dispose();
+    for (let i = 0; i < toDispose.length; ++i) {
+        toDispose[i].dispose();
     }
 }

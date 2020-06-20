@@ -11,7 +11,7 @@ export class MovementSystem {
         const width = 768;
         const height = 1024;
 
-        for (const [tr, motion] of this.root.world.query(Transform2D, Motion)) {
+        for (const [tr, motion] of this.root.world.query2(Transform2D, Motion)) {
             const dt = tr.entity.dt;
 
             tr.position.addScale(motion.velocity, dt);

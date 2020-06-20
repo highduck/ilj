@@ -1,12 +1,13 @@
 import {Particle} from "./Particle";
-import {getTypeID} from "../../util/TypeID";
+import {declTypeID} from "../../util/TypeID";
 import {Entity} from "../../ecs/Entity";
+import {ArraySwap} from "../../util/ArraySwap";
 
 export class ParticleLayer {
-    static TYPE_ID: number = getTypeID(ParticleLayer);
+    static TYPE_ID: number = declTypeID(ParticleLayer);
     readonly entity!: Entity;
 
-    particles: Particle[] = [];
+    readonly particles = new ArraySwap<Particle>();
     cycled = false;
     keepAlive = false;
 }

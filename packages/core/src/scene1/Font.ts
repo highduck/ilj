@@ -10,6 +10,7 @@ import {GlyphJson, FontJson, SpriteFlag} from "@highduck/anijson";
 const LF = '\n'.charCodeAt(0);
 
 const BOUNDS_BUILDER_TMP = new BoundsBuilder();
+const BOUNDS_RC_TMP = new Rect();
 
 type GlyphData = {
     json: GlyphJson,
@@ -126,7 +127,7 @@ export class Font {
     getLineBoundingBox(text: string, size: number,
                        begin: number, end: number,
                        lineHeight: number, lineSpacing: number,
-                       out?: Rect): Rect {
+                       out: Rect): Rect {
 
         const sc = size / this.unitsPerEM;
         const boundsBuilder = BOUNDS_BUILDER_TMP.reset();
@@ -168,7 +169,7 @@ export class Font {
     estimateTextDrawZone(text: string, size: number,
                          begin: number, end: number,
                          lineHeight: number, lineSpacing: number,
-                         out?: Rect): Rect {
+                         out: Rect): Rect {
 
         const sc = size / this.unitsPerEM;
         const boundsBuilder = BOUNDS_BUILDER_TMP.reset();
@@ -197,14 +198,12 @@ export class Font {
         return boundsBuilder.getResultRect(out);
     }
 
-    textBounds(text: string, format: TextFormat, rc: Rect, out?: Rect): Rect {
+    textBounds(text: string, format: TextFormat, rc: Rect, out: Rect): Rect {
         const begin = 0;
         const end = text.length;
 
-        out = this.getLineBoundingBox(
-            text, format.size, begin, end,
-            format.lineHeight, format.lineSpacing,
-            out);
+        this.getLineBoundingBox(text, format.size, begin, end,
+            format.lineHeight, format.lineSpacing, out);
 
         const cx = rc.x + rc.width * format.alignment.x;
         const cy = rc.y + rc.height * format.alignment.y;
@@ -227,7 +226,8 @@ export class Font {
             text, format.size,
             begin, end,
             format.lineHeight,
-            format.lineSpacing
+            format.lineSpacing,
+            BOUNDS_RC_TMP
         );
         const rcRelX = rc.x + rc.width * format.alignment.x;
         const rcRelY = rc.y + rc.height * format.alignment.y;

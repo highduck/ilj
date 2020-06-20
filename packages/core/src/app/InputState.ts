@@ -29,6 +29,10 @@ const TMP_MOUSE_EVENT = new AppMouseEvent();
 const TMP_TOUCH_EVENT = new AppTouchEvent();
 const TMP_KEYBOARD_EVENT = new AppKeyboardEvent();
 
+type MouseEventKeys = "mousedown" | "mouseup" | "mousemove" | "mouseleave" | "mouseenter" | "mouseover" | "wheel";
+type TouchEventKeys = "touchstart" | "touchmove" | "touchend" | "touchcancel";
+type KeyboardEventKeys = "keypress" | "keydown" | "keyup";
+
 export class InputState {
 
     dpr = 1;
@@ -49,58 +53,38 @@ export class InputState {
     mouseUp = false;
 
     constructor(private readonly canvas: HTMLCanvasElement) {
-        const add = canvas.addEventListener;
-        const mouse = (e: MouseEvent) => this.handleMouse(e);
-        add("mousedown", mouse);
-        add("mouseup", mouse);
-        add("mousemove", mouse);
-        add("mouseleave", mouse);
-        add("mouseenter", mouse);
-        add("mouseover", mouse);
-        add("wheel", mouse);
+        this.onMouseEvent = this.onMouseEvent.bind(this);
+        const mouseEvents: MouseEventKeys[] = ["mousedown", "mouseup", "mousemove", "mouseleave", "mouseenter", "mouseover", "wheel"];
+        for (let i = 0; i < mouseEvents.length; ++i) {
+            canvas.addEventListener(mouseEvents[i], this.onMouseEvent);
+        }
 
-        const touch = (e: TouchEvent) => this.handleTouch(e);
-        add("touchstart", touch, false);
-        add("touchmove", touch, false);
-        add("touchend", touch, false);
-        add("touchcancel", touch, false);
+        this.onTouchEvent = this.onTouchEvent.bind(this);
+        const touchEvents: TouchEventKeys[] = ["touchstart", "touchmove", "touchend", "touchcancel"];
+        for (let i = 0; i < touchEvents.length; ++i) {
+            canvas.addEventListener(touchEvents[i], this.onTouchEvent);
+        }
 
-        const doc = document.addEventListener;
-        const key = (e: KeyboardEvent) => this.handleKeyboard(e);
-        doc("keypress", key);
-        doc("keydown", key);
-        doc("keyup", key);
+        this.onKeyEvent = this.onKeyEvent.bind(this);
+        const keyEvents: KeyboardEventKeys[] = ["keypress", "keydown", "keyup"];
+        for (let i = 0; i < keyEvents.length; ++i) {
+            // TODO: check document vs window?
+            document.addEventListener(keyEvents[i], this.onKeyEvent);
+        }
 
-        const ignoreEvent = (e: Event) => {
-            const t = e.target;
-            if (t === canvas || t === canvas.parentNode) {
-                e.preventDefault();
-                return false;
-            }
-            return true;
-        };
-
-        // document.body.addEventListener('touchstart', function(e) {
-        //     if (e && e.preventDefault) { e.preventDefault(); }
-        //     if (e && e.stopPropagation) { e.stopPropagation(); }
-        //     return false;
-        // }, false);
-        // document.body.addEventListener('touchmove', function(e) {
-        //     if (e && e.preventDefault) { e.preventDefault(); }
-        //     if (e && e.stopPropagation) { e.stopPropagation(); }
-        //     return false;
-        // }, false);
-        window.addEventListener('contextmenu', ignoreEvent, false);
-        add('click', ignoreEvent, false);
+        this.cancelEvent = this.cancelEvent.bind(this);
+        window.addEventListener('contextmenu', this.cancelEvent, false);
+        canvas.addEventListener('click', this.cancelEvent, false);
     }
 
-    update() {
+    update(newDpr: number) {
         this.keyDown.clear();
         this.keyUp.clear();
         this.touchDown = false;
         this.touchUp = false;
         this.mouseDown = false;
         this.mouseUp = false;
+        this.dpr = newDpr;
     }
 
     isKeyPressed(key: string): boolean {
@@ -127,7 +111,7 @@ export class InputState {
         this.keyState.clear();
     }
 
-    private handleMouse(e: MouseEvent) {
+    private onMouseEvent(e: MouseEvent) {
         const t = e.target;
         if (!this.mouseState && t !== this.canvas && t !== this.canvas.parentNode) {
             return false;
@@ -149,9 +133,11 @@ export class InputState {
         event.button = e.button;
         event.wheel = e instanceof WheelEvent ? (e as WheelEvent).deltaY : 0;
         this.onMouse.emit(event);
+
+        return true;
     }
 
-    private handleTouch(e: TouchEvent) {
+    private onTouchEvent(e: TouchEvent) {
         const t = e.target;
         if (t !== this.canvas && t !== this.canvas.parentNode) {
             return false;
@@ -175,9 +161,11 @@ export class InputState {
             event.y = this.dpr * (touch.clientY - rect.top);
             this.onTouch.emit(event);
         }
+
+        return true;
     }
 
-    private handleKeyboard(e: KeyboardEvent) {
+    private onKeyEvent(e: KeyboardEvent) {
         switch (e.type) {
             case "keydown":
                 if (!e.repeat) {
@@ -203,4 +191,12 @@ export class InputState {
         this.onKeyboard.emit(event);
     }
 
+    private cancelEvent(e: Event) {
+        const t = e.target;
+        if (t === this.canvas || t === this.canvas.parentNode) {
+            e.preventDefault();
+            return false;
+        }
+        return true;
+    }
 }

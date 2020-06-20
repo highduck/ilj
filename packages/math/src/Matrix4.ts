@@ -21,20 +21,20 @@ export class Matrix4 {
     }
 
     orthoProjectionRH(left: number, right: number, bottom: number, top: number, z_near: number, z_far: number): this {
-        this.data.set([
-            2 / (right - left), 0, 0, 0,
-            0, 2 / (top - bottom), 0, 0,
-            0, 0, -2 / (z_far - z_near), 0,
-            -(right + left) / (right - left),
-            -(top + bottom) / (top - bottom),
-            -(z_far + z_near) / (z_far - z_near),
-            1,
-        ]);
+        const m = this.data;
+        m.fill(0);
+        m[0] = 2 / (right - left);
+        m[5] = 2 / (top - bottom);
+        m[10] = -2 / (z_far - z_near);
+        m[12] = -(right + left) / (right - left);
+        m[13] = -(top + bottom) / (top - bottom);
+        m[14] = -(z_far + z_near) / (z_far - z_near);
+        m[15] = 1;
         return this;
     }
 
-    ortho2D(x: number, y: number, width: number, height: number, z_near = -1, z_far = 1): this {
-        return this.orthoProjectionRH(x, x + width, y + height, y, z_near, z_far);
+    ortho2D(x: number, y: number, width: number, height: number): this {
+        return this.orthoProjectionRH(x, x + width, y + height, y, -1, 1);
     }
 
     writeToArray(arr: number[], start: number) {

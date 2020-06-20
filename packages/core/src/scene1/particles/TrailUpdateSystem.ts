@@ -6,8 +6,10 @@ export class TrailUpdateSystem {
     }
 
     process() {
-        for (const trail of this.engine.world.query(Trail)) {
-            if(trail.enabled) {
+        const trails = this.engine.world.components(Trail);
+        for (let i = 0; i < trails.length; ++i) {
+            const trail = trails[i];
+            if (trail.enabled) {
                 trail.update(trail.entity.dt);
             }
         }

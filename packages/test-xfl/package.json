@@ -7,12 +7,11 @@
     "start": "ilj start",
     "build": "ilj build -v"
   },
-  "devDependencies": {
-    "@highduck/cli": "0.0.1",
-    "@highduck/live-inspector": "0.0.1",
-    "typescript": "^3.9.5"
-  },
   "dependencies": {
-    "@highduck/core": "0.0.1"
+    "@highduck/core": "0.0.1",
+    "@highduck/live-inspector": "0.0.1"
+  },
+  "devDependencies": {
+    "@highduck/cli": "0.0.1"
   }
 }

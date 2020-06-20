@@ -31,13 +31,12 @@ interface Dictionary<T> {
     [key: string]: T;
 }
 
-interface TokensMap extends Map<string, StringToken[]> {
-}
+type TokensMap = Map<string, StringToken[]>;
 
 const _store = {
     version: 0,
-    locale: new Map<string, StringToken[]>(),
-    variables: new Map<string, StringToken[]>()
+    locale: new Map() as TokensMap,
+    variables: new Map() as TokensMap
 };
 
 function loadIntoStore(target: TokensMap, data: Dictionary<string>) {
@@ -61,11 +60,11 @@ const EMPTY_TOKENS: StringToken[] = [];
 
 export function getStringTokens(key: string): StringToken[] {
     let r = _store.locale.get(key);
-    if(r !== undefined) {
+    if (r !== undefined) {
         return r;
     }
     r = _store.variables.get(key);
-    if(r !== undefined) {
+    if (r !== undefined) {
         return r;
     }
     return EMPTY_TOKENS;
@@ -73,7 +72,8 @@ export function getStringTokens(key: string): StringToken[] {
 
 export function renderString(tokens: StringToken[]): string {
     let result = '';
-    for (const tk of tokens) {
+    for (let i = 0, e = tokens.length; i < e; ++i) {
+        const tk = tokens[i];
         if (tk.kind === 0) {
             result += tk.value;
         } else if (tk.kind === 1) {

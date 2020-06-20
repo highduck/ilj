@@ -284,7 +284,8 @@ function updateTarget(time: number, e: Entity, frames: KeyframeJson[]) {
             let x_scale = progress;
             let x_color = progress;
             if (k1.ease !== undefined) {
-                for (const easing_data of k1.ease) {
+                for (let i = 0; i < k1.ease.length; ++i) {
+                    const easing_data = k1.ease[i];
                     const x = ease(progress, easing_data.c, easing_data.v);
                     if (!easing_data.t) {
                         x_position = x_rotation = x_scale = x_color = x;

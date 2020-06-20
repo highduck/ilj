@@ -1,5 +1,5 @@
 import {FunctionalComponent, h} from "preact";
-import {Entity, ConstructorWithID} from "@highduck/core";
+import {ConstructorWithID, Entity} from "@highduck/core";
 import {BoolField} from "../fields/BoolField";
 import {COMPONENTS_CONFIG, ComponentViewConfig} from "./ComponentsConfig";
 import {ObjectEditor} from "./ObjectEditor";
@@ -32,7 +32,7 @@ export const EntityInspector: FunctionalComponent<EntityInspectorProps> = (props
         <div>Layer Mask: 0x{e.layerMask.toString(16).toUpperCase()}</div>,
         <hr/>
     ];
-    for (let comp of e.components.values()) {
+    for (let comp of e.components.values) {
         const type = comp.constructor as ConstructorWithID;
         const config = COMPONENTS_CONFIG.get(type);
         let isOpen = openedSet.get(type.TYPE_ID) ?? true;

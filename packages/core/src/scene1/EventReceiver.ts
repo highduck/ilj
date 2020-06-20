@@ -5,6 +5,8 @@ import {Entity} from "../ecs/Entity";
 export class EventData<T> {
     processed = false;
 
+    currentTarget = this.source;
+
     constructor(readonly type: string,
                 readonly source: Entity,
                 readonly payload: T) {

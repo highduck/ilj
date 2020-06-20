@@ -46,14 +46,13 @@ public class AdMob extends Plugin {
     @Override
     public void load() {
         final Config config = bridge.getConfig();
-        final String appId = config.getString("plugins.AdMob.appId", "ca-app-pub-3940256099942544~3347511713");
         final String[] testDevices = config.getArray("plugins.AdMob.testDevices", new String[0]);
         final Context context = this.getContext();
         final RequestConfiguration requestConfig = new RequestConfiguration.Builder()
                 .setTestDeviceIds(Arrays.asList(testDevices))
                 .build();
         MobileAds.setRequestConfiguration(requestConfig);
-        MobileAds.initialize(context, appId);
+        MobileAds.initialize(context);
         mViewGroup = (ViewGroup) ((ViewGroup) ((Activity) getActivity()).findViewById(android.R.id.content)).getChildAt(0);
     }
 

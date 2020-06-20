@@ -1,6 +1,7 @@
 import path from "path";
 import {fileURLToPath} from 'url';
 import {AndroidProjectConfiguration} from "./config";
+import {Pkg, readPkg} from "./pkg";
 
 
 interface CommonBuildConfiguration {
@@ -14,65 +15,54 @@ interface AndroidProjectDirs {
 }
 
 export class AndroidProjectContext {
+    pkg: Pkg;
 
     inputDirPub: string;
 
-    commonConfig: CommonBuildConfiguration = {
-        target: "android",
-        mode: "production"
-    };
+    buildTarget: string;
+    buildMode: 'production' | 'development';
 
-    tempDir: string;
+    basedir: string;
+    packagerPath: string;
+
+    genDir: string;
+    genProjDir: string;
+    genProjDirs: AndroidProjectDirs;
 
     dir: string;
-    basedir: string;
+    outputProjDir: string;
 
-    appName: string = 'I Have To Flap';
-    appId: string = 'i.have.to.flap';
     appIdPath: string; // package
-    appVersionName: string = '1.0.0';
-    appVersionCode: number = 1;
-
-    orientation = 'portrait';
-    backgroundColor = '#FF000000';
-
-    signingConfigPath: string = '/Users/ilyak/Dropbox/dev_keys/ihtf/signing.json';
 
     userCapacitorConfig: string;
 
-    packagerPath: string;
+    debug: boolean;
 
-    // capacitorPlugins: { [key: string]: string } = {
-    //     "@highduck/capacitor-admob": "^0.0.1",
-    //     "@highduck/capacitor-billing": "^0.0.1",
-    //     "@highduck/capacitor-firebase": "^0.0.1",
-    //     "@highduck/capacitor-play-games": "^0.0.1"
-    // };
-    capacitorPlugins = [
-        "@highduck/capacitor-admob",
-        "@highduck/capacitor-billing",
-        "@highduck/capacitor-firebase",
-        "@highduck/capacitor-play-games"
-    ];
-
-    androidProjDir: string;
-    androidProjDirs: AndroidProjectDirs;
-
-    constructor(config: AndroidProjectConfiguration) {
+    constructor(config: Partial<AndroidProjectConfiguration>) {
         this.basedir = config.basedir ?? process.cwd();
-        this.inputDirPub = 'dist/www/' + this.commonConfig.target;
-        this.dir = 'dist/projects';
-        this.tempDir = 'build/android_cap';
+        this.buildTarget = config.target ?? 'android';
+        this.buildMode = config.mode ?? 'development';
+        this.debug = config.debug ?? this.buildMode === 'development';
 
-        this.userCapacitorConfig = path.resolve(this.basedir, 'project_android/capacitor.config.json');
+        this.pkg = readPkg(this.basedir);
 
-        this.packagerPath = path.resolve(fileURLToPath(import.meta.url), '../..');
-        this.androidProjDir = path.join(this.dir, 'project-android');
-        this.androidProjDirs = {
-            pub: path.join(this.androidProjDir, 'app/src/main/assets/public'),
-            res: path.join(this.androidProjDir, 'app/src/main/res')
+        this.inputDirPub = 'dist/www/' + this.buildTarget;
+
+        // build dir structure
+        this.genDir = `build/${this.buildTarget}`;
+        this.genProjDir = path.join(this.genDir, 'android');
+        this.genProjDirs = {
+            pub: path.join(this.genProjDir, 'app/src/main/assets/public'),
+            res: path.join(this.genProjDir, 'app/src/main/res')
         };
 
-        this.appIdPath = this.appId.replace(/\./g, '/');
+        // output dir structure
+        this.dir = 'dist/projects';
+        this.outputProjDir = path.join(this.dir, this.pkg.name + '-' + this.buildTarget);
+
+        // different paths
+        this.userCapacitorConfig = path.resolve(this.basedir, 'project_android/capacitor.config.json');
+        this.packagerPath = path.resolve(fileURLToPath(import.meta.url), '../..');
+        this.appIdPath = this.pkg.appId.replace(/\./g, '/');
     }
 }

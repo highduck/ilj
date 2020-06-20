@@ -6,15 +6,12 @@
     "sourceMap": true,
     "strict": true,
     "declaration": true,
-    "outDir": "./dist",
-    "noEmitOnError": true,
     "allowSyntheticDefaultImports": true,
-    "esModuleInterop": true
-  },
-  "files": [
-    "src/index.ts"
-  ],
-  "include": [
-    "src/**/*.ts"
-  ]
+    "esModuleInterop": true,
+    "noImplicitReturns": true,
+    "isolatedModules": true,
+    "outDir": "./dist",
+    "jsx": "react",
+    "jsxFactory": "h"
+  }
 }

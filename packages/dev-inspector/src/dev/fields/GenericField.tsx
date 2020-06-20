@@ -34,12 +34,12 @@ export const GenericField = ({data, field}: GenericFieldProps) => {
                 return <Color4Field target={data} field={field}/>;
             } else if (val.toString !== undefined && val.toString() !== "[object Object]") {
                 return <div>{field}: {val.toString()}</div>;
-            } else if (val.constructor && val.constructor.name) {
-                return <div>{field}: [{val.constructor.name}
-                    <div style={{paddingLeft: "20px"}}>
-                        <ObjectEditor data={val}/>
-                    </div>
-                </div>;
+            // } else if (val.constructor && val.constructor.name) {
+            //     return <div>{field}: [{val.constructor.name}
+            //         <div style={{paddingLeft: "20px"}}>
+            //             <ObjectEditor data={val}/>
+            //         </div>
+            //     </div>;
             } else {
                 // console.assert(false);
             }

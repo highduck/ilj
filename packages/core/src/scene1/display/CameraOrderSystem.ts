@@ -9,7 +9,9 @@ export class CameraOrderSystem {
 
     process() {
         this.cameras.length = 0;
-        for (const camera of this.engine.world.query(Camera2D)) {
+        const cameras = this.engine.world.components(Camera2D);
+        for (let i = 0; i < cameras.length; ++i) {
+            const camera = cameras[i];
             if (camera.enabled) {
                 this.cameras.push(camera);
             }

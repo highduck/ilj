@@ -1,8 +1,7 @@
 import {Entity, Transform2D} from "@highduck/core";
 import {Asteroid, Bullet, Collision, GameState, Spaceship} from "../components";
-import {Vec2} from "@highduck/math";
+import {RndDefault, Vec2} from "@highduck/math";
 import {GameFactory} from "../factory";
-import {RndDefault} from "@highduck/math";
 
 const gameSize = new Vec2(768, 1024);
 
@@ -19,29 +18,31 @@ export class GameSystem {
         let spaceship: Entity | undefined;
         let hasAsteroids = false;
         let hasBullets = false;
-        for (const _ of w.query(Bullet, Collision).entities()) {
+        for (const _ of w.query2(Bullet, Collision).entities()) {
             hasBullets = true;
             break;
         }
-        for (const _ of w.query(Collision, Asteroid).entities()) {
+        for (const _ of w.query2(Collision, Asteroid).entities()) {
             hasAsteroids = true;
             break;
         }
-        for (const _ of w.query(Collision, Spaceship).entities()) {
+        for (const _ of w.query2(Collision, Spaceship).entities()) {
             spaceship = _;
             break;
         }
 
         let gameStatesCount = 0;
 
-        for (const gameState of w.query(GameState)) {
+        const gameStates = w.components(GameState);
+        for (let i = 0; i < gameStates.length; ++i) {
+            const gameState = gameStates[i];
             if (!spaceship) {
                 if (gameState.lives > 0) {
                     const newSpaceshipPosition = gameSize.copy().scale(0.5);
                     let clearToAddSpaceship = true;
 
                     for (const [_, asteroidTransform, asteroidCollision]
-                        of w.query(Asteroid, Transform2D, Collision)) {
+                        of w.query3(Asteroid, Transform2D, Collision)) {
                         // of w.query(Asteroid, Transform2D, Collision).components()) {
                         if (asteroidTransform.position.distance(newSpaceshipPosition) <=
                             asteroidCollision.radius + 50) {

@@ -562,7 +562,7 @@ export class AnimateDocExporter {
                 item.max_abs_scale,
                 resolution.scale * Math.min(1, item.estimated_scale)
             );
-            logDebug(`Render x${resolution.scale} : ${options.scale ?? 1}`);
+            //logDebug(`Render x${resolution.scale} : ${options.scale ?? 1}`);
             const result = renderShapes(scanner.output, options);
             if (result !== undefined) {
                 result.name = spriteId;

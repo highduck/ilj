@@ -23,7 +23,7 @@ function checkProgram(GL: WebGLRenderingContext, program: WebGLProgram): boolean
     return true;
 }
 
-const createShader = (GL: WebGLRenderingContext, code: string, type: GLenum, info: string): WebGLShader | null => {
+function createShader(GL: WebGLRenderingContext, code: string, type: GLenum, info: string): WebGLShader | null {
     const sh = GL.createShader(type);
     if (sh != null) {
         GL.shaderSource(sh, code);
@@ -36,7 +36,7 @@ const createShader = (GL: WebGLRenderingContext, code: string, type: GLenum, inf
         console.error("can't create shader");
     }
     return sh;
-};
+}
 
 function compile(GL: WebGLRenderingContext, vs: string, fs: string): WebGLProgram | null {
 
@@ -69,19 +69,19 @@ function compile(GL: WebGLRenderingContext, vs: string, fs: string): WebGLProgra
     return null;
 }
 
-const enableVertexAttrib = (GL: WebGLRenderingContext, loc: GLint, comps: number, compsize: number, type: GLenum, normalized: boolean, stride: number, offset: number): number => {
+function enableVertexAttrib(GL: WebGLRenderingContext, loc: GLint, comps: number, compsize: number, type: GLenum, normalized: boolean, stride: number, offset: number): number {
     if (loc >= 0) {
         GL.enableVertexAttribArray(loc);
         GL.vertexAttribPointer(loc, comps, type, normalized, stride, offset);
     }
     return compsize * comps;
-};
+}
 
-const disableVertexAttrib = (GL: WebGLRenderingContext, loc: GLint): void => {
+function disableVertexAttrib(GL: WebGLRenderingContext, loc: GLint): void {
     if (loc >= 0) {
         GL.disableVertexAttribArray(loc);
     }
-};
+}
 
 type UniformDataType = number | Matrix4 | Rect | Vec2 | Vec3 | Vec4 | Color4;
 
@@ -111,6 +111,13 @@ export class Program {
 
     bindAttributes() {
         const GL = this.graphics.gl;
+
+        // ??
+        // if (this.program) {
+        //     GL.bindAttribLocation(this.program, 0, '');
+        //     GL.enableVertexAttribArray(0);
+        // }
+
         const v = this.vertex;
         let off = 0;
 
@@ -152,11 +159,6 @@ export class Program {
 
         const GL = this.graphics.gl;
         GL.useProgram(this.program);
-
-        if (this.program) {
-            GL.bindAttribLocation(this.program, 0, '');
-            GL.enableVertexAttribArray(0);
-        }
 
         Program.current = this;
         if (Program.current) {
@@ -251,7 +253,7 @@ export class Program {
             this.attributes.set(name, loc);
             return loc;
         }
-        return this.attributes.get(name) || -1;
+        return this.attributes.get(name) ?? -1;
     }
 
     private getUniform(name: string): WebGLUniformLocation | null {
@@ -261,6 +263,6 @@ export class Program {
             this.uniforms.set(name, uniform);
             return uniform;
         }
-        return this.uniforms.get(name) || null;
+        return this.uniforms.get(name) ?? null;
     }
 }

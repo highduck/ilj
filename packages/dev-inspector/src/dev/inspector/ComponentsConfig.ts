@@ -35,7 +35,7 @@ export interface ComponentViewConfig {
 }
 
 export const COMPONENTS_CONFIG = new Map<ConstructorWithID, ComponentViewConfig>();
-export const COMPONENTS_SEVERITY:ConstructorWithID[] = [
+export const COMPONENTS_SEVERITY: ConstructorWithID[] = [
     Transform2D,
     Interactive,
     MovieClipTarget,

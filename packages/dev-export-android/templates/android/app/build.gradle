@@ -15,8 +15,8 @@ android {
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     signingConfigs {
-        /**{SIGNING_CONFIG: debug} **/
-        /**{SIGNING_CONFIG: release} **/
+        /**{SIGNING_CONFIG: debug}**/
+        /**{SIGNING_CONFIG: release}**/
     }
     buildTypes {
         debug {
@@ -42,7 +42,7 @@ android {
 //            pseudoLocalesEnabled false
 //            zipAlignEnabled true
 
-            /**{SIGNING_ENABLE: debug} **/
+            /**{SIGNING_ENABLE: debug}**/
         }
         release {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
@@ -59,7 +59,7 @@ android {
             firebaseCrashlytics {
                 mappingFileUploadEnabled false
             }
-            /**{SIGNING_ENABLE: release} **/
+            /**{SIGNING_ENABLE: release}**/
         }
     }
     buildToolsVersion = '29.0.3'

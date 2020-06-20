@@ -84,7 +84,7 @@ export class ESprite {
         const rc = new Rect().copyFrom(rc0);
 
         if (this.image.findTrimZone(3, 0, rc)) {
-            logSavedArea(rc0, rc);
+            // logSavedArea(rc0, rc);
             if (rc.empty) {
                 return undefined;
             }

@@ -59,6 +59,9 @@ export class Drawer {
         this.batcher.state.apply();
         this.batcher.flush();
         this.state.finish();
+
+        // maybe place explicit somewhere else
+        this.batcher.nextFrame();
     }
 
     writeIndex(index: number /* u16 */) {
@@ -347,7 +350,9 @@ export class Drawer {
     }
 
     writeIndices(indices: Uint16Array, base_vertex = 0 /* u16 */) {
-        assert((indices.length % 3) === 0);
+        if (!!DEBUG) {
+            assert((indices.length % 3) === 0);
+        }
         const index = this.batcher.getVertexIndex(base_vertex);
         let i = 0;
         while (i < indices.length) {

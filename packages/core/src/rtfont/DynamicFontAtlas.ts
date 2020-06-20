@@ -1,6 +1,6 @@
 import {Engine} from "../Engine";
 import {Texture} from "../graphics/Texture";
-import {AssetRef, Resources} from "../util/Resources";
+import {Resources} from "../util/Resources";
 import {DynamicFont} from "../rtfont/DynamicFont";
 
 const SPACE_REGEX = /\s/gm;
@@ -24,32 +24,26 @@ export interface CharacterData {
     dv: number;
 }
 
-function forEachDynamicFontAtlas(fn: (atlas: DynamicFontAtlas) => void) {
-    const lookup = Resources.table.get(DynamicFont.TYPE_ID);
-    if (lookup === undefined) {
+export function updateDynamicFonts() {
+    const objects = Resources.objects(DynamicFont);
+    if (objects === undefined) {
         return;
     }
-
-    for (const ref of (lookup as Map<string, AssetRef<DynamicFont>>).values()) {
-        const dat = ref.data;
-        if (dat !== undefined) {
-            fn(dat.atlas);
-        }
+    for (let i = 0; i < objects.length; ++i) {
+        const font = objects[i].data;
+        font !== undefined && font.atlas.dirty && font.atlas.updateTexture();
     }
-}
-
-export function updateDynamicFonts() {
-    forEachDynamicFontAtlas((atlas) => {
-        if (atlas.dirty) {
-            atlas.updateTexture();
-        }
-    });
 }
 
 export function resetDynamicFonts() {
-    forEachDynamicFontAtlas((atlas) => {
-        atlas.resetSheet('');
-    });
+    const objects = Resources.objects(DynamicFont);
+    if (objects === undefined) {
+        return;
+    }
+    for (let i = 0; i < objects.length; ++i) {
+        const font = objects[i].data;
+        font !== undefined && font.atlas.dirty && font.atlas.resetSheet('');
+    }
 }
 
 const fallbackFonts = '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif';

@@ -33,16 +33,16 @@ export class Signal<T> {
 
     emit(event: T): void {
         /** Update any general listeners */
-        for (const listener of this.listeners) {
-            listener(event);
+        for (let i = 0, e = this.listeners.length; i < e; ++i) {
+            this.listeners[i](event);
         }
 
         /** Clear the `once` queue */
         if (this.onceListeners.length > 0) {
             const toCall = this.onceListeners;
             this.onceListeners = [];
-            for (const listener of toCall) {
-                listener(event);
+            for (let i = 0, e = toCall.length; i < e; ++i) {
+                toCall[i](event);
             }
         }
     }

@@ -6,16 +6,14 @@
   },
   "scripts": {
     "ci": "run build && ilj --help",
-    "build": "tsc -b tsconfig.esm.json --verbose",
-    "watch": "tsc -b tsconfig.esm.json --watch --force --verbose",
-    "clean": "rimraf dist/"
+    "build": "tsc -b tsconfig.esm.json",
+    "watch": "tsc -b -w tsconfig.esm.json ",
+    "clean": "rimraf dist"
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.js",
   "type": "module",
   "dependencies": {
-    "@capacitor/cli": "^2.2.0",
-    "@highduck/anijson": "0.0.1",
     "@highduck/export-android": "^0.0.1",
     "@highduck/exporter": "0.0.1",
     "@highduck/tools-build-code": "^0.0.1",

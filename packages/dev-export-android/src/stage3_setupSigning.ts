@@ -4,13 +4,15 @@ import {AndroidProjectContext} from "./context";
 import {AndroidSigningConfig, AndroidSigningConfigurations} from "./config";
 
 export function setupSigning(ctx: AndroidProjectContext) {
+    const configPath = ctx.pkg.androidSigningConfig;
+    if (configPath === undefined) {
+        return;
+    }
+
     console.log("setup android signing keys");
-    const configPath = ctx.signingConfigPath;
     const configDir = path.dirname(configPath);
-
     const config = JSON.parse(readFileSync(configPath, 'utf8')) as AndroidSigningConfigurations;
-
-    const appDir = path.join(ctx.androidProjDir, 'app');
+    const appDir = path.join(ctx.genProjDir, 'app');
     {
         const filepath = path.join(appDir, 'build.gradle');
         let content = readFileSync(filepath, 'utf8');
@@ -27,7 +29,7 @@ function replaceSigningConfig(content: string,
                               config?: AndroidSigningConfig): string {
     if (config) {
         const keyPathDebug = path.resolve(basedir, config.storeFilePath);
-        content = content.replace(`/** {SIGNING_CONFIG: ${mode}} **/`,
+        content = content.replace(`/**{SIGNING_CONFIG: ${mode}}**/`,
             `${mode} {
     storeFile file('${path.relative(androidAppDir, keyPathDebug)}')
     storePassword '${config.storePassword}'
@@ -35,7 +37,7 @@ function replaceSigningConfig(content: string,
     keyPassword '${config.keyPassword}'
 }`);
 
-        content = content.replace(`/** {SIGNING_ENABLE: ${mode}} **/`,
+        content = content.replace(`/**{SIGNING_ENABLE: ${mode}}**/`,
             `signingConfig signingConfigs.${mode}`);
     }
     return content;

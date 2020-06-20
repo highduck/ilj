@@ -46,7 +46,7 @@ export class TrailDemo {
         this.mouse = base.create();
         this.mouse.name = "Target";
         this.mouse.set(Transform2D);
-        this.mouse.set(TargetFollow).cameraPointer = engine.root.findChild("MainCamera");
+        this.mouse.set(TargetFollow).cameraPointer = engine.root.find("MainCamera");
         this.mouse.touchable = false;
 
         this.ps = base.create();

@@ -70,7 +70,8 @@ function updateEntityLayout(layout: Layout) {
 }
 
 export function updateLayout(engine: Engine) {
-    for (const layout of engine.world.query(Layout)) {
-        updateEntityLayout(layout);
+    const layouts = engine.world.components(Layout);
+    for (let i = 0; i < layouts.length; ++i) {
+        updateEntityLayout(layouts[i]);
     }
 }

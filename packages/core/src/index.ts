@@ -45,6 +45,7 @@ export * from './scene1/display/DisplayArc';
 export * from './scene1/display/DisplaySprite';
 export * from './scene1/display/MovieClip2D';
 export * from './scene1/display/Camera2D';
+export * from './scene1/display/Bounds2D';
 export * from './scene1/ani/InteractiveManager';
 export * from './scene1/ani/Interactive';
 export * from './scene1/ani/Button';
@@ -69,3 +70,6 @@ export * from './scene1/TextFormat';
 export * from './graphics/Texture';
 
 export * from './loaders/loadBundle';
+
+export * from './util/ArrayRun'
+export * from './util/ArraySwap'

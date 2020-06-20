@@ -102,13 +102,11 @@ export class Particle {
             case ParticleScaleMode.Range: {
                 const time_max = this.scaleOffTime > 0.0 ? this.scaleOffTime : this.timeTotal;
                 const ratio = 1 - saturate(this.time / time_max);
-                this.sx =
-                    this.sy = lerp(this.scaleStart, this.scaleEnd, ratio);
+                this.sx = this.sy = lerp(this.scaleStart, this.scaleEnd, ratio);
             }
                 break;
             default:
-                this.sx =
-                    this.sy = this.scaleStart;
+                this.sx = this.sy = this.scaleStart;
                 break;
         }
         //

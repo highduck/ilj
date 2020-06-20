@@ -3,7 +3,9 @@ import {MovieClip2D} from "./MovieClip2D";
 
 export function updateMovieClips() {
     const engine = Engine.current;
-    for (const mov of engine.world.query(MovieClip2D)) {
+    const movies = engine.world.components(MovieClip2D);
+    for (let i = 0; i < movies.length; ++i) {
+        const mov = movies[i];
         if (mov.playing) {
             mov._time += mov.entity.dt * mov.fps;
             mov.dirty = true;

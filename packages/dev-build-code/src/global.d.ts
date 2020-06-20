@@ -37,3 +37,12 @@ declare module '@rollup/plugin-virtual' {
 
     export default function virtual(options?: any): Plugin;
 }
+
+
+declare module 'rollup-plugin-postcss' {
+    import {Plugin} from 'rollup';
+
+    export default function (options?: any): Plugin;
+}
+
+

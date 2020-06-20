@@ -7,11 +7,13 @@ import {spawn} from 'child_process';
 console.debug('🚀 ilj tools 🚀');
 
 function run(file) {
-    spawn('node', [
-        '--experimental-specifier-resolution=node',
-        file,
+    //console.log(process.argv);
+    const args = [
+        '--experimental-specifier-resolution=node', file,
         ...process.argv.splice(2)
-    ], {
+    ];
+    //console.log(args);
+    spawn('node', args, {
         cwd: process.cwd(),
         //detached: true,
         stdio: "inherit"

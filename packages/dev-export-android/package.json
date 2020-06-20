@@ -6,8 +6,7 @@
   },
   "scripts": {
     "ci": "run build",
-    "build": "tsc -b --force",
-    "watch": "tsc -b -w --force",
+    "build": "tsc -b tsconfig.esm.json",
     "clean": "rimraf ./dist/"
   },
   "main": "./dist/index.js",

@@ -1,14 +1,14 @@
 import path from "path";
 import fs from "fs";
 import yargs from "yargs";
-import {copyFolderRecursiveSync} from "./common/utility";
 import console from "./common/log";
 import {appicon} from "./bins/appicon";
 import {exportAssets, optimizeImageFile} from "@highduck/exporter";
-import {build as ccBuild, watch as ccWatch} from '@highduck/tools-build-code';
-import {exportAndroid} from '@highduck/export-android';
+import {build as ccBuild, BuildOptions, watch as ccWatch} from '@highduck/tools-build-code';
 import browserSync from "browser-sync";
 import {BuildMode, PlatformType} from "./proj/NProject";
+import {exportAndroid} from "@highduck/export-android";
+import {copyFolderRecursiveSync} from "./common/utility";
 
 const args = yargs
     .scriptName('ilj')
@@ -87,30 +87,39 @@ const args = yargs
                 desc: "only project generation",
                 type: 'boolean',
                 default: false
-            }
+            },
+            stats: {type: 'boolean', alias: 's', default: undefined},
+            debug: {type: 'boolean', alias: 'd', default: undefined}
         }),
         async (args) => {
             const platform: PlatformType = args.platform as PlatformType;
             const target = platform;
             const verbose = args.verbose as boolean;
             const dest = `dist/www/${target}`;
+
             if (args.proj === false) {
-                await ccBuild({
-                    bundle: {
-                        mode: args.mode as BuildMode,
-                        target: target,
-                        platform: platform,
-                        stats: true,
-                        dir: dest,
-                        verbose
-                    },
-                    verbose
-                });
-                await exportAssets("assets", path.join(dest, 'assets'));
+                const opts: Partial<BuildOptions> = {
+                    mode: args.mode as BuildMode,
+                    target: target,
+                    platform: platform,
+                    dir: dest,
+                    verbose,
+
+                };
+                if (args.stats !== undefined) {
+                    opts.stats = args.stats;
+                }
+                if (args.debug !== undefined) {
+                    opts.debug = args.debug;
+                }
+
+                const bb = ccBuild(opts);
+                const aa = exportAssets("assets", path.join(dest, 'assets'));
+                await Promise.all([aa, bb]);
                 copyFolderRecursiveSync('public_' + target, dest);
             }
             if (platform === 'android') {
-                exportAndroid();
+                exportAndroid(undefined, target, args.mode as BuildMode, args.debug);
             }
         })
     .command('start', 'Watch mode', (yargs) => yargs.options({}),
@@ -120,22 +129,23 @@ const args = yargs
             const verbose = true;
             const buildRoot = `build/${target}`;
 
-            await exportAssets("assets", `${buildRoot}/content/assets`);
-
-            ccWatch({
-                bundle: {
-                    modules: true,
-                    mode: 'development',
-                    target: target,
-                    platform: platform,
-                    stats: true,
-                    minify: false,
-                    compat: false,
-                    dir: `${buildRoot}/scripts`,
-                    verbose
-                },
+            const watchTask = ccWatch({
+                modules: true,
+                mode: 'development',
+                target: target,
+                platform: platform,
+                stats: true,
+                minify: false,
+                compat: false,
+                debug: true,
+                sourceMap: true,
+                dir: `${buildRoot}/scripts`,
                 verbose
-            }).then();
+            });
+
+            const assetsTask = exportAssets("assets", `${buildRoot}/content/assets`);
+
+            await Promise.all([watchTask, assetsTask]);
 
             try {
                 const p = browserSync.get('ll');
@@ -166,6 +176,9 @@ const args = yargs
             }
             bs.init({
                 server: roots
+            });
+            await new Promise((resolve) => {
+                // wait until kill
             });
         })
     .onFinishCommand(

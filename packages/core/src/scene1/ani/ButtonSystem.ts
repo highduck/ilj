@@ -4,10 +4,17 @@ import {Entity} from "../../ecs/Entity";
 import {Interactive} from "./Interactive";
 import {MovieClip2D} from "../display/MovieClip2D";
 import {Cursor} from "../../app/GameView";
-import {reach, reachDelta, Color4} from "@highduck/math";
+import {Color4, reach, reachDelta} from "@highduck/math";
 import {Engine} from "../../Engine";
-import {EventReceiver} from "../EventReceiver";
+import {EventData, EventReceiver} from "../EventReceiver";
 import {InteractiveManagerEvent} from "./InteractiveManager";
+
+function initBaseTransform(btn: Button, transform: Transform2D) {
+    btn.baseColorMultiplier.copyFrom(transform.colorMultiplier);
+    btn.baseColorOffset.copyFrom(transform.colorOffset);
+    btn.baseScale.copyFrom(transform.scale);
+    btn.baseSkew.copyFrom(transform.skew);
+}
 
 function startPostTween(btn: Button) {
     btn.timePost = Math.max(1 - 0.3 * Math.random(), btn.timePost);
@@ -18,56 +25,61 @@ function handleBackButton(btn: Button) {
     startPostTween(btn);
 }
 
-function initBaseTransform(btn: Button, transform: Transform2D) {
-    btn.baseColorMultiplier.copyFrom(transform.colorMultiplier);
-    btn.baseColorOffset.copyFrom(transform.colorOffset);
-    btn.baseScale.copyFrom(transform.scale);
-    btn.baseSkew.copyFrom(transform.skew);
+function onOver(e: Entity) {
+    const btn = e.tryGet(Button);
+    if (btn !== undefined) {
+        Engine.current.audio.playSound(btn.skin.sfxOver);
+    }
+}
+
+function onOut(e: Entity) {
+    const btn = e.tryGet(Button);
+    const interactive = e.tryGet(Interactive);
+    if (btn !== undefined) {
+        if (interactive !== undefined && interactive.pushed) {
+            startPostTween(btn);
+        }
+        Engine.current.audio.playSound(btn.skin.sfxOut);
+    }
+}
+
+function onDown(e: Entity) {
+    const btn = e.tryGet(Button);
+    if (btn !== undefined) {
+        Engine.current.audio.playSound(btn.skin.sfxDown);
+    }
+}
+
+function onClicked(e: Entity) {
+    const btn = e.tryGet(Button);
+    if (btn !== undefined) {
+        Engine.current.audio.playSound(btn.skin.sfxClick);
+        startPostTween(btn);
+        btn.clicked.emit(e);
+
+        // TODO:
+        // if (e.name) {
+        //     analytics_event("click", e.name);
+        // }
+    }
+}
+
+function onBackButton(data: EventData<unknown>):void {
+    const e = data.currentTarget;
+    const btn = e.tryGet(Button);
+    if (btn !== undefined && btn.asBackButton) {
+        handleBackButton(btn);
+        data.processed = true;
+    }
 }
 
 function initEvents(e: Entity) {
     const interactive = e.getOrCreate(Interactive);
-    interactive.onOver.on(e => {
-        const btn = e.tryGet(Button);
-        if (btn) {
-            e.engine.audio.playSound(btn.skin.sfxOver);
-        }
-    });
-    interactive.onOut.on(e => {
-        const btn = e.tryGet(Button);
-        const interactive = e.tryGet(Interactive);
-        if (btn) {
-            if (interactive && interactive.pushed) {
-                startPostTween(btn);
-            }
-            e.engine.audio.playSound(btn.skin.sfxOut);
-        }
-    });
-    interactive.onDown.on(e => {
-        const btn = e.tryGet(Button);
-        if (btn) {
-            e.engine.audio.playSound(btn.skin.sfxDown);
-        }
-    });
-    interactive.onClicked.on((e: Entity) => {
-        const btn = e.tryGet(Button);
-        if (btn) {
-            e.engine.audio.playSound(btn.skin.sfxClick);
-            startPostTween(btn);
-            btn.clicked.emit(e);
-            if (e.name) {
-                // TODO:
-                // analytics_event("click", e.name);
-            }
-        }
-    });
-    e.getOrCreate(EventReceiver).hub.on(InteractiveManagerEvent.BackButton, (ev) => {
-        const btn = e.tryGet(Button);
-        if (btn !== undefined && btn.asBackButton) {
-            handleBackButton(btn);
-            ev.processed = true;
-        }
-    });
+    interactive.onOver.on(onOver);
+    interactive.onOut.on(onOut);
+    interactive.onDown.on(onDown);
+    interactive.onClicked.on(onClicked);
+    e.getOrCreate(EventReceiver).hub.on(InteractiveManagerEvent.BackButton, onBackButton);
 }
 
 const PUSH_COLOR_0 = new Color4(1, 1, 1, 1);
@@ -107,15 +119,20 @@ export class ButtonSystem {
     }
 
     process() {
-        for (const e of this.engine.world.query(Button, Interactive).entities()) {
+        const components = this.engine.world.components(Interactive);
+        for (let i = 0; i < components.length; ++i) {
+            const interactive = components[i];
+            const e = interactive.entity;
             const dt = e.dt;
-            const btn = e.get(Button);
-            const interactive = e.get(Interactive);
+            const btn = e.tryGet(Button);
+            if (btn === undefined) {
+                continue;
+            }
             const transform = e.tryGet(Transform2D);
             if (!btn.initialized) {
                 btn.initialized = true;
                 interactive.cursor = Cursor.Button;
-                if (transform) {
+                if (transform !== undefined) {
                     initBaseTransform(btn, transform);
                 }
                 initEvents(e);
@@ -134,13 +151,13 @@ export class ButtonSystem {
 
             btn.timePost = reach(btn.timePost, 0.0, 2.0 * dt);
 
-            if (transform) {
+            if (transform !== undefined) {
                 applySkin(skin, btn, transform);
             }
 
             if (btn.movieFrames) {
                 const mc = e.tryGet(MovieClip2D);
-                if (mc) {
+                if (mc !== undefined) {
                     updateMovieFrame(mc, interactive);
                 }
             }

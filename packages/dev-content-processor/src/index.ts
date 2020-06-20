@@ -10,7 +10,7 @@ import {createAtlas, exportFlashAsset} from "./export/Export";
 
 export * from './imagefile/optimize';
 
-export async function exportAssets(input: string, output: string) {
+export async function exportAssets(input: string, output: string, production = false) {
     makeDirs(output);
     const bundle = JSON.parse(fs.readFileSync(path.join(input, "bundle.json"), 'utf8')) as BundleDef;
 
@@ -64,7 +64,7 @@ export async function exportAssets(input: string, output: string) {
 
     for (const item of bundle.items) {
         if (item.type === 'audio') {
-            const compress = item.compress ?? false;
+            const compress = production && (item.compress ?? false);
             const files = glob.sync(path.join(input, item.glob));
             for (const file of files) {
                 const rel = path.relative(input, file);
@@ -82,10 +82,13 @@ export async function exportAssets(input: string, output: string) {
     for (let i = 0; i < atlasMetas.length; ++i) {
         const meta = atlasMetas[i];
         const atlas = atlases[i];
+
+        const quant = production && (meta.png?.quant ?? false);
+
         atlas.trimSprites();
         atlas.addSpot();
         atlas.pack();
-        atlas.save(output, meta.format ?? 'png', meta.jpeg?.quality ?? 80, meta.png?.quant ?? false);
+        atlas.save(output, meta.format ?? 'png', meta.jpeg?.quality ?? 80, quant);
         atlas.dispose();
         list.push({
             type: BundleItemType.Atlas,
@@ -93,7 +96,16 @@ export async function exportAssets(input: string, output: string) {
         });
     }
 
-    fs.writeFileSync(path.join(output, 'bundle.json'), JSON.stringify({
-        items: list
-    }));
+    // oh... maybe do parallel for all?
+    await new Promise((resolve, reject) => {
+        fs.writeFile(path.join(output, 'bundle.json'), JSON.stringify({
+            items: list
+        }), (err) => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve();
+            }
+        });
+    });
 }

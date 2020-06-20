@@ -9,13 +9,14 @@ export class DisplayParticles extends Display2D {
     draw(drawer: Drawer) {
         const layer = this.entity.tryGet(ParticleLayer);
         if (layer) {
+            const arr = layer.particles.primary;
             if (layer.cycled) {
-                for (const p of layer.particles) {
-                    p.drawCycled(drawer);
+                for (let i = 0, e = arr.length; i < e; ++i) {
+                    arr[i].drawCycled(drawer);
                 }
             } else {
-                for (const p of layer.particles) {
-                    p.draw(drawer, 0);
+                for (let i = 0, e = arr.length; i < e; ++i) {
+                    arr[i].draw(drawer, 0);
                 }
             }
         }

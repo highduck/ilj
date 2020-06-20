@@ -14,7 +14,7 @@ export interface CanvasKit {
 
     // Constructs a Color as a 32 bit unsigned integer, with 8 bits assigned to each channel.
     // Channels are expected to be between 0 and 255 and will be clamped as such.
-    ColorAsInt(r : number, g: number, b: number, a?: number):number;
+    ColorAsInt(r: number, g: number, b: number, a?: number): number;
 
     _free(ptr: number): void;
 

@@ -38,6 +38,7 @@ async function main() {
         width: 768,
         height: 1024
     });
+    import('@highduck/live-inspector');
     await loadBundle();
     startGame();
 }

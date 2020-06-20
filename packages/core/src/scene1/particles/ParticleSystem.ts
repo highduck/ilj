@@ -4,7 +4,7 @@ import {Particle} from "./Particle";
 import {EmitterData, ParticleDecl} from "./ParticleDecl";
 import {Entity} from "../../ecs/Entity";
 import {Transform2D} from "../display/Transform2D";
-import {RndDefault, Matrix2D, Vec2} from "@highduck/math";
+import {Matrix2D, RndDefault, Vec2} from "@highduck/math";
 import {Engine} from "../../Engine";
 
 const TEMP_MATRIX_2D = new Matrix2D();
@@ -20,7 +20,7 @@ export function findParticleLayer(e: Entity): ParticleLayer {
 
 function addParticle(layer: ParticleLayer, particle?: Particle) {
     if (particle) {
-        layer.particles.push(particle);
+        layer.particles.primary.push(particle);
         particle.init();
     }
 }
@@ -108,7 +108,9 @@ export class ParticleSystem {
     }
 
     updateEmitters() {
-        for (const emitter of this.engine.world.query(ParticleEmitter)) {
+        const emitters = this.engine.world.components(ParticleEmitter);
+        for (let i = 0; i < emitters.length; ++i) {
+            const emitter = emitters[i];
             const e = emitter.entity;
             const dt = e.dt;
             if (!emitter.enabled) {
@@ -131,16 +133,20 @@ export class ParticleSystem {
     }
 
     updateParticles() {
-        for (const layer of this.engine.world.query(ParticleLayer)) {
+        const layers = this.engine.world.components(ParticleLayer);
+        for (let i = 0; i < layers.length; ++i) {
+            const layer = layers[i];
             const dt = layer.entity.dt;
-            const alive = [];
-            for (const p of layer.particles) {
+            const particles = layer.particles.primary;
+            const alive = layer.particles.secondary;
+            for (let i = 0, e = particles.length; i < e; ++i) {
+                const p = particles[i];
                 p.update(dt);
-                if (p.isAlive()) {
+                if (p.time > 0) {
                     alive.push(p);
                 }
             }
-            layer.particles = alive;
+            layer.particles.commit();
         }
     }
 }

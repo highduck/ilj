@@ -11,12 +11,12 @@ export class Transform2D {
     readonly entity!: Entity;
 
     readonly matrix = new Matrix2D();
-    readonly position: Vec2 = new Vec2(0, 0);
-    readonly scale: Vec2 = new Vec2(1, 1);
-    readonly skew: Vec2 = new Vec2(0, 0);
-    readonly origin: Vec2 = new Vec2(0, 0);
-    readonly pivot: Vec2 = new Vec2(0, 0);
-    readonly rect: Rect = new Rect();
+    readonly position = new Vec2(0, 0);
+    readonly scale = new Vec2(1, 1);
+    readonly skew = new Vec2(0, 0);
+    readonly origin = new Vec2(0, 0);
+    readonly pivot = new Vec2(0, 0);
+    readonly rect = new Rect();
 
     customMatrix?: Matrix2D = undefined;
 

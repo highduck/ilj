@@ -126,10 +126,10 @@ export class AniFactory {
             this.applyData(entity, ref, over, ani);
         }
         if (data && data._) {
-            for (const child of data._) {
-                entity.appendStrict(
-                    this.createAndMerge(ani, child.ref, ani.get(child.ref!), child)
-                );
+            for (let i = 0; i < data._.length; ++i) {
+                const child = data._[i];
+                const e = this.createAndMerge(ani, child.ref, ani.get(child.ref!), child);
+                entity.appendStrict(e);
             }
         }
 

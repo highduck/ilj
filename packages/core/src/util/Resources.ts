@@ -1,5 +1,7 @@
 import {Disposable} from "./Disposable";
 import {ConstructorWithID} from "./TypeID";
+import {IntMap} from "./IntMap";
+import {StringMap} from "./StringMap";
 
 function isDisposable(object: any): object is Disposable {
     return object && "dispose" in object;
@@ -23,13 +25,13 @@ export class AssetRef<T> {
 }
 
 class ResourcesRegistry {
-    readonly table = new Map<number, Map<string, AssetRef<object>>>();
+    readonly table = new IntMap<StringMap<AssetRef<object>>>();
 
     get<T extends object>(type: ConstructorWithID<T>, name: string): AssetRef<T> {
         let m = this.table.get(type.TYPE_ID);
 
         if (!m) {
-            m = new Map();
+            m = new StringMap();
             this.table.set(type.TYPE_ID, m);
         }
         let s = m.get(name);
@@ -37,6 +39,11 @@ class ResourcesRegistry {
             m.set(name, s = new AssetRef<T>());
         }
         return s as AssetRef<T>;
+    }
+
+    objects<T extends object>(type: ConstructorWithID<T>): undefined | AssetRef<T>[] {
+        const m = this.table.get(type.TYPE_ID);
+        return m !== undefined ? m.values as AssetRef<T>[] : undefined;
     }
 
     reset<T extends object>(type: ConstructorWithID<T>, name: string, data: T): AssetRef<T> {

@@ -52,16 +52,19 @@ export class GameView {
         this.reference.width = size.x;
         this.reference.height = size.y;
 
-        window.addEventListener('resize', () => this.handleResize(), false);
-        // window.addEventListener('orientationchange', () => this.handleResize(), false);
-        this.canvas.addEventListener('resize', () => this.handleResize(), false);
+        this.handleResize = this.handleResize.bind(this);
+        this.handleVisibility = this.handleVisibility.bind(this);
+
+        window.addEventListener('resize', this.handleResize, false);
+        // window.addEventListener('orientationchange', this.handleResize, false);
+        this.canvas.addEventListener('resize', this.handleResize, false);
         this.handleResize();
 
-        document.addEventListener("visibilitychange", () => this.handleVisibility(), false);
+        document.addEventListener("visibilitychange", this.handleVisibility, false);
         this.handleVisibility();
 
         // justify size on screen mode changes
-        window.setInterval(() => this.handleResize(), 1000);
+        // window.setInterval(this.handleResize, 1000);
     }
 
     handleVisibility() {

@@ -11,7 +11,9 @@ export class FastScript {
 }
 
 export function updateFastScripts() {
-    for (const script of Engine.current.world.query(FastScript)) {
+    const scripts = Engine.current.world.components(FastScript);
+    for (let i = 0; i < scripts.length; ++i) {
+        const script = scripts[i];
         script.updated.emit(script.entity);
     }
 }
