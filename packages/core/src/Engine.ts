@@ -2,24 +2,21 @@ import {GameView} from "./app/GameView";
 import {Graphics} from "./graphics/Graphics";
 import {Drawer} from "./drawer/Drawer";
 import {Batcher} from "./drawer/Batcher";
-import {FrameTime} from "./app/FrameTime";
-import {FrameRateMeter} from "./app/FrameRateMeter";
 import {Signal} from "./util/Signal";
 import {Resources} from "./util/Resources";
 import {World} from "./ecs/World";
 import {InputState} from "./app/InputState";
 import {Rect, Vec2} from "@highduck/math";
 import {InteractiveManager} from "./scene1/ani/InteractiveManager";
-import {DisplaySystem, invalidateTransform} from "./scene1/display/DisplaySystem";
+import {DisplaySystem} from "./scene1/display/DisplaySystem";
 import {Transform2D} from "./scene1/display/Transform2D";
 import {ButtonSystem} from "./scene1/ani/ButtonSystem";
 import {Entity} from "./ecs/Entity";
 import {updateMovieClips} from "./scene1/display/MovieClipSystem";
-import {updateSceneTimeNodes} from "./scene1/ani/SceneTimeSystem";
-import {ParticleSystem} from "./scene1/particles/ParticleSystem";
+import {updateParticleEmitters, updateParticleSystems} from "./scene1/particles/ParticleSystem";
 import {Constructor, ConstructorWithID, getTypeID} from "./util/TypeID";
 import {AniFactory} from "./scene1/ani/AniFactory";
-import {TrailUpdateSystem} from "./scene1/particles/TrailUpdateSystem";
+import {updateTrails} from "./scene1/particles/TrailUpdateSystem";
 import {updateTargetFollow} from "./scene1/extra/TargetFollow";
 import {initCanvas} from "./util/initCanvas";
 import {Texture} from "./graphics/Texture";
@@ -28,12 +25,14 @@ import {createEmptyTexture} from "./graphics/util/createEmptyTexture";
 import {createProgram2D} from "./graphics/util/createProgram2D";
 import {AudioMan} from "./scene1/AudioMan";
 import {processEntityAge} from "./scene1/extra/EntityAge";
-import {CameraOrderSystem} from "./scene1/display/CameraOrderSystem";
 import {updateFastScripts} from "./scene1/extra/FastScript";
 import {updateDynamicFonts} from "./rtfont/DynamicFontAtlas";
 import {Layout} from "./scene1/extra/Layout";
 import {updateLayout} from "./scene1/extra/LayoutSystem";
 import {awaitDocument} from "./util/awaitDocument";
+import {invalidateTransform3} from "./scene1/systems/invalidateTransform";
+import {CameraManager} from "./scene1/display/CameraManager";
+import {Time} from "./app/Time";
 
 export interface InitConfig {
     canvas?: HTMLCanvasElement;
@@ -54,8 +53,7 @@ export class Engine {
 
     _running = false;
 
-    readonly time = new FrameTime();
-    readonly fps = new FrameRateMeter();
+    readonly time = new Time();
 
     readonly onUpdate = new Signal<number>();
     readonly onRender = new Signal<Readonly<Rect>>();
@@ -64,12 +62,10 @@ export class Engine {
 
     readonly world: World;
     readonly root: Entity;
-    readonly cameraOrderSystem: CameraOrderSystem;
+    readonly cameraManager: CameraManager;
     readonly displaySystem: DisplaySystem;
     readonly interactiveManager: InteractiveManager;
     readonly buttonSystem: ButtonSystem;
-    readonly trailUpdateSystem: TrailUpdateSystem;
-    readonly particleSystem: ParticleSystem;
     readonly aniFactory: AniFactory;
     readonly audio: AudioMan;
 
@@ -108,12 +104,92 @@ export class Engine {
         this.interactiveManager = new InteractiveManager(this);
         this.displaySystem = new DisplaySystem(this);
         this.buttonSystem = new ButtonSystem(this);
-        this.trailUpdateSystem = new TrailUpdateSystem(this);
-        this.particleSystem = new ParticleSystem(this);
         this.aniFactory = new AniFactory(this);
-        this.cameraOrderSystem = new CameraOrderSystem(this);
+        this.cameraManager = new CameraManager();
 
         Layout.space.copyFrom(this.view.reference);
+    }
+
+    private renderFrame() {
+        if (!this.view.visible) {
+            return;
+        }
+        if (this.graphics.gl.isContextLost()) {
+            console.warn("WebGL: context lost");
+            return;
+        }
+        const rc = this.view.drawable;
+        this.graphics.currentFramebufferRect.copyFrom(rc);
+        this.graphics.begin();
+        this.graphics.viewport();
+
+        this.root.get(Transform2D).rect.copyFrom(rc);
+        this.drawer.begin(rc);
+        {
+            this.onRender.emit(rc);
+            this.displaySystem.process();
+            this.onRenderFinish.emit(rc);
+        }
+        // this.statsGraph.draw();
+        this.drawer.end();
+
+        updateDynamicFonts();
+
+        //this.graphics.end();
+    }
+
+    handleFrame(millis: number) {
+        if (this._running) {
+            requestAnimationFrame(this.handleFrame);
+        }
+
+        this.time.updateTime(millis / 1000.0);
+
+        this.root.getOrCreate(Transform2D).rect.copyFrom(this.view.drawable);
+
+        this.interactiveManager.process();
+        updateTargetFollow();
+        this.buttonSystem.process();
+
+        updateFastScripts();
+        this.onUpdate.emit(this.time.delta);
+
+        updateMovieClips();
+        updateLayout();
+
+        // invalidateTransform();
+        // invalidateTransform2();
+        invalidateTransform3();
+
+        updateTrails();
+        updateParticleEmitters();
+        updateParticleSystems();
+
+        this.cameraManager.updateCameraStack();
+
+        // Render
+        this.renderFrame();
+
+        // Late Update
+        processEntityAge();
+        this.input.update(this.view.dpr);
+        this.frameCompleted.emit();
+    }
+
+    // locator
+    readonly services = new Map<number, object>();
+
+    register(instance: object) {
+        this.services.set(getTypeID(instance.constructor as ConstructorWithID), instance);
+    }
+
+    resolve<T extends object>(ctor: Constructor<T>): T {
+        const id = getTypeID(ctor);
+        const obj = this.services.get(id);
+        if (obj !== undefined) {
+            return obj as T;
+        }
+        throw `${id} not found`;
     }
 
     start() {
@@ -143,84 +219,6 @@ export class Engine {
             this.stop();
         }
         requestAnimationFrame(this.handleFrame);
-    };
-
-    private renderFrame() {
-        if (!this.view.visible) {
-            return;
-        }
-        if (this.graphics.gl.isContextLost()) {
-            console.warn("WebGL: context lost");
-            return;
-        }
-        const rc = this.view.drawable;
-        this.graphics.currentFramebufferRect.copyFrom(rc);
-        this.graphics.begin();
-        this.graphics.viewport();
-
-        this.root.get(Transform2D).rect.copyFrom(rc);
-        this.drawer.begin(rc);
-        {
-            this.onRender.emit(rc);
-            invalidateTransform(this);
-            this.displaySystem.process();
-            this.onRenderFinish.emit(rc);
-        }
-        // this.statsGraph.draw();
-        this.drawer.end();
-
-        updateDynamicFonts();
-
-        //this.graphics.end();
-    }
-
-    handleFrame(millis: number) {
-        if (this._running) {
-            requestAnimationFrame(this.handleFrame);
-        }
-
-        this.time.update(millis / 1000.0);
-        this.fps.update(this.time.raw);
-        this.root.getOrCreate(Transform2D).rect.copyFrom(this.view.drawable);
-
-        this.cameraOrderSystem.process();
-        this.interactiveManager.process();
-        updateSceneTimeNodes(this.root, this.time.delta);
-        updateTargetFollow();
-        this.buttonSystem.process();
-
-        updateFastScripts();
-        this.onUpdate.emit(this.time.delta);
-
-        updateMovieClips();
-        this.trailUpdateSystem.process();
-        this.particleSystem.process();
-
-        updateLayout(this);
-
-        // Render
-        this.renderFrame();
-
-        // Late Update
-        processEntityAge();
-        this.input.update(this.view.dpr);
-        this.frameCompleted.emit();
-    }
-
-    // locator
-    readonly services = new Map<number, object>();
-
-    register(instance: object) {
-        this.services.set(getTypeID(instance.constructor as ConstructorWithID), instance);
-    }
-
-    resolve<T extends object>(ctor: Constructor<T>): T {
-        const id = getTypeID(ctor);
-        const obj = this.services.get(id);
-        if (obj !== undefined) {
-            return obj as T;
-        }
-        throw `${id} not found`;
     }
 
     static async init(config: InitConfig) {

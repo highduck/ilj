@@ -58,6 +58,10 @@ async function watchFont(family: string) {
 
 export async function loadFontFace(family: string, src: string, options: any): Promise<void> {
     if (isFontLoaded(family)) {
+        if (test !== undefined) {
+            test.remove();
+            test = undefined;
+        }
         return;
     }
 
@@ -69,4 +73,9 @@ export async function loadFontFace(family: string, src: string, options: any): P
     const fontRule = `@font-face { font-family: '${family}'; src: url('${fontSrc}') format('truetype'); }`;
     styleSheet.insertRule(fontRule, 0);
     await watchFont(family);
+
+    if (test !== undefined) {
+        test.remove();
+        test = undefined;
+    }
 }

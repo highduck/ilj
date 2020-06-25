@@ -19,10 +19,7 @@ export class IntMap<T> {
 
     get(key: number): T | undefined {
         const idx = this.map.get(key);
-        if (idx !== undefined) {
-            return this.values[idx];
-        }
-        return undefined;
+        return idx !== undefined ? this.values[idx] : undefined;
     }
 
     delete(key: number) {

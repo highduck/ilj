@@ -14,8 +14,12 @@
       ]
     }
   },
+  "files": [],
+  "include": [
+    "./src/**/*.ts"
+  ],
   "exclude": [
-    "./src",
+    "./src/index.ts",
     "**/node_modules",
     "dist/**"
   ]

@@ -31,3 +31,5 @@ export function exportAndroid(basedir?: string, target?: string, mode?: 'product
     console.log('move new android project');
     renameSync(ctx.genProjDir, ctx.outputProjDir);
 }
+
+export * from './pkg';

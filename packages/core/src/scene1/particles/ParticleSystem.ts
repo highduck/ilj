@@ -98,55 +98,44 @@ export function particlesBurst(e: Entity, count: number, velocity?: Vec2) {
     }
 }
 
-export class ParticleSystem {
-    constructor(readonly engine: Engine) {
-    }
-
-    process() {
-        this.updateEmitters();
-        this.updateParticles();
-    }
-
-    updateEmitters() {
-        const emitters = this.engine.world.components(ParticleEmitter);
-        for (let i = 0; i < emitters.length; ++i) {
-            const emitter = emitters[i];
-            const e = emitter.entity;
-            const dt = e.dt;
-            if (!emitter.enabled) {
-                continue;
-            }
-            emitter.time += dt;
-            const data = emitter.data;
-            if (data !== undefined && emitter.time >= data.interval) {
-                let count = data.burst;
-                if (count > 0) {
-                    const particle = emitter.particleData;
-                    if (particle !== undefined) {
-                        const layer = findParticleLayer(emitter.entity);
-                        spawnFromEmitter(emitter.entity, layer, particle, data, count);
-                    }
-                }
-                emitter.time = 0;
-            }
+export function updateParticleEmitters() {
+    const emitters = Engine.current.world.components(ParticleEmitter);
+    for (let i = 0; i < emitters.length; ++i) {
+        const emitter = emitters[i];
+        const dt = emitter.timer.dt;
+        if (!emitter.enabled) {
+            continue;
         }
-    }
-
-    updateParticles() {
-        const layers = this.engine.world.components(ParticleLayer);
-        for (let i = 0; i < layers.length; ++i) {
-            const layer = layers[i];
-            const dt = layer.entity.dt;
-            const particles = layer.particles.primary;
-            const alive = layer.particles.secondary;
-            for (let i = 0, e = particles.length; i < e; ++i) {
-                const p = particles[i];
-                p.update(dt);
-                if (p.time > 0) {
-                    alive.push(p);
+        emitter.time += dt;
+        const data = emitter.data;
+        if (data !== undefined && emitter.time >= data.interval) {
+            let count = data.burst;
+            if (count > 0) {
+                const particle = emitter.particleData;
+                if (particle !== undefined) {
+                    const layer = findParticleLayer(emitter.entity);
+                    spawnFromEmitter(emitter.entity, layer, particle, data, count);
                 }
             }
-            layer.particles.commit();
+            emitter.time = 0;
         }
+    }
+}
+
+export function updateParticleSystems() {
+    const layers = Engine.current.world.components(ParticleLayer);
+    for (let i = 0; i < layers.length; ++i) {
+        const layer = layers[i];
+        const dt = layer.timer.dt;
+        const particles = layer.particles.primary;
+        const alive = layer.particles.secondary;
+        for (let i = 0, e = particles.length; i < e; ++i) {
+            const p = particles[i];
+            p.update(dt);
+            if (p.time > 0) {
+                alive.push(p);
+            }
+        }
+        layer.particles.commit();
     }
 }

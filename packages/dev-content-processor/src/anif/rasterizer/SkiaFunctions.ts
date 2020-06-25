@@ -72,7 +72,7 @@ export function createFillShader(fill: FillStyle, transform: TransformModel): Sk
     const positions = [];
     const matrix = new Matrix2D();
     matrix.copyFrom(transform.matrix);
-    matrix.mult(fill.matrix);
+    matrix.multiplyWith(fill.matrix);
     const localMatrix = convertMatrix(matrix);
 
     for (const entry of fill.entries) {

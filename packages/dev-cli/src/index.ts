@@ -1,5 +1,5 @@
 import path from "path";
-import fs from "fs";
+import fs, {readFileSync, writeFileSync} from "fs";
 import yargs from "yargs";
 import console from "./common/log";
 import {appicon} from "./bins/appicon";
@@ -7,7 +7,7 @@ import {exportAssets, optimizeImageFile} from "@highduck/exporter";
 import {build as ccBuild, BuildOptions, watch as ccWatch} from '@highduck/tools-build-code';
 import browserSync from "browser-sync";
 import {BuildMode, PlatformType} from "./proj/NProject";
-import {exportAndroid} from "@highduck/export-android";
+import {exportAndroid, readPkg} from "@highduck/export-android";
 import {copyFolderRecursiveSync} from "./common/utility";
 
 const args = yargs
@@ -103,8 +103,7 @@ const args = yargs
                     target: target,
                     platform: platform,
                     dir: dest,
-                    verbose,
-
+                    verbose
                 };
                 if (args.stats !== undefined) {
                     opts.stats = args.stats;
@@ -114,9 +113,18 @@ const args = yargs
                 }
 
                 const bb = ccBuild(opts);
-                const aa = exportAssets("assets", path.join(dest, 'assets'));
+                const aa = exportAssets("assets", path.join(dest, 'assets'), opts.mode === 'production');
                 await Promise.all([aa, bb]);
                 copyFolderRecursiveSync('public_' + target, dest);
+
+                try {
+                    const pkg = readPkg(process.cwd());
+                    let index = readFileSync(path.join(dest, 'index.html'), 'utf8');
+                    index = index.replace(/{{VERSION_NAME}}/g, pkg.version);
+                    index = index.replace(/{{APP_NAME}}/g, pkg.appName);
+                    writeFileSync(path.join(dest, 'index.html'), index);
+                } catch {
+                }
             }
             if (platform === 'android') {
                 exportAndroid(undefined, target, args.mode as BuildMode, args.debug);
@@ -174,6 +182,33 @@ const args = yargs
                     bsWatchCallback
                 );
             }
+            bs.init({
+                server: roots
+            });
+            await new Promise((resolve) => {
+                // wait until kill
+            });
+        })
+    .command('serve', 'serve output', (yargs) => yargs.options({
+            platform: {choices: ['web', 'android', 'ios'], type: 'string', alias: 'p', default: 'web'},
+            target: {type: 'string', alias: 't', default: undefined},
+
+        }),
+        async (args) => {
+            const platform = args.platform;
+            const target = args.target ?? platform;
+            const serveRoot = `dist/www/${target}`;
+
+            try {
+                const p = browserSync.get('ll');
+                if (p) {
+                    p.exit();
+                }
+            } catch {
+            }
+            const bs = browserSync.create('ll');
+            const roots = [serveRoot];
+
             bs.init({
                 server: roots
             });

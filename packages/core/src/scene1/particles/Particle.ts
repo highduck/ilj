@@ -8,7 +8,7 @@ import {DynamicFont} from "../../rtfont/DynamicFont";
 const RECT_TEMP = new Rect();
 
 export class Particle {
-    sprite?: AssetRef<Sprite>;
+    sprite: AssetRef<Sprite> = AssetRef.NONE;
     text?: string;
     font?: AssetRef<DynamicFont>;
     fontSize = 0;
@@ -147,7 +147,7 @@ export class Particle {
     }
 
     updateBounds(): Rect {
-        if (this.sprite?.data) {
+        if (this.sprite.data !== undefined) {
             this.bounds.copyFrom(this.sprite.data.rect);
         } else if (this.fontSize > 0 && this.text && this.font && this.font.data) {
             const width = this.font.data.getTextSegmentWidth(this.text, this.fontSize, 0, this.text.length);
@@ -183,7 +183,7 @@ export class Particle {
             .combineColor(this.color, this.offset);
         {
             const size = this.fontSize;
-            if (this.sprite && this.sprite.data) {
+            if (this.sprite.data !== undefined) {
                 this.sprite.data.draw(drawer);
             } else if (size > 0 && this.text && this.text.length > 0 && this.font && this.font.data) {
                 const width = this.font.data.getTextSegmentWidth(this.text, size, 0, this.text.length);

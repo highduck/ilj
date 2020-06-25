@@ -12,7 +12,7 @@
     "resources": "cp src/dev.css dist"
   },
   "devDependencies": {
-    "@types/jquery": "^3.3.38",
+    "@types/jquery": "^3.5.0",
     "rimraf": "^3.0.2",
     "typescript": "^3.9.5"
   },

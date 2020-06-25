@@ -2,42 +2,7 @@ import {Vec2} from "./Vec2";
 
 export class Matrix2D {
 
-    get determinant(): number {
-        return this.a * this.d - this.c * this.b;
-    }
-
     static readonly IDENTITY: Readonly<Matrix2D> = new Matrix2D();
-
-    // NOTES: to do `concat` style method - just swap right and left matrices,
-    // it will act like `this` is right, `m` is left (pre-multiply)
-    static mult(l: Matrix2D, r: Matrix2D, out: Matrix2D) {
-        out.set(
-            l.a * r.a + l.c * r.b,
-            l.b * r.a + l.d * r.b,
-            l.a * r.c + l.c * r.d,
-            l.b * r.c + l.d * r.d,
-            l.a * r.x + l.c * r.y + l.x,
-            l.b * r.x + l.d * r.y + l.y,
-        );
-    }
-
-    static unpack_scale([a, b, c, d]: number[], out: [number, number]) {
-        out[0] = Math.sqrt(a * a + b * b);
-        out[1] = Math.sqrt(c * c + d * d);
-        // if (a < 0.0) sx = -sx;
-        // if (d < 0.0) sy = -sy;
-    }
-
-    static unpack_skew([a, b, c, d]: number[], out: [number, number]) {
-        out[0] = Math.atan2(-c, d);
-        out[1] = Math.atan2(b, a);
-    }
-
-    static unpack_rotation(m: number[]): number {
-        const s: [number, number] = [0, 0];
-        Matrix2D.unpack_skew(m, s);
-        return s[0] == s[1] ? s[1] : 0;
-    }
 
     constructor(public a: number = 1, public b: number = 0,
                 public c: number = 0, public d: number = 1,
@@ -54,9 +19,9 @@ export class Matrix2D {
         this.y = m.y;
     }
 
-    set(a = 1, b = 0,
-        c = 0, d = 1,
-        x = 0, y = 0) {
+    set(a: number, b: number,
+        c: number, d: number,
+        x: number, y: number) {
         this.a = a;
         this.b = b;
         this.c = c;
@@ -99,17 +64,17 @@ export class Matrix2D {
         return this;
     }
 
-    transformTuple(x: number, y: number): [number, number] {
-        return [
-            x * this.a + y * this.c + this.x,
-            x * this.b + y * this.d + this.y,
-        ];
-    }
-
     transform(x: number, y: number, out: Vec2): Vec2 {
         out.x = x * this.a + y * this.c + this.x;
         out.y = x * this.b + y * this.d + this.y;
         return out;
+    }
+
+    transformWith(v: Vec2) {
+        const x = v.x;
+        const y = v.y;
+        v.x = x * this.a + y * this.c + this.x;
+        v.y = x * this.b + y * this.d + this.y;
     }
 
     scale(x: number, y: number): this {
@@ -151,40 +116,29 @@ export class Matrix2D {
         return this;
     }
 
-    mult(right: Matrix2D): this {
-        Matrix2D.mult(this, right, this);
+    get determinant(): number {
+        return this.a * this.d - this.c * this.b;
+    }
+
+    multiplyWith(right: Matrix2D): this {
+        Matrix2D.multiply(this, right, this);
         return this;
     }
 
-    transformInverse(x: number, y: number, out: Vec2): boolean {
-        const d = this.determinant;
-        if (d === 0.0) {
+    transformInverseWith(v: Vec2): boolean {
+        const a = this.a;
+        const b = this.b;
+        const c = this.c;
+        const d = this.d;
+        const det = /** this.determinant **/ a * d - c * b;
+        if (det === 0.0) {
             return false;
         }
-        const ix = x - this.x;
-        const iy = y - this.y;
-        out.x = (ix * this.d - iy * this.c) / d;
-        out.y = (iy * this.a - ix * this.b) / d;
+        const ix = v.x - this.x;
+        const iy = v.y - this.y;
+        v.x = (ix * d - iy * c) / det;
+        v.y = (iy * a - ix * b) / det;
         return true;
-    }
-
-    inverse(): this {
-        const detInv = 1 / this.determinant;
-        const a = this.a * detInv;
-        const b = this.b * detInv;
-        const c = this.c * detInv;
-        const d = this.d * detInv;
-        const x = this.x;
-        const y = this.y;
-
-        this.a = d;
-        this.b = -b;
-        this.c = -c;
-        this.d = a;
-        this.x = y * c - x * d;
-        this.y = x * b - y * a;
-
-        return this;
     }
 
     writeToArray(arr: number[], index: number) {
@@ -221,5 +175,67 @@ export class Matrix2D {
         out.x = Math.atan2(-this.c, this.d);
         out.y = Math.atan2(this.b, this.a);
         return this;
+    }
+
+    // NOTES: to do `concat` style method - just swap right and left matrices,
+    // it will act like `this` is right, `m` is left (pre-multiply)
+    static multiply(l: Matrix2D, r: Matrix2D, out: Matrix2D) {
+        const a = l.a * r.a + l.c * r.b;
+        const b = l.b * r.a + l.d * r.b;
+        const c = l.a * r.c + l.c * r.d;
+        const d = l.b * r.c + l.d * r.d;
+        const x = l.a * r.x + l.c * r.y + l.x;
+        const y = l.b * r.x + l.d * r.y + l.y;
+        out.a = a;
+        out.b = b;
+        out.c = c;
+        out.d = d;
+        out.x = x;
+        out.y = y;
+    }
+
+    static inverse(m: Matrix2D): boolean {
+        let a = m.a;
+        let b = m.b;
+        let c = m.c;
+        let d = m.d;
+        let det = /** this.determinant **/ m.a * m.d - m.c * m.b;
+        if (det === 0) {
+            return false;
+        }
+        det = 1 / det;
+        a *= det;
+        b *= det;
+        c *= det;
+        d *= det;
+        m.a = d;
+        m.b = -b;
+        m.c = -c;
+        m.d = a;
+
+        const x = m.x;
+        const y = m.y;
+        m.x = y * c - x * d;
+        m.y = x * b - y * a;
+
+        return true;
+    }
+
+    static unpack_scale([a, b, c, d]: number[], out: [number, number]) {
+        out[0] = Math.sqrt(a * a + b * b);
+        out[1] = Math.sqrt(c * c + d * d);
+        // if (a < 0.0) sx = -sx;
+        // if (d < 0.0) sy = -sy;
+    }
+
+    static unpack_skew([a, b, c, d]: number[], out: [number, number]) {
+        out[0] = Math.atan2(-c, d);
+        out[1] = Math.atan2(b, a);
+    }
+
+    static unpack_rotation(m: number[]): number {
+        const s: [number, number] = [0, 0];
+        Matrix2D.unpack_skew(m, s);
+        return s[0] == s[1] ? s[1] : 0;
     }
 }

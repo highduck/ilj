@@ -8,3 +8,6 @@ declare module 'jpegtran-bin' {
     export = path;
 }
 
+declare module 'folder-hash' {
+    export function hashElement(p: string, options: any): Promise<{ name: string, hash: string }>;
+}

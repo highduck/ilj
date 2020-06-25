@@ -119,7 +119,7 @@ class RandomFloatRange {
 export class ParticleDecl {
     static TYPE_ID = declTypeID();
 
-    sprite?: AssetRef<Sprite>;
+    sprite: AssetRef<Sprite> = AssetRef.NONE;
 
     font?: AssetRef<DynamicFont>;
     fontSize = 0;

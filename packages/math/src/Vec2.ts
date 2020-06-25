@@ -139,14 +139,6 @@ export class Vec2 {
         return dx * dx + dy * dy;
     }
 
-    transform(matrix: Matrix2D): this {
-        const x = this.x;
-        const y = this.y;
-        this.x = x * matrix.a + y * matrix.c + matrix.x;
-        this.y = x * matrix.b + y * matrix.d + matrix.y;
-        return this;
-    }
-
     normalize(): this {
         const len = this.length;
         if (len > 0.0) {

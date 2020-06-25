@@ -71,7 +71,7 @@ export class ExportItem {
         const scale = new Vec2();
         const global_matrix = new Matrix2D();
         global_matrix.copyFrom(parent_matrix);
-        global_matrix.mult(this.node.matrix);
+        global_matrix.multiplyWith(this.node.matrix);
         global_matrix.extractScale(scale);
 
         const s = Math.max(scale.x, scale.y);

@@ -7,7 +7,7 @@ export function updateMovieClips() {
     for (let i = 0; i < movies.length; ++i) {
         const mov = movies[i];
         if (mov.playing) {
-            mov._time += mov.entity.dt * mov.fps;
+            mov._time += mov.timer.dt * mov.fps;
             mov.dirty = true;
         }
         if (mov.dirty) {

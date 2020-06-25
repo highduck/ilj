@@ -8,6 +8,7 @@ import {Color4, reach, reachDelta} from "@highduck/math";
 import {Engine} from "../../Engine";
 import {EventData, EventReceiver} from "../EventReceiver";
 import {InteractiveManagerEvent} from "./InteractiveManager";
+import {Time} from "../../app/Time";
 
 function initBaseTransform(btn: Button, transform: Transform2D) {
     btn.baseColorMultiplier.copyFrom(transform.colorMultiplier);
@@ -64,7 +65,7 @@ function onClicked(e: Entity) {
     }
 }
 
-function onBackButton(data: EventData<unknown>):void {
+function onBackButton(data: EventData<unknown>): void {
     const e = data.currentTarget;
     const btn = e.tryGet(Button);
     if (btn !== undefined && btn.asBackButton) {
@@ -119,11 +120,11 @@ export class ButtonSystem {
     }
 
     process() {
+        const dt = Time.UI.dt;
         const components = this.engine.world.components(Interactive);
         for (let i = 0; i < components.length; ++i) {
             const interactive = components[i];
             const e = interactive.entity;
-            const dt = e.dt;
             const btn = e.tryGet(Button);
             if (btn === undefined) {
                 continue;

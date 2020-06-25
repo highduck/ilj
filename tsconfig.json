@@ -33,9 +33,6 @@
       "@highduck/xfl": [
         "xfl/src"
       ],
-      "@highduck/core": [
-        "core/src/index.ts"
-      ],
       "@highduck/live-inspector": [
         "dev-inspector/src"
       ],

@@ -17,7 +17,7 @@ export class Sprite {
     }
 
     hitTest(x: number, y: number): boolean {
-        return !!this.texture.get();
+        return this.texture.data !== undefined;
     }
 
     draw(drawer: Drawer) {

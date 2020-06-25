@@ -214,7 +214,7 @@ export class DrawingState {
     }
 
     concatMatrix(r: Matrix2D): this {
-        this.matrix.mult(r);
+        Matrix2D.multiply(this.matrix, r, this.matrix);
         return this;
     }
 

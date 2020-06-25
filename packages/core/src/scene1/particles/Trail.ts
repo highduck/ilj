@@ -2,6 +2,7 @@ import {declTypeID} from "../../util/TypeID";
 import {Entity} from "../../ecs/Entity";
 import {Transform2D} from "../display/Transform2D";
 import {lerp, quadOut, Vec2} from "@highduck/math";
+import {Time} from "../../app/Time";
 
 class TrailNode {
     readonly position = new Vec2();
@@ -23,7 +24,7 @@ export class Trail {
     drainSpeed = 2.0;
     widthMax = 20.0;
     widthMin = 5.0;
-    segmentMaxLength = 10.0;
+    segmentMaxLength = 20.0;
     particlesPerSecond = 15.0;
     scale = 1;
 
@@ -36,6 +37,8 @@ export class Trail {
     vx: number[] = [];
     vy: number[] = [];
     private _autoUpdate = true;
+
+    timer = Time.ROOT;
 
     set trackedEntity(e: Entity | undefined) {
         this._trackedTarget = e;
@@ -63,7 +66,8 @@ export class Trail {
         }
     }
 
-    update(dt: number) {
+    updateTrail() {
+        const dt = this.timer.dt;
         const head = this._nodes[this._nodes.length - 1];
         if (this._trackedTarget && this._trackedTarget.isValid) {
             const pos = this._position;

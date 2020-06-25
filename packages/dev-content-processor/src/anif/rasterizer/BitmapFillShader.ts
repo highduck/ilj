@@ -30,7 +30,7 @@ export class BitmapFillInstance {
         const tileMode = convertSpreadMethod(fill.spreadMethod);
         const matrix = new Matrix2D();
         matrix.copyFrom(transform.matrix);
-        matrix.mult(fill.matrix);
+        matrix.multiplyWith(fill.matrix);
         const localMatrix = convertMatrix(matrix);
         return this.image.makeShader(tileMode, tileMode, localMatrix);
     }

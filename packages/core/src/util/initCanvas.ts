@@ -22,6 +22,15 @@ export function initCanvas(name = "gameview", parent?: HTMLElement | null): HTML
     canvas.style.webkitUserSelect = 'none';
     // canvas.style.msUserSelect = 'none';
     canvas.style.userSelect = 'none';
+
+    // canvas.style.imageRendering = 'optimizeSpeed';
+    canvas.style.imageRendering = '-moz-crisp-edges';
+    canvas.style.imageRendering = '-o-crisp-edges';
+    canvas.style.imageRendering = '-webkit-optimize-contrast';
+    canvas.style.imageRendering = 'optimize-contrast';
+    canvas.style.imageRendering = 'crisp-edges';
+    // canvas.style.imageRendering = 'pixelated';
+
     // deprecated
     // canvas.style.webkitUserModify = '';
     resetStyle(canvas);

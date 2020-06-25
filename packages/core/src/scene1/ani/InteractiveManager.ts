@@ -1,7 +1,7 @@
 import {Entity} from "../../ecs/Entity";
 import {Cursor} from "../../app/GameView";
 import {Interactive} from "./Interactive";
-import {DisplaySystem} from "../display/DisplaySystem";
+import {hitTest} from "../display/hitTest";
 import {AppKeyboardEvent, AppMouseEvent, AppTouchEvent} from "../../app/InputState";
 import {Vec2} from "@highduck/math";
 import {Engine} from "../../Engine";
@@ -54,12 +54,9 @@ export class InteractiveManager {
     private readonly primaryMouse = new Vec2();
 
     constructor(readonly engine: Engine) {
-        this.handleMouseEvent = this.handleMouseEvent.bind(this);
-        this.handleTouchEvent = this.handleTouchEvent.bind(this);
-        this.handleKeyboardEvent = this.handleKeyboardEvent.bind(this);
-        engine.input.onMouse.on(this.handleMouseEvent);
-        engine.input.onTouch.on(this.handleTouchEvent);
-        engine.input.onKeyboard.on(this.handleKeyboardEvent);
+        engine.input.onMouse.on(this.handleMouseEvent.bind(this));
+        engine.input.onTouch.on(this.handleTouchEvent.bind(this));
+        engine.input.onKeyboard.on(this.handleKeyboardEvent.bind(this));
     }
 
     get hitTarget(): Entity | undefined {
@@ -80,11 +77,11 @@ export class InteractiveManager {
         }
 
         if (changed) {
-            const cameras = this.engine.cameraOrderSystem.cameras;
+            const cameras = this.engine.cameraManager.activeCameras;
             const pointerWorldSpace = TEMP_V2;
             for (let i = cameras.length - 1; i >= 0; --i) {
                 const camera = cameras[i];
-                if (camera.interactive) {
+                if (camera.enabled && camera.interactive) {
                     camera.matrix.transform(
                         this.pointerScreenSpace.x,
                         this.pointerScreenSpace.y,
@@ -120,7 +117,7 @@ export class InteractiveManager {
     }
 
     searchInteractiveTargets(pointer: Vec2, node: Entity, outEntityList: Entity[]): Cursor | undefined {
-        let target = DisplaySystem.hitTest(node, pointer.x, pointer.y);
+        let target = hitTest(node, pointer.x, pointer.y);
         if (this.dragEntity && this.dragEntity.isValid) {
             target = this.dragEntity;
         }
@@ -170,17 +167,13 @@ export class InteractiveManager {
             this.mouseActive = true;
             this.process();
         } else if (ev.type === "mouseout" || ev.type === "mouseleave") {
-            this.mouseActive = false;
             this.pointerDown = false;
+            this.mouseActive = false;
             this.process();
         }
     }
 
     handleTouchEvent(ev: AppTouchEvent) {
-        // add("touchstart", touch);
-        // add("touchmove", touch);
-        // add("touchend", touch);
-        // add("touchcancel", touch);
         if (ev.type == "touchstart") {
             if (this.primaryTouchID === -1) {
                 this.primaryTouchID = ev.id;

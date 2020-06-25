@@ -9,11 +9,10 @@ import visualizer from 'rollup-plugin-visualizer';
 import {InputOptions, OutputOptions, Plugin, rollup, RollupWatcher, RollupWatchOptions, watch} from 'rollup';
 import postcss from 'rollup-plugin-postcss';
 import Babel from '@rollup/plugin-babel';
-import NodeResolve from '@rollup/plugin-node-resolve';
+import nodeResolve from '@rollup/plugin-node-resolve';
 import path from "path";
 
 const {babel} = Babel;
-const {nodeResolve} = (NodeResolve as unknown) as { nodeResolve: (opts?: any) => Plugin };
 
 export async function compileBundle(options?: Partial<CompileBundleOptions>) {
     return rollupBuild(fillDefaults(options));
@@ -86,17 +85,34 @@ function getTerserOptions(options: CompileBundleOptions): undefined | TerserOpti
     const opts: TerserOptions = {
         ecma: 8,
         compress: {
-            passes: 2
+            passes: 2,
+            // negate_iife: false
+            reduce_funcs: false,
+            reduce_vars: false,
+            keep_infinity: true,
         },
-        // mangle: {
-        //     module: !options.compat,
-        //     properties: true
-        // },
-        //module: !options.compat,
-        //toplevel: true,
+        mangle: {
+            module: !options.compat,
+            // properties: {
+            //     keep_quoted: true,
+            //     reserved:[
+            //         "HowlerGlobal", "Howl", "Sound",
+            //         "WebPluginRegistry", "WebPlugins", "WebPlugin",
+            //         "firebase",
+            //         "Capacitor", "Plugins",
+            //         "planck",
+            //         "window"
+            //     ]
+            // }
+        },
+
+        // module: true,
+        // toplevel: true,
+
         safari10: true,
         output: {
-            beautify: options.debug
+            beautify: options.debug,
+            // wrap_iife: true
         }
     };
 
@@ -119,8 +135,12 @@ function getBabelConfig(options: CompileBundleOptions) {
         babelHelpers: 'bundled',
         babelrc: false,
         exclude: /node_modules/,
-        presets: []
+        presets: [],
+        plugins: []
     };
+    if (compat) {
+        config.plugins.push(['@babel/plugin-transform-destructuring']);
+    }
 
     if (platform === 'android') {
         // 5.0 (api level 21)
@@ -130,7 +150,8 @@ function getBabelConfig(options: CompileBundleOptions) {
             "@babel/preset-env", {
                 debug: verbose,
                 targets: {
-                    android: compat ? androidCompat : androidModern
+                    android: compat ? androidCompat : androidModern,
+                    chrome: compat ? androidCompat : androidModern
                 },
                 useBuiltIns: "usage",
                 corejs: 3
@@ -210,7 +231,10 @@ function getRollupInput(options: CompileBundleOptions): InputOptions {
     );
 
     if (options.minify) {
-        plugins.push(terser(getTerserOptions(options)));
+        // const terserOptions = getTerserOptions(options);
+        // if (terserOptions !== undefined) {
+        //     plugins.push(terser(terserOptions));
+        // }
     }
 
     if (options.stats) {

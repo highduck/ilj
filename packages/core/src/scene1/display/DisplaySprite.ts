@@ -115,70 +115,62 @@ function drawGrid(drawer: Drawer, rect: Rect, grid: Rect, target: Rect, inNormal
 export class DisplaySprite extends Display2D {
     static TYPE_ID = declTypeID(Display2D);
 
-    sprite?: AssetRef<Sprite> = undefined;
+    sprite: AssetRef<Sprite> = AssetRef.NONE;
     hitPixels = true;
-    scaleGrid?: Rect = undefined;
-    readonly scale: Vec2 = new Vec2(1, 1);
-    manualTarget?: Rect = undefined;
+    scaleGrid: Rect | undefined = undefined;
+    readonly scale = new Vec2(1, 1);
+    manualTarget: Rect | undefined = undefined;
 
     draw(drawer: Drawer) {
-        if (this.sprite) {
-            const spr = this.sprite.get();
-            if (spr) {
-                const texture = spr.texture.get();
-                if (texture) {
-                    drawer.state.setTextureRegion(texture, spr.tex);
+        const spr = this.sprite.data;
+        if (spr === undefined) {
+            return;
+        }
+        const texture = spr.texture.data;
+        if (texture === undefined) {
+            return;
+        }
 
-                    if (this.scaleGrid) {
-                        drawer.state
-                            .saveMatrix()
-                            .scale(1.0 / this.scale.x, 1.0 / this.scale.y);
-                        let target = this.manualTarget;
-                        if (!target) {
-                            target = TMP_RC
-                                .set(spr.rect.x + 1, spr.rect.y + 1, spr.rect.width - 2, spr.rect.height - 2)
-                                .scale(this.scale.x, this.scale.y);
-                        }
+        drawer.state.setTextureRegion(texture, spr.tex);
 
-                        drawGrid(drawer, spr.rect, this.scaleGrid, target, (spr.flags & SpriteFlag.Rotated) === 0);
-                        drawer.state.restoreMatrix();
-                    } else {
-                        drawer.quadFast(spr.rect.x, spr.rect.y, spr.rect.width, spr.rect.height,
-                            (spr.flags & SpriteFlag.Rotated) === 0);
-                    }
-                }
+        if (this.scaleGrid) {
+            drawer.state.saveMatrix().scale(1.0 / this.scale.x, 1.0 / this.scale.y);
+            let target = this.manualTarget;
+            if (!target) {
+                target = TMP_RC
+                    .set(spr.rect.x + 1, spr.rect.y + 1, spr.rect.width - 2, spr.rect.height - 2)
+                    .scale(this.scale.x, this.scale.y);
             }
+
+            drawGrid(drawer, spr.rect, this.scaleGrid, target, (spr.flags & SpriteFlag.Rotated) === 0);
+            drawer.state.restoreMatrix();
+        } else {
+            drawer.quadFast(spr.rect.x, spr.rect.y, spr.rect.width, spr.rect.height,
+                (spr.flags & SpriteFlag.Rotated) === 0);
         }
     }
 
     getBounds(out: Rect): Rect {
-        if (this.sprite) {
-            const spr = this.sprite.get();
-            if (spr) {
-                // todo: never done
-                //            if (scaleGridMode) {
-//                float sx = scale.x;
-//                float sy = scale.y;
-//                return rect_f{spr->rect.position * scale, spr->rect.size * scale};
-//            }
-                return out.copyFrom(spr.rect);
+        const spr = this.sprite.data;
+        if (spr !== undefined) {
+            // todo: never done
+            if (this.scaleGrid !== undefined) {
+                return out.set(spr.rect.x + 1, spr.rect.y + 1, spr.rect.width - 2, spr.rect.height - 2);
+                // .scale(this.scale.x, this.scale.y);
             }
+            return out.copyFrom(spr.rect);
         }
         return out.set(0, 0, 0, 0);
     }
 
     hitTest(x: number, y: number): boolean {
-        this.getBounds(TMP_RC);
-        if (TMP_RC.contains(x, y)) {
-            if (this.hitPixels) {
-                const spr = this.sprite?.get();
-                if (spr) {
-                    // TODO: offset back -TMP_RC.pos  ?
-                    return spr.hitTest(x, y);
-                }
-            }
-            return true;
+        if (!this.getBounds(TMP_RC).contains(x, y)) {
+            return false;
         }
-        return false;
+        if (this.hitPixels && this.sprite.data !== undefined) {
+            // TODO: offset back -TMP_RC.pos  ?
+            return this.sprite.data.hitTest(x, y);
+        }
+        return true;
     }
 }

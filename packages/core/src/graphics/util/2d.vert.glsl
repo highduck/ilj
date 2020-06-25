@@ -1,13 +1,13 @@
-precision mediump float;
+precision highp float;
 
-attribute vec2 aPosition;
-attribute vec2 aTexCoord;
+attribute highp vec2 aPosition;
+attribute mediump vec2 aTexCoord;
 attribute lowp vec4 aColorMult;
 attribute lowp vec4 aColorOffset;
 
-uniform mat4 uModelViewProjection;
+uniform highp mat4 uModelViewProjection;
 
-varying vec2 vTexCoord;
+varying mediump vec2 vTexCoord;
 varying lowp vec4 vColorMult;
 varying lowp vec4 vColorOffset;
 

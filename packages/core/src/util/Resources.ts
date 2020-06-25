@@ -9,6 +9,8 @@ function isDisposable(object: any): object is Disposable {
 
 export class AssetRef<T> {
 
+    static readonly NONE: Readonly<AssetRef<any>> = new AssetRef();
+
     constructor(public data?: T | undefined) {
     }
 

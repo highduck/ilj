@@ -1,6 +1,7 @@
 import {EmitterData, ParticleDecl} from "./ParticleDecl";
 import {declTypeID} from "../../util/TypeID";
 import {Entity} from "../../ecs/Entity";
+import {Time} from "../..";
 
 export class ParticleEmitter {
     static TYPE_ID = declTypeID();
@@ -10,6 +11,7 @@ export class ParticleEmitter {
     layer?: Entity;
     time = 0;
     enabled = true;
+    timer = Time.ROOT;
 
     get particleData(): ParticleDecl | undefined {
         return this.data?.particle?.data;

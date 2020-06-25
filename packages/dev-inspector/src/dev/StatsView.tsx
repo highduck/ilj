@@ -8,7 +8,7 @@ import {ObjectEditor} from "./inspector/ObjectEditor";
 export const StatsView: FunctionalComponent<{}> = (props: {}) => {
     const engine = Engine.current;
     return <div>
-        <div><b>FPS: </b>{engine.fps.avg}</div>
+        <div><b>FPS: </b>{engine.time.fps.avg}</div>
         <div><b>TRI: </b>{engine.graphics.triangles}</div>
         <div><b>DC: </b>{engine.graphics.drawCalls}</div>
         <div>

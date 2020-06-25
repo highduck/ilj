@@ -16,3 +16,5 @@ export * from './Vec4';
 import * as _tempEasing from './Easing';
 
 export const Easing = _tempEasing;
+
+export * from './transform';

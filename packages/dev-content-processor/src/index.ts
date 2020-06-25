@@ -7,10 +7,16 @@ import {EAtlas} from "./spritepack/EAtlas";
 import glob from "glob";
 import {copySound} from "./sounds/copySound";
 import {createAtlas, exportFlashAsset} from "./export/Export";
+import {checkBuildInfo, saveBuildInfo} from "./nodejs/buildinfo";
 
 export * from './imagefile/optimize';
 
 export async function exportAssets(input: string, output: string, production = false) {
+    const diff = await checkBuildInfo(input, output, production);
+    if (!diff.changed) {
+        return;
+    }
+
     makeDirs(output);
     const bundle = JSON.parse(fs.readFileSync(path.join(input, "bundle.json"), 'utf8')) as BundleDef;
 
@@ -96,16 +102,7 @@ export async function exportAssets(input: string, output: string, production = f
         });
     }
 
-    // oh... maybe do parallel for all?
-    await new Promise((resolve, reject) => {
-        fs.writeFile(path.join(output, 'bundle.json'), JSON.stringify({
-            items: list
-        }), (err) => {
-            if (err) {
-                reject(err);
-            } else {
-                resolve();
-            }
-        });
-    });
+    fs.writeFileSync(path.join(output, 'bundle.json'), JSON.stringify({items: list}));
+
+    saveBuildInfo(diff, output);
 }

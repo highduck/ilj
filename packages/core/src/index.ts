@@ -14,8 +14,7 @@ export * from './util/Texts';
 export * from './util/Timer';
 export * from './util/TypeID';
 
-export * from './app/FrameRateMeter';
-export * from './app/FrameTime';
+export * from './app/Time';
 export * from './app/GameView';
 export * from './app/InputState';
 

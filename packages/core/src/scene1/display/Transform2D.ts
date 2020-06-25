@@ -1,4 +1,4 @@
-import {Matrix2D, Rect, Vec2, Color4} from "@highduck/math";
+import {Color4, Matrix2D, Rect, Vec2} from "@highduck/math";
 import {Entity} from "../../ecs/Entity";
 import {declTypeID} from "../../util/TypeID";
 
@@ -7,10 +7,11 @@ const TEMP_VEC2_0 = new Vec2();
 const TEMP_VEC2_1 = new Vec2();
 
 export class Transform2D {
+    static IDENTITY: Readonly<Transform2D> = new Transform2D();
+
     static TYPE_ID = declTypeID();
     readonly entity!: Entity;
 
-    readonly matrix = new Matrix2D();
     readonly position = new Vec2(0, 0);
     readonly scale = new Vec2(1, 1);
     readonly skew = new Vec2(0, 0);
@@ -18,10 +19,13 @@ export class Transform2D {
     readonly pivot = new Vec2(0, 0);
     readonly rect = new Rect();
 
-    customMatrix?: Matrix2D = undefined;
+    readonly matrix = new Matrix2D();
+    readonly worldMatrix = new Matrix2D();
 
     readonly colorMultiplier = new Color4(1, 1, 1, 1);
     readonly colorOffset = new Color4(0, 0, 0, 0);
+    readonly worldColorMultiplier = new Color4(1, 1, 1, 1);
+    readonly worldColorOffset = new Color4(0, 0, 0, 0);
 
     scissors: Rect | undefined = undefined;
     hitArea: Rect | undefined = undefined;
@@ -45,7 +49,8 @@ export class Transform2D {
         while (e.parent !== undefined) {
             const tr = e.parent.tryGet(Transform2D);
             if (tr !== undefined) {
-                tr.getWorldMatrix(out).mult(this.matrix);
+                tr.getWorldMatrix(out);
+                Matrix2D.multiply(out, this.matrix, out);
                 return out;
             }
         }
@@ -53,10 +58,14 @@ export class Transform2D {
         return out;
     }
 
-    getWorldScissors(worldMatrix: Matrix2D, out: Rect) {
+    getScreenScissors(viewMatrix: Matrix2D, worldMatrix: Matrix2D, out: Rect) {
         if (this.scissors !== undefined) {
             const lt = worldMatrix.transform(this.scissors.x, this.scissors.y, TEMP_VEC2_0);
             const rb = worldMatrix.transform(this.scissors.right, this.scissors.bottom, TEMP_VEC2_1);
+
+            viewMatrix.transform(lt.x, lt.y, lt);
+            viewMatrix.transform(rb.x, rb.y, rb);
+
             out.x = Math.min(lt.x, rb.x);
             out.y = Math.min(lt.y, rb.y);
             const mx = Math.max(lt.x, rb.x);
@@ -112,25 +121,41 @@ export class Transform2D {
         return this.colorOffset.a;
     }
 
-    invalidateMatrix(): Matrix2D {
-        if (this.customMatrix) {
-            this.matrix.copyFrom(this.customMatrix);
-        } else {
-            this.matrix.set(1, 0, 0, 1,
-                this.origin.x,
-                this.origin.y);
-            TMP_MATRIX.setScaleSkew(
-                this.scale.x,
-                this.scale.y,
-                this.skew.x,
-                this.skew.y,
-            );
-            TMP_MATRIX.x = this.position.x;
-            TMP_MATRIX.y = this.position.y;
-            this.matrix.mult(TMP_MATRIX);
-            this.matrix.translate(-this.origin.x - this.pivot.x, -this.origin.y - this.pivot.y);
-        }
-        return this.matrix;
+    buildLocalMatrix(): Matrix2D {
+        const x = this.position.x + this.origin.x;
+        const y = this.position.y + this.origin.y;
+        const xx = -this.origin.x - this.pivot.x;
+        const yy = -this.origin.y - this.pivot.y;
+
+        const ra = Math.cos(this.skew.y) * this.scale.x;
+        const rb = Math.sin(this.skew.y) * this.scale.x;
+        const rc = -Math.sin(this.skew.x) * this.scale.y;
+        const rd = Math.cos(this.skew.x) * this.scale.y;
+
+        const m = this.matrix;
+        m.a = ra;
+        m.b = rb;
+        m.c = rc;
+        m.d = rd;
+        m.x = x + ra * xx + rc * yy;
+        m.y = y + rd * yy + rb * xx;
+        return m;
+
+        // this.matrix.set(1, 0, 0, 1,
+        //     this.origin.x,
+        //     this.origin.y);
+        // TMP_MATRIX.setScaleSkew(
+        //     this.scale.x,
+        //     this.scale.y,
+        //     this.skew.x,
+        //     this.skew.y,
+        // );
+        // TMP_MATRIX.x = this.position.x;
+        // TMP_MATRIX.y = this.position.y;
+        // this.matrix.mult(TMP_MATRIX);
+        // this.matrix.translate(-this.origin.x - this.pivot.x, -this.origin.y - this.pivot.y);
+        //
+        // return this.matrix;
     }
 
     static globalToLocal(e: Entity, pos: Vec2, out: Vec2) {
@@ -146,7 +171,7 @@ export class Transform2D {
     static updateLocalMatrixInTree(e: Entity) {
         let it: Entity | undefined = e;
         while (it !== undefined) {
-            it.tryGet(Transform2D)?.invalidateMatrix();
+            it.tryGet(Transform2D)?.buildLocalMatrix();
             it = it.parent;
         }
     }
@@ -155,7 +180,7 @@ export class Transform2D {
         while (it !== top && it !== undefined) {
             const transform = it.tryGet(Transform2D);
             if (transform !== undefined) {
-                out.transform(transform.matrix);
+                transform.matrix.transformWith(out);
             }
             it = it.parent;
         }
@@ -165,7 +190,7 @@ export class Transform2D {
         while (it !== top && it !== undefined) {
             const transform = it.tryGet(Transform2D);
             if (transform !== undefined) {
-                transform.matrix.transformInverse(out.x, out.y, out);
+                transform.matrix.transformInverseWith(out);
             }
             it = it.parent;
         }
@@ -228,16 +253,16 @@ export class Transform2D {
             while (it !== common && it !== undefined) {
                 const transform = it.tryGet(Transform2D);
                 if (transform !== undefined) {
-                    out.mult(transform.matrix);
+                    Matrix2D.multiply(out, transform.matrix, out);
                 }
                 it = it.parent;
             }
-            out.inverse();
+            Matrix2D.inverse(out);
             it = src;
             while (it !== common && it !== undefined) {
                 const transform = it.tryGet(Transform2D);
                 if (transform !== undefined) {
-                    out.mult(transform.matrix);
+                    Matrix2D.multiply(out, transform.matrix, out);
                 }
                 it = it.parent;
             }

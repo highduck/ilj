@@ -20,7 +20,7 @@ export class TransformModel {
     }
 
     mult(matrix: Matrix2D, colorMultiplier: Color4, colorOffset: Color4, blendMode: BlendMode): this {
-        this.matrix.mult(matrix);
+        this.matrix.multiplyWith(matrix);
         //  color concat
         this.colorOffset.set(
             this.colorOffset.r + colorOffset.r * this.colorMultiplier.r,

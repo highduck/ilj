@@ -4,6 +4,7 @@ import {AssetRef} from "../../util/Resources";
 import {Transform2D} from "./Transform2D";
 import {declTypeID} from "../../util/TypeID";
 import {KeyframeJson, MovieJson} from "@highduck/anijson";
+import {Time} from "../../app/Time";
 
 // const cos = Math.cos;
 // const sin = Math.sin;
@@ -189,6 +190,7 @@ export class MovieClip2D {
     fps = 24.0;
 
     discreteMode = false;
+    timer = Time.ROOT;
 
     get timeMax(): number {
         const data = this.getMovieClipData();

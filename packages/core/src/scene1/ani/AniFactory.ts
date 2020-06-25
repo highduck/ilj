@@ -8,7 +8,6 @@ import {Sprite} from "../Sprite";
 import {Matrix2D, Rect} from "@highduck/math";
 import {DisplayText} from "../display/DisplayText";
 import {MovieClip2D, MovieClipTarget} from "../display/MovieClip2D";
-import {Filters2D} from "../display/Filters2D";
 import {Interactive} from "./Interactive";
 import {Button} from "./Button";
 import {Resources} from "../../util/Resources";
@@ -111,9 +110,9 @@ export class AniFactory {
             entity.set(Button);
         }
 
-        if (data.filters) {
-            entity.getOrCreate(Filters2D).filters = data.filters;
-        }
+        // if (data.filters) {
+        //     entity.getOrCreate(Filters2D).filters = data.filters;
+        // }
     }
 
     createAndMerge(ani: Ani, ref?: string, data?: NodeJson, over?: NodeJson): Entity {

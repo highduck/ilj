@@ -14,7 +14,8 @@
   },
   "private": true,
   "workspaces": [
-    "packages/*"
+    "packages/*",
+    "modules/*"
   ],
   "devDependencies": {
     "rimraf": "^3.0.2",

@@ -21,7 +21,7 @@ export class KeyframeTransform {
     copyFromElement(el: Element): this {
         const m = el.matrix;
         this.pivot.copyFrom(el.transformationPoint);
-        this.position.copyFrom(el.transformationPoint).transform(m);
+        m.transformWith(this.position.copyFrom(el.transformationPoint));
         m.extractScale(this.scale);
         m.extractSkew(this.skew);
         this.colorMultiplier.copyFrom(el.colorMultiplier);
@@ -61,7 +61,7 @@ export function extractTweenDelta(frame: Frame, el0: Element, el1: Element) {
 export function setupFrameFromElement(target: SgMovieFrame, el: Element) {
     const m = el.matrix;
     target.pivot.copyFrom(el.transformationPoint);
-    target.position.copyFrom(el.transformationPoint).transform(m);
+    m.transformWith(target.position.copyFrom(el.transformationPoint));
     m.extractScale(target.scale);
     m.extractSkew(target.skew);
     target.colorMultiplier.copyFrom(el.colorMultiplier);

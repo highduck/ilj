@@ -2,6 +2,7 @@ import {Matrix2D} from "./Matrix2D";
 import {Vec2} from "./Vec2";
 
 const TEMP_VEC2 = new Vec2();
+const TEMP_VEC2_1 = new Vec2();
 
 export class Rect {
     constructor(public x: number = 0,

@@ -29,15 +29,12 @@ export class Entity {
     touchable = true;
     layerMask = 0xFF;
 
-    dt = 0;
-    timeTotal = 0;
-    timeScale = 1;
-
-    readonly engine: Engine;
+    // dt = 0;
+    // timeTotal = 0;
+    // timeScale = 1;
 
     constructor(readonly world: World,
                 readonly passport: Passport) {
-        this.engine = world.engine;
     }
 
     toString(): string {
@@ -445,5 +442,18 @@ export class Entity {
     setVisible(v: boolean): Entity {
         this.visible = v;
         return this;
+    }
+
+    searchRootComponent<T extends object>(ctor: ConstructorWithID<T>): T | undefined {
+        let it: Entity | undefined = this;
+        let c: T | undefined;
+        while (it !== undefined) {
+            c = it.components.get(ctor.TYPE_ID) as (T | undefined);
+            if(c !== undefined) {
+                return c;
+            }
+            it = it.parent;
+        }
+        return undefined;
     }
 }

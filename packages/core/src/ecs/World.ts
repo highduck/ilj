@@ -1,5 +1,5 @@
 import {Entity, Passport} from "./Entity";
-import {Query0, Query1, Query2, Query3, QueryN} from "./Query";
+import {Query2, Query3, QueryN} from "./Query";
 import {Engine} from "../Engine";
 import {ConstructorWithID} from "../util/TypeID";
 import {IntMap} from "../util/IntMap";

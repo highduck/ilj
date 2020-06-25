@@ -12,14 +12,14 @@ export class Camera2D {
 
     root?: Entity = undefined;
     contentScale = 1;
-    clearColorEnabled = true;
+    clearColorEnabled = false;
     readonly clearColor = new Color4();
     readonly viewport = new Rect(0, 0, 1, 1);
     readonly relativeOrigin = new Vec2();
     // TODO: move contentScale from view to Some special Canvas component or fit in camera
     syncContentScale = true;
 
-    debugGizmoBounds = false;
+    debugOcclusion = false;
     debugGizmoFills = false;
     debugGizmoHitTarget = false;
     debugGizmoPointer = false;
@@ -33,10 +33,10 @@ export class Camera2D {
     interactive = false;
     occlusionEnabled = true;
 
-
     calcMatrix(scale: number, out: Matrix2D) {
         const screen = this.screenRect;
-        Transform2D.getWorldMatrix(this.entity, out);
+        const transform = this.entity.searchRootComponent(Transform2D);
+        out.copyFrom(transform === undefined ? Matrix2D.IDENTITY : transform.worldMatrix);
         scale *= this.contentScale;
         out.scale(1 / scale, 1 / scale);
         out.translate(

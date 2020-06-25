@@ -1,4 +1,4 @@
-import {Rect, Color4} from "@highduck/math";
+import {Color4, Rect} from "@highduck/math";
 import {BlendMode} from "./BlendMode";
 
 export class Graphics {
@@ -9,18 +9,18 @@ export class Graphics {
     triangles = 0;
     drawCalls = 0;
 
-    readonly maxRenderBufferSize:number = 2048;
-    readonly maxTextureSize:number = 2048;
+    readonly maxRenderBufferSize: number = 2048;
+    readonly maxTextureSize: number = 2048;
 
     constructor(canvas: HTMLCanvasElement) {
         const options: WebGLContextAttributes = {
             alpha: false,
             depth: false,
             stencil: false,
-            premultipliedAlpha: true,
-            //preserveDrawingBuffer: true, /// dev
+            // premultipliedAlpha: true, // ignored while alpha is false
             antialias: false,
             desynchronized: true,
+            preserveDrawingBuffer: false,
             powerPreference: "high-performance",
             failIfMajorPerformanceCaveat: true
         };
