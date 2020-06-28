@@ -1,0 +1,20 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "composite": true,
+    "rootDir": "src",
+    "outDir": "dist",
+    "isolatedModules": false
+  },
+  "references": [],
+  "files": [
+    "./src/index.ts"
+  ],
+  "include": [
+    "./src/**/*.ts"
+  ],
+  "exclude": [
+    "dist/**",
+    "**/node_modules"
+  ]
+}

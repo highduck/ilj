@@ -1,5 +1,3 @@
-import {Matrix2D} from "./Matrix2D";
-
 export class Vec2 {
 
     get length(): number {

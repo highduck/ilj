@@ -1,0 +1,50 @@
+{
+  "name": "planck-ts",
+  "version": "0.3.19",
+  "description": "2D JavaScript physics engine for cross-platform HTML5 game development",
+  "homepage": "http://shakiba.me/planck.js",
+  "keywords": [
+    "box2d",
+    "html5",
+    "javascript",
+    "game",
+    "physics",
+    "engine",
+    "2d",
+    "mobile"
+  ],
+  "license": "zlib",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/highduck/planck-ts.git"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "type": "module",
+  "files": [
+    "dist/",
+    "doc/",
+    "lib/",
+    "test/",
+    "testbed/"
+  ],
+  "author": "Ali Shakiba",
+  "contributors": [
+    {
+      "name": "Ali Shakiba",
+      "url": "http://shakiba.me/planck.js"
+    },
+    {
+      "name": "Erin Catto",
+      "url": "http://box2d.org/"
+    }
+  ],
+  "scripts": {
+    "ci": "run build",
+    "build": "tsc -b -f tsconfig.esm.json",
+    "watch": "tsc -b -w -f tsconfig.esm.json"
+  },
+  "devDependencies": {
+    "typescript": "^3.9.5"
+  }
+}

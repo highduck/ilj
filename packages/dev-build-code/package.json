@@ -15,7 +15,6 @@
   "sideEffects": false,
   "dependencies": {
     "@babel/core": "^7.10.3",
-    "@babel/plugin-transform-destructuring": "^7.10.1",
     "@babel/preset-env": "^7.10.3",
     "@rollup/plugin-alias": "^3.1.1",
     "@rollup/plugin-babel": "^5.0.4",

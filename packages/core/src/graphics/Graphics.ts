@@ -1,6 +1,17 @@
 import {Color4, Rect} from "@highduck/math";
 import {BlendMode} from "./BlendMode";
 
+function createGLContext(canvas: HTMLCanvasElement, options: WebGLContextAttributes): WebGLRenderingContext | null {
+    const ids = ['webgl', 'experimental-webgl'];
+    for (let i = 0; i < ids.length; ++i) {
+        const context = canvas.getContext(ids[i] as 'webgl', options);
+        if (context != null) {
+            return context;
+        }
+    }
+    return null;
+}
+
 export class Graphics {
     readonly currentFramebufferRect = new Rect();
     readonly viewportRect = new Rect();
@@ -24,7 +35,7 @@ export class Graphics {
             powerPreference: "high-performance",
             failIfMajorPerformanceCaveat: true
         };
-        const GL = canvas.getContext("webgl", options);
+        const GL = createGLContext(canvas, options);
         if (GL == null) {
             throw new Error("GL context is not created");
         }

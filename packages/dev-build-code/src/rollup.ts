@@ -86,7 +86,6 @@ function getTerserOptions(options: CompileBundleOptions): undefined | TerserOpti
         ecma: 8,
         compress: {
             passes: 2,
-            // negate_iife: false
             reduce_funcs: false,
             reduce_vars: false,
             keep_infinity: true,
@@ -105,14 +104,9 @@ function getTerserOptions(options: CompileBundleOptions): undefined | TerserOpti
             //     ]
             // }
         },
-
-        // module: true,
-        // toplevel: true,
-
         safari10: true,
         output: {
-            beautify: options.debug,
-            // wrap_iife: true
+            beautify: options.debug
         }
     };
 
@@ -134,13 +128,13 @@ function getBabelConfig(options: CompileBundleOptions) {
         inputSourceMap: true,
         babelHelpers: 'bundled',
         babelrc: false,
-        exclude: /node_modules/,
+        exclude: [/\/core-js\//], // for `useBuiltIns: "usage"`
         presets: [],
         plugins: []
     };
-    if (compat) {
-        config.plugins.push(['@babel/plugin-transform-destructuring']);
-    }
+    // if (compat) {
+    //     config.plugins.push(['@babel/plugin-transform-destructuring']);
+    // }
 
     if (platform === 'android') {
         // 5.0 (api level 21)
@@ -150,8 +144,7 @@ function getBabelConfig(options: CompileBundleOptions) {
             "@babel/preset-env", {
                 debug: verbose,
                 targets: {
-                    android: compat ? androidCompat : androidModern,
-                    chrome: compat ? androidCompat : androidModern
+                    android: compat ? androidCompat : androidModern
                 },
                 useBuiltIns: "usage",
                 corejs: 3
@@ -207,6 +200,8 @@ function getRollupInput(options: CompileBundleOptions): InputOptions {
         }));
     }
 
+    const planckDev = false;
+
     plugins.push(
         replace({
             values: {
@@ -217,7 +212,9 @@ function getRollupInput(options: CompileBundleOptions): InputOptions {
                 'process.env.APP_VERSION': JSON.stringify(options.version),
                 'process.env.APP_VERSION_CODE': JSON.stringify(options.versionCode),
                 'DEBUG': JSON.stringify(options.debug),
-                'ASSERT': JSON.stringify(options.debug)
+                'ASSERT': JSON.stringify(options.debug),
+                'PLANCK_DEBUG': JSON.stringify(planckDev),
+                'PLANCK_ASSERT': JSON.stringify(planckDev)
             }
         }),
         babel(getBabelConfig(options)),
@@ -231,10 +228,10 @@ function getRollupInput(options: CompileBundleOptions): InputOptions {
     );
 
     if (options.minify) {
-        // const terserOptions = getTerserOptions(options);
-        // if (terserOptions !== undefined) {
-        //     plugins.push(terser(terserOptions));
-        // }
+        const terserOptions = getTerserOptions(options);
+        if (terserOptions !== undefined) {
+            plugins.push(terser(terserOptions));
+        }
     }
 
     if (options.stats) {

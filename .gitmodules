@@ -1,3 +1,0 @@
-[submodule "modules/planck.js"]
-	path = modules/planck.js
-	url = git@github.com:highduck/planck.js.git
