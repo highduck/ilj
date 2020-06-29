@@ -4,7 +4,7 @@ import {assert} from "../util/common";
 import {Transform} from "../common/Transform";
 import {Rot} from "../common/Rot";
 import {Vec2} from "../common/Vec2";
-import {clipSegmentToLine, ClipVertex, ContactFeatureType, Manifold, ManifoldType} from "../Manifold";
+import {clipSegmentToLine, ClipVertex, ClipVertexPair, ContactFeatureType, Manifold, ManifoldType} from "../Manifold";
 import {Settings} from "../Settings";
 import {Fixture} from "../Fixture";
 
@@ -63,10 +63,16 @@ function FindMaxSeparation(poly1: PolygonShape, xf1: Transform, poly2: PolygonSh
 }
 
 /**
- * @param {ClipVertex[2]} c
  * @param {int} edge1
  */
-function FindIncidentEdge(c: [ClipVertex, ClipVertex], poly1: PolygonShape, xf1: Transform, edge1: number, poly2: PolygonShape, xf2: Transform) {
+const s_FindIncidentEdge_normal = new Vec2(0, 0);
+const s_clipVertexPair0:ClipVertexPair = [new ClipVertex(), new ClipVertex()];
+const s_clipVertexPair1:ClipVertexPair = [new ClipVertex(), new ClipVertex()];
+const s_clipVertexPair2:ClipVertexPair = [new ClipVertex(), new ClipVertex()];
+
+function FindIncidentEdge(c0: ClipVertex, c1: ClipVertex,
+                          poly1: PolygonShape, xf1: Transform, edge1: number,
+                          poly2: PolygonShape, xf2: Transform) {
     const normals1 = poly1.m_normals;
 
     const count2 = poly2.m_count;
@@ -76,7 +82,11 @@ function FindIncidentEdge(c: [ClipVertex, ClipVertex], poly1: PolygonShape, xf1:
     PLANCK_ASSERT && assert(0 <= edge1 && edge1 < poly1.m_count);
 
     // Get the normal of the reference edge in poly2's frame.
-    const normal1 = Rot.mulTVec2(xf2.q, Rot.mulVec2(xf1.q, normals1[edge1]));
+
+    //const normal1 = Rot.mulTVec2(xf2.q, Rot.mulVec2(xf1.q, normals1[edge1]));
+    const normal1 = s_FindIncidentEdge_normal;
+    Rot._mulVec2(xf1.q, normals1[edge1], normal1);
+    Rot._mulVec2(xf2.q, normal1, normal1);
 
     // Find the incident edge on poly2.
     let index = 0;
@@ -90,20 +100,18 @@ function FindIncidentEdge(c: [ClipVertex, ClipVertex], poly1: PolygonShape, xf1:
     }
 
     // Build the clip vertices for the incident edge.
-    const i1 = index;
-    const i2 = i1 + 1 < count2 ? i1 + 1 : 0;
+    Transform._mulVec2(xf2, vertices2[index], c0.v);
+    c0.cf.indexA = edge1;
+    c0.cf.indexB = index;
+    c0.cf.typeA = ContactFeatureType.e_face;
+    c0.cf.typeB = ContactFeatureType.e_vertex;
 
-    c[0].v.copyFrom(Transform.mulVec2(xf2, vertices2[i1]));
-    c[0].id.cf.indexA = edge1;
-    c[0].id.cf.indexB = i1;
-    c[0].id.cf.typeA = ContactFeatureType.e_face;
-    c[0].id.cf.typeB = ContactFeatureType.e_vertex;
-
-    c[1].v.copyFrom(Transform.mulVec2(xf2, vertices2[i2]));
-    c[1].id.cf.indexA = edge1;
-    c[1].id.cf.indexB = i2;
-    c[1].id.cf.typeA = ContactFeatureType.e_face;
-    c[1].id.cf.typeB = ContactFeatureType.e_vertex;
+    index = index + 1 < count2 ? index + 1 : 0;
+    Transform._mulVec2(xf2, vertices2[index], c1.v);
+    c1.cf.indexA = edge1;
+    c1.cf.indexB = index;
+    c1.cf.typeA = ContactFeatureType.e_face;
+    c1.cf.typeB = ContactFeatureType.e_vertex;
 }
 
 /**
@@ -158,8 +166,8 @@ function CollidePolygons(manifold: Manifold, polyA: PolygonShape, xfA: Transform
         flip = 0;
     }
 
-    const incidentEdge: [ClipVertex, ClipVertex] = [new ClipVertex(), new ClipVertex()];
-    FindIncidentEdge(incidentEdge, poly1, xf1, edge1, poly2, xf2);
+    const incidentEdge = s_clipVertexPair0;
+    FindIncidentEdge(incidentEdge[0], incidentEdge[1], poly1, xf1, edge1, poly2, xf2);
 
     const count1 = poly1.m_count;
     const vertices1 = poly1.m_vertices;
@@ -190,8 +198,8 @@ function CollidePolygons(manifold: Manifold, polyA: PolygonShape, xfA: Transform
     const sideOffset2 = Vec2.dot(tangent, v12) + totalRadius;
 
     // Clip incident edge against extruded edge1 side edges.
-    const clipPoints1: [ClipVertex, ClipVertex] = [new ClipVertex(), new ClipVertex()];
-    const clipPoints2: [ClipVertex, ClipVertex] = [new ClipVertex(), new ClipVertex()];
+    const clipPoints1 = s_clipVertexPair1;
+    const clipPoints2 = s_clipVertexPair2;
 
     // Clip to box side 1
     let np = clipSegmentToLine(clipPoints1, incidentEdge, Vec2.neg(tangent), sideOffset1, iv1);
@@ -215,11 +223,11 @@ function CollidePolygons(manifold: Manifold, polyA: PolygonShape, xfA: Transform
 
         if (separation <= totalRadius) {
             const cp = manifold.points[pointCount]; // ManifoldPoint
-            cp.localPoint.copyFrom(Transform.mulTVec2(xf2, clipPoints2[i].v));
-            cp.id = clipPoints2[i].id;
+            Transform._mulTVec2(xf2, clipPoints2[i].v, cp.localPoint);
+            cp.cf.copyFrom(clipPoints2[i].cf);
             if (flip) {
                 // Swap features
-                const cf = cp.id.cf; // ContactFeature
+                const cf = cp.cf; // ContactFeature
                 const indexA = cf.indexA;
                 const indexB = cf.indexB;
                 const typeA = cf.typeA;

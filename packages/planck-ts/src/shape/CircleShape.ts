@@ -106,8 +106,11 @@ export class CircleShape extends Shape {
 
     computeAABB(aabb: AABB, xf: Transform, childIndex: number) {
         const p = Vec2.add(xf.p, Rot.mulVec2(xf.q, this.m_p));
-        aabb.lowerBound.set(p.x - this.m_radius, p.y - this.m_radius);
-        aabb.upperBound.set(p.x + this.m_radius, p.y + this.m_radius);
+        const r = this.m_radius;
+        aabb.lx = p.x - r;
+        aabb.ly = p.y - r;
+        aabb.ux = p.x + r;
+        aabb.uy = p.y + r;
     }
 
     computeMass(massData: MassData, density: number) {

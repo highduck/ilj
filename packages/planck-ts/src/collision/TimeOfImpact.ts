@@ -6,280 +6,6 @@ import {Transform} from "../common/Transform";
 import {Vec2} from "../common/Vec2";
 import {Rot} from "../common/Rot";
 
-export const TOIStats = {
-    time: 0,
-    maxTime: 0,
-    calls: 0,
-    iters: 0,
-    maxIters: 0,
-    rootIters: 0,
-    maxRootIters: 0
-};
-
-/**
- * Input parameters for TimeOfImpact.
- *
- * @prop {DistanceProxy} proxyA
- * @prop {DistanceProxy} proxyB
- * @prop {Sweep} sweepA
- * @prop {Sweep} sweepB
- * @prop tMax defines sweep interval [0, tMax]
- */
-export class TOIInput {
-    proxyA = new DistanceProxy();
-    proxyB = new DistanceProxy();
-    sweepA = new Sweep();
-    sweepB = new Sweep();
-    tMax = 0;
-}
-
-// TOIOutput State
-export const enum TOIOutputState {
-    e_unknown = 0,
-    e_failed = 1,
-    e_overlapped = 2,
-    e_touching = 3,
-    e_separated = 4
-}
-
-/**
- * Output parameters for TimeOfImpact.
- *
- * @prop state
- * @prop t
- */
-export class TOIOutput {
-    state = TOIOutputState.e_unknown;
-    t = 0;
-}
-
-/**
- * Compute the upper bound on time before two shapes penetrate. Time is
- * represented as a fraction between [0,tMax]. This uses a swept separating axis
- * and may miss some intermediate, non-tunneling collision. If you change the
- * time interval, you should call this function again.
- *
- * Note: use Distance to compute the contact point and normal at the time of
- * impact.
- *
- * CCD via the local separating axis method. This seeks progression by computing
- * the largest time at which separation is maintained.
- */
-export function timeOfImpact(output: TOIOutput, input: TOIInput) {
-    const timer = performance.now();
-
-    ++TOIStats.calls;
-
-    output.state = TOIOutputState.e_unknown;
-    output.t = input.tMax;
-
-    const proxyA = input.proxyA; // DistanceProxy
-    const proxyB = input.proxyB; // DistanceProxy
-
-    const sweepA = input.sweepA; // Sweep
-    const sweepB = input.sweepB; // Sweep
-
-    // Large rotations can make the root finder fail, so we normalize the
-    // sweep angles.
-    sweepA.normalize();
-    sweepB.normalize();
-
-    const tMax = input.tMax;
-
-    const totalRadius = proxyA.m_radius + proxyB.m_radius;
-    const target = Math.max(Settings.linearSlop, totalRadius - 3.0 * Settings.linearSlop);
-    const tolerance = 0.25 * Settings.linearSlop;
-    PLANCK_ASSERT && assert(target > tolerance);
-
-    let t1 = 0.0;
-    const k_maxIterations = Settings.maxTOIIterations;
-    let iter = 0;
-
-    // Prepare input for distance query.
-    const cache = new SimplexCache();
-
-    const distanceInput = new DistanceInput();
-    distanceInput.proxyA = input.proxyA;
-    distanceInput.proxyB = input.proxyB;
-    distanceInput.useRadii = false;
-
-    const xfA = Transform.identity();
-    const xfB = Transform.identity();
-
-    // The outer loop progressively attempts to compute new separating axes.
-    // This loop terminates when an axis is repeated (no progress is made).
-    for (; ;) {
-        sweepA.getTransform(xfA, t1);
-        sweepB.getTransform(xfB, t1);
-
-        // Get the distance between shapes. We can also use the results
-        // to get a separating axis.
-        distanceInput.transformA = xfA;
-        distanceInput.transformB = xfB;
-        const distanceOutput = new DistanceOutput();
-        Distance(distanceOutput, cache, distanceInput);
-
-        // If the shapes are overlapped, we give up on continuous collision.
-        if (distanceOutput.distance <= 0.0) {
-            // Failure!
-            output.state = TOIOutputState.e_overlapped;
-            output.t = 0.0;
-            break;
-        }
-
-        if (distanceOutput.distance < target + tolerance) {
-            // Victory!
-            output.state = TOIOutputState.e_touching;
-            output.t = t1;
-            break;
-        }
-
-        // Initialize the separating axis.
-        const fcn = new SeparationFunction();
-        fcn.initialize(cache, proxyA, sweepA, proxyB, sweepB, t1);
-
-        // if (false) {
-        //   // Dump the curve seen by the root finder
-        //   var N = 100;
-        //   var dx = 1.0 / N;
-        //   var xs = []; // [ N + 1 ];
-        //   var fs = []; // [ N + 1 ];
-        //   var x = 0.0;
-        //   for (var i = 0; i <= N; ++i) {
-        //     sweepA.getTransform(xfA, x);
-        //     sweepB.getTransform(xfB, x);
-        //     var f = fcn.evaluate(xfA, xfB) - target;
-        //     printf("%g %g\n", x, f);
-        //     xs[i] = x;
-        //     fs[i] = f;
-        //     x += dx;
-        //   }
-        // }
-
-        // Compute the TOI on the separating axis. We do this by successively
-        // resolving the deepest point. This loop is bounded by the number of
-        // vertices.
-        let done = false;
-        let t2 = tMax;
-        let pushBackIter = 0;
-        for (; ;) {
-            // Find the deepest point at t2. Store the witness point indices.
-            let s2 = fcn.findMinSeparation(t2);
-            let indexA = fcn.indexA;
-            let indexB = fcn.indexB;
-
-            // Is the final configuration separated?
-            if (s2 > target + tolerance) {
-                // Victory!
-                output.state = TOIOutputState.e_separated;
-                output.t = tMax;
-                done = true;
-                break;
-            }
-
-            // Has the separation reached tolerance?
-            if (s2 > target - tolerance) {
-                // Advance the sweeps
-                t1 = t2;
-                break;
-            }
-
-            // Compute the initial separation of the witness points.
-            let s1 = fcn.evaluate(t1);
-            indexA = fcn.indexA;
-            indexB = fcn.indexB;
-
-            // Check for initial overlap. This might happen if the root finder
-            // runs out of iterations.
-            if (s1 < target - tolerance) {
-                output.state = TOIOutputState.e_failed;
-                output.t = t1;
-                done = true;
-                break;
-            }
-
-            // Check for touching
-            if (s1 <= target + tolerance) {
-                // Victory! t1 should hold the TOI (could be 0.0).
-                output.state = TOIOutputState.e_touching;
-                output.t = t1;
-                done = true;
-                break;
-            }
-
-            // Compute 1D root of: f(x) - target = 0
-            let rootIterCount = 0;
-            let a1 = t1;
-            let a2 = t2;
-            for (; ;) {
-                // Use a mix of the secant rule and bisection.
-                let t;
-                if (rootIterCount & 1) {
-                    // Secant rule to improve convergence.
-                    t = a1 + (target - s1) * (a2 - a1) / (s2 - s1);
-                } else {
-                    // Bisection to guarantee progress.
-                    t = 0.5 * (a1 + a2);
-                }
-
-                ++rootIterCount;
-                ++TOIStats.rootIters;
-
-                const s = fcn.evaluate(t);
-                indexA = fcn.indexA;
-                indexB = fcn.indexB;
-
-                if (Math.abs(s - target) < tolerance) {
-                    // t2 holds a tentative value for t1
-                    t2 = t;
-                    break;
-                }
-
-                // Ensure we continue to bracket the root.
-                if (s > target) {
-                    a1 = t;
-                    s1 = s;
-                } else {
-                    a2 = t;
-                    s2 = s;
-                }
-
-                if (rootIterCount == 50) {
-                    break;
-                }
-            }
-
-            TOIStats.maxRootIters = Math.max(TOIStats.maxRootIters, rootIterCount);
-
-            ++pushBackIter;
-
-            if (pushBackIter == Settings.maxPolygonVertices) {
-                break;
-            }
-        }
-
-        ++iter;
-        ++TOIStats.iters;
-
-        if (done) {
-            break;
-        }
-
-        if (iter == k_maxIterations) {
-            // Root finder got stuck. Semi-victory.
-            output.state = TOIOutputState.e_failed;
-            output.t = t1;
-            break;
-        }
-    }
-
-    TOIStats.maxIters = Math.max(TOIStats.maxIters, iter);
-
-    const time = performance.now() - timer;
-    TOIStats.maxTime = Math.max(TOIStats.maxTime, time);
-    TOIStats.time += time;
-}
-
 // SeparationFunction Type
 const enum SeparationFunctionType {
     e_points = 1,
@@ -457,4 +183,287 @@ class SeparationFunction {
     evaluate(t: number) {
         return this.compute(false, t);
     }
+}
+
+// reuse
+const s_distanceInput = new DistanceInput();
+const s_distanceOutput = new DistanceOutput();
+const s_simplexCache = new SimplexCache();
+const s_axisSeparationFunction = new SeparationFunction();
+
+export const TOIStats = {
+    time: 0,
+    maxTime: 0,
+    calls: 0,
+    iters: 0,
+    maxIters: 0,
+    rootIters: 0,
+    maxRootIters: 0
+};
+
+/**
+ * Input parameters for TimeOfImpact.
+ *
+ * @prop {DistanceProxy} proxyA
+ * @prop {DistanceProxy} proxyB
+ * @prop {Sweep} sweepA
+ * @prop {Sweep} sweepB
+ * @prop tMax defines sweep interval [0, tMax]
+ */
+export class TOIInput {
+    proxyA = new DistanceProxy();
+    proxyB = new DistanceProxy();
+    sweepA = new Sweep();
+    sweepB = new Sweep();
+    tMax = 0;
+}
+
+// TOIOutput State
+export const enum TOIOutputState {
+    e_unknown = 0,
+    e_failed = 1,
+    e_overlapped = 2,
+    e_touching = 3,
+    e_separated = 4
+}
+
+/**
+ * Output parameters for TimeOfImpact.
+ *
+ * @prop state
+ * @prop t
+ */
+export class TOIOutput {
+    state = TOIOutputState.e_unknown;
+    t = 0;
+}
+
+/**
+ * Compute the upper bound on time before two shapes penetrate. Time is
+ * represented as a fraction between [0,tMax]. This uses a swept separating axis
+ * and may miss some intermediate, non-tunneling collision. If you change the
+ * time interval, you should call this function again.
+ *
+ * Note: use Distance to compute the contact point and normal at the time of
+ * impact.
+ *
+ * CCD via the local separating axis method. This seeks progression by computing
+ * the largest time at which separation is maintained.
+ */
+export function timeOfImpact(output: TOIOutput, input: TOIInput) {
+    const timer = performance.now();
+
+    ++TOIStats.calls;
+
+    output.state = TOIOutputState.e_unknown;
+    output.t = input.tMax;
+
+    const proxyA = input.proxyA; // DistanceProxy
+    const proxyB = input.proxyB; // DistanceProxy
+
+    const sweepA = input.sweepA; // Sweep
+    const sweepB = input.sweepB; // Sweep
+
+    // Large rotations can make the root finder fail, so we normalize the
+    // sweep angles.
+    sweepA.normalize();
+    sweepB.normalize();
+
+    const tMax = input.tMax;
+
+    const totalRadius = proxyA.m_radius + proxyB.m_radius;
+    const target = Math.max(Settings.linearSlop, totalRadius - 3.0 * Settings.linearSlop);
+    const tolerance = 0.25 * Settings.linearSlop;
+    PLANCK_ASSERT && assert(target > tolerance);
+
+    let t1 = 0.0;
+    const k_maxIterations = Settings.maxTOIIterations;
+    let iter = 0;
+
+    // Prepare input for distance query.
+    const cache = s_simplexCache;
+    cache.count = 0;
+
+    const distanceInput = s_distanceInput;
+    distanceInput.proxyA = input.proxyA;
+    distanceInput.proxyB = input.proxyB;
+    distanceInput.useRadii = false;
+
+    const xfA = Transform.identity();
+    const xfB = Transform.identity();
+
+    // The outer loop progressively attempts to compute new separating axes.
+    // This loop terminates when an axis is repeated (no progress is made).
+    for (; ;) {
+        sweepA.getTransform(xfA, t1);
+        sweepB.getTransform(xfB, t1);
+
+        // Get the distance between shapes. We can also use the results
+        // to get a separating axis.
+        distanceInput.transformA = xfA;
+        distanceInput.transformB = xfB;
+
+        const distanceOutput = s_distanceOutput;
+        Distance(distanceOutput, cache, distanceInput);
+
+        // If the shapes are overlapped, we give up on continuous collision.
+        if (distanceOutput.distance <= 0.0) {
+            // Failure!
+            output.state = TOIOutputState.e_overlapped;
+            output.t = 0.0;
+            break;
+        }
+
+        if (distanceOutput.distance < target + tolerance) {
+            // Victory!
+            output.state = TOIOutputState.e_touching;
+            output.t = t1;
+            break;
+        }
+
+        // Initialize the separating axis.
+        const fcn = new SeparationFunction();
+        // const fcn = s_axisSeparationFunction;
+        fcn.initialize(cache, proxyA, sweepA, proxyB, sweepB, t1);
+
+        // if (false) {
+        //   // Dump the curve seen by the root finder
+        //   var N = 100;
+        //   var dx = 1.0 / N;
+        //   var xs = []; // [ N + 1 ];
+        //   var fs = []; // [ N + 1 ];
+        //   var x = 0.0;
+        //   for (var i = 0; i <= N; ++i) {
+        //     sweepA.getTransform(xfA, x);
+        //     sweepB.getTransform(xfB, x);
+        //     var f = fcn.evaluate(xfA, xfB) - target;
+        //     printf("%g %g\n", x, f);
+        //     xs[i] = x;
+        //     fs[i] = f;
+        //     x += dx;
+        //   }
+        // }
+
+        // Compute the TOI on the separating axis. We do this by successively
+        // resolving the deepest point. This loop is bounded by the number of
+        // vertices.
+        let done = false;
+        let t2 = tMax;
+        let pushBackIter = 0;
+        for (; ;) {
+            // Find the deepest point at t2. Store the witness point indices.
+            let s2 = fcn.findMinSeparation(t2);
+            let indexA = fcn.indexA;
+            let indexB = fcn.indexB;
+
+            // Is the final configuration separated?
+            if (s2 > target + tolerance) {
+                // Victory!
+                output.state = TOIOutputState.e_separated;
+                output.t = tMax;
+                done = true;
+                break;
+            }
+
+            // Has the separation reached tolerance?
+            if (s2 > target - tolerance) {
+                // Advance the sweeps
+                t1 = t2;
+                break;
+            }
+
+            // Compute the initial separation of the witness points.
+            let s1 = fcn.evaluate(t1);
+            indexA = fcn.indexA;
+            indexB = fcn.indexB;
+
+            // Check for initial overlap. This might happen if the root finder
+            // runs out of iterations.
+            if (s1 < target - tolerance) {
+                output.state = TOIOutputState.e_failed;
+                output.t = t1;
+                done = true;
+                break;
+            }
+
+            // Check for touching
+            if (s1 <= target + tolerance) {
+                // Victory! t1 should hold the TOI (could be 0.0).
+                output.state = TOIOutputState.e_touching;
+                output.t = t1;
+                done = true;
+                break;
+            }
+
+            // Compute 1D root of: f(x) - target = 0
+            let rootIterCount = 0;
+            let a1 = t1;
+            let a2 = t2;
+            for (; ;) {
+                // Use a mix of the secant rule and bisection.
+                let t;
+                if (rootIterCount & 1) {
+                    // Secant rule to improve convergence.
+                    t = a1 + (target - s1) * (a2 - a1) / (s2 - s1);
+                } else {
+                    // Bisection to guarantee progress.
+                    t = 0.5 * (a1 + a2);
+                }
+
+                ++rootIterCount;
+                ++TOIStats.rootIters;
+
+                const s = fcn.evaluate(t);
+                indexA = fcn.indexA;
+                indexB = fcn.indexB;
+
+                if (Math.abs(s - target) < tolerance) {
+                    // t2 holds a tentative value for t1
+                    t2 = t;
+                    break;
+                }
+
+                // Ensure we continue to bracket the root.
+                if (s > target) {
+                    a1 = t;
+                    s1 = s;
+                } else {
+                    a2 = t;
+                    s2 = s;
+                }
+
+                if (rootIterCount == 50) {
+                    break;
+                }
+            }
+
+            TOIStats.maxRootIters = Math.max(TOIStats.maxRootIters, rootIterCount);
+
+            ++pushBackIter;
+
+            if (pushBackIter == Settings.maxPolygonVertices) {
+                break;
+            }
+        }
+
+        ++iter;
+        ++TOIStats.iters;
+
+        if (done) {
+            break;
+        }
+
+        if (iter == k_maxIterations) {
+            // Root finder got stuck. Semi-victory.
+            output.state = TOIOutputState.e_failed;
+            output.t = t1;
+            break;
+        }
+    }
+
+    TOIStats.maxIters = Math.max(TOIStats.maxIters, iter);
+
+    const time = performance.now() - timer;
+    TOIStats.maxTime = Math.max(TOIStats.maxTime, time);
+    TOIStats.time += time;
 }

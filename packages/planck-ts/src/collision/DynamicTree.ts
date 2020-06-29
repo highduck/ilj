@@ -5,6 +5,10 @@ import {Pool} from "../util/Pool";
 import {RayCastInput} from "./RayCastOptions";
 import {Settings} from "../Settings";
 
+const s_rayCast_segmentAABB = new AABB(0, 0, 0, 0);
+const s_rayCast_t = new Vec2(0, 0);
+const s_insertLeaf_aabb = new AABB(0, 0, 0, 0);
+
 /**
  * A node in the dynamic tree. The client does not interact with this directly.
  *
@@ -12,7 +16,7 @@ import {Settings} from "../Settings";
  * @prop {integer} height 0: leaf, -1: free node
  */
 export class TreeNode {
-    readonly aabb = new AABB();
+    readonly aabb = new AABB(0, 0, 0, 0);
     userData: any = null;
     parent: TreeNode | null = null;
     child1: TreeNode | null = null;
@@ -106,10 +110,9 @@ export class DynamicTree {
         PLANCK_ASSERT && assert(AABB.isValid(aabb))
 
         const node = this.allocateNode()
-        node.aabb.set(aabb);
-
-        // Fatten the aabb.
-        AABB.extend(node.aabb, Settings.aabbExtension);
+        node.aabb.copyFrom(aabb);
+        // Fatten the AABB
+        node.aabb.extend(Settings.aabbExtension);
 
         node.userData = userData;
         node.height = 0;
@@ -158,25 +161,25 @@ export class DynamicTree {
 
         this.removeLeaf(node);
 
-        node.aabb.set(aabb)
+        node.aabb.copyFrom(aabb)
 
         // Extend AABB.
         aabb = node.aabb;
-        AABB.extend(aabb, Settings.aabbExtension);
+        aabb.extend(Settings.aabbExtension);
 
         // Predict AABB displacement.
         // var d = Vec2.mul(Settings.aabbMultiplier, displacement);
 
         if (d.x < 0.0) {
-            aabb.lowerBound.x += d.x * Settings.aabbMultiplier;
+            aabb.lx += d.x * Settings.aabbMultiplier;
         } else {
-            aabb.upperBound.x += d.x * Settings.aabbMultiplier;
+            aabb.ux += d.x * Settings.aabbMultiplier;
         }
 
         if (d.y < 0.0) {
-            aabb.lowerBound.y += d.y * Settings.aabbMultiplier;
+            aabb.ly += d.y * Settings.aabbMultiplier;
         } else {
-            aabb.upperBound.y += d.y * Settings.aabbMultiplier;
+            aabb.uy += d.y * Settings.aabbMultiplier;
         }
 
         this.insertLeaf(node);
@@ -196,15 +199,16 @@ export class DynamicTree {
         // Find the best sibling for this node
         const leafAABB = leaf.aabb;
         let index = this.m_root;
+        const aabb = s_insertLeaf_aabb;
         while (!index.isLeaf()) {
             const child1 = index.child1!;
             const child2 = index.child2!;
 
             const area = index.aabb.getPerimeter();
 
-            const combinedAABB = new AABB();
-            combinedAABB.combine(index.aabb, leafAABB);
-            const combinedArea = combinedAABB.getPerimeter();
+            // const combinedAABB = new AABB();
+            aabb.combine(index.aabb, leafAABB);
+            const combinedArea = aabb.getPerimeter();
 
             // Cost of creating a new parent for this node and the new leaf
             const cost = 2.0 * combinedArea;
@@ -215,11 +219,9 @@ export class DynamicTree {
             // Cost of descending into child1
             let cost1;
             if (child1.isLeaf()) {
-                const aabb = new AABB();
                 aabb.combine(leafAABB, child1.aabb);
                 cost1 = aabb.getPerimeter() + inheritanceCost;
             } else {
-                const aabb = new AABB();
                 aabb.combine(leafAABB, child1.aabb);
                 const oldArea = child1.aabb.getPerimeter();
                 const newArea = aabb.getPerimeter();
@@ -229,11 +231,9 @@ export class DynamicTree {
             // Cost of descending into child2
             let cost2: number;
             if (child2.isLeaf()) {
-                const aabb = new AABB();
                 aabb.combine(leafAABB, child2.aabb);
                 cost2 = aabb.getPerimeter() + inheritanceCost;
             } else {
-                const aabb = new AABB();
                 aabb.combine(leafAABB, child2.aabb);
                 const oldArea = child2.aabb.getPerimeter();
                 const newArea = aabb.getPerimeter();
@@ -261,7 +261,7 @@ export class DynamicTree {
 
         if (oldParent != null) {
             // The sibling was not the root.
-            if (oldParent.child1 == sibling) {
+            if (oldParent.child1 === sibling) {
                 oldParent.child1 = newParent;
             } else {
                 oldParent.child2 = newParent;
@@ -559,7 +559,7 @@ export class DynamicTree {
         const height = 1 + Math.max(height1, height2);
         PLANCK_ASSERT && assert(node.height == height);
 
-        const aabb = new AABB();
+        const aabb = new AABB(0, 0, 0, 0);
         aabb.combine(child1.aabb, child2.aabb);
 
         PLANCK_ASSERT && assert(AABB.areEqual(aabb, node.aabb));
@@ -630,7 +630,7 @@ export class DynamicTree {
                 const aabbi = nodes[i].aabb;
                 for (let j = i + 1; j < count; ++j) {
                     const aabbj = nodes[j].aabb;
-                    const b = new AABB();
+                    const b = new AABB(0, 0, 0, 0);
                     b.combine(aabbi, aabbj);
                     const cost = b.getPerimeter();
                     if (cost < minCost) {
@@ -675,10 +675,10 @@ export class DynamicTree {
         let node, it = iteratorPool.allocate().preorder(this.m_root!);
         while (node = it.next()) {
             const aabb = node.aabb;
-            aabb.lowerBound.x -= newOrigin.x;
-            aabb.lowerBound.y -= newOrigin.y;
-            aabb.upperBound.x -= newOrigin.x;
-            aabb.upperBound.y -= newOrigin.y;
+            aabb.lx -= newOrigin.x;
+            aabb.ly -= newOrigin.y;
+            aabb.ux -= newOrigin.x;
+            aabb.uy -= newOrigin.y;
         }
         iteratorPool.release(it);
     }
@@ -708,6 +708,7 @@ export class DynamicTree {
                 if (node.isLeaf()) {
                     const proceed = queryCallback(node.id);
                     if (!proceed) {
+                        // TODO: release stack???
                         return;
                     }
                 } else {
@@ -750,8 +751,9 @@ export class DynamicTree {
         let maxFraction = input.maxFraction;
 
         // Build a bounding box for the segment.
-        const segmentAABB = new AABB();
-        let t = Vec2.combine((1 - maxFraction), p1, maxFraction, p2);
+        const segmentAABB = s_rayCast_segmentAABB;
+        const t = s_rayCast_t;
+        Vec2._combine(1 - maxFraction, p1, maxFraction, p2, t);
         segmentAABB.combinePoints(p1, t);
 
         const stack = stackPool.allocate();
@@ -791,7 +793,7 @@ export class DynamicTree {
                 if (value > 0.0) {
                     // update segment bounding box.
                     maxFraction = value;
-                    t = Vec2.combine((1 - maxFraction), p1, maxFraction, p2);
+                    Vec2._combine(1 - maxFraction, p1, maxFraction, p2, t);
                     segmentAABB.combinePoints(p1, t);
                 }
             } else {
@@ -827,10 +829,10 @@ const stackPool = new Pool<TreeNode[]>({
 });
 
 const iteratorPool = new Pool<Iterator>({
-    create():Iterator {
+    create(): Iterator {
         return new Iterator();
     },
-    release(iter:Iterator) {
+    release(iter: Iterator) {
         iter.close();
     }
 });

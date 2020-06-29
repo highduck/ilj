@@ -261,8 +261,10 @@ export class PolygonShape extends Shape {
             // p = p1 + a * d
             // dot(normal, p - v) = 0
             // dot(normal, p1 - v) + a * dot(normal, d) = 0
-            const numerator = Vec2.dot(this.m_normals[i], Vec2.sub(this.m_vertices[i], p1));
-            const denominator = Vec2.dot(this.m_normals[i], d);
+            const normal = this.m_normals[i];
+            const vertex = this.m_vertices[i];
+            const numerator = normal.x * (vertex.x - p1.x) + normal.y * (vertex.y - p1.y);
+            const denominator = Vec2.dot(normal, d);
 
             if (denominator == 0.0) {
                 if (numerator < 0.0) {
@@ -316,9 +318,11 @@ export class PolygonShape extends Shape {
             maxY = Math.max(maxY, v.y);
         }
 
-        aabb.lowerBound.set(minX, minY);
-        aabb.upperBound.set(maxX, maxY);
-        aabb.extend(this.m_radius);
+        const r = this.m_radius;
+        aabb.lx = minX - r;
+        aabb.ly = minY - r;
+        aabb.ux = maxX + r;
+        aabb.uy = maxY + r;
     }
 
     computeMass(massData: MassData, density: number) {
@@ -348,13 +352,13 @@ export class PolygonShape extends Shape {
 
         PLANCK_ASSERT && assert(this.m_count >= 3);
 
-        const center = Vec2.zero();
+        const center = new Vec2(0, 0);
         let area = 0.0;
         let I = 0.0;
 
         // s is the reference point for forming triangles.
         // It's location doesn't change the result (except for rounding error).
-        const s = Vec2.zero();
+        const s = new Vec2(0, 0);
 
         // This code would put the reference point inside the polygon.
         for (let i = 0; i < this.m_count; ++i) {
@@ -364,12 +368,12 @@ export class PolygonShape extends Shape {
 
         const k_inv3 = 1.0 / 3.0;
 
+        const e1 = new Vec2(0, 0);
+        const e2 = new Vec2(0, 0);
         for (let i = 0; i < this.m_count; ++i) {
             // Triangle vertices.
-            const e1 = Vec2.sub(this.m_vertices[i], s);
-            const e2 = i + 1 < this.m_count ? Vec2.sub(this.m_vertices[i + 1], s) : Vec2
-                .sub(this.m_vertices[0], s);
-
+            Vec2._sub(this.m_vertices[i], s, e1);
+            Vec2._sub(i + 1 < this.m_count ? this.m_vertices[i + 1] : this.m_vertices[0], s, e2);
             const D = Vec2.cross(e1, e2);
 
             const triangleArea = 0.5 * D;

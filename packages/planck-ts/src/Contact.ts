@@ -38,6 +38,7 @@ function mixRestitution(restitution1: number, restitution2: number): number {
     return restitution1 > restitution2 ? restitution1 : restitution2;
 }
 
+const s_worldManifold = new WorldManifold();
 const s_registers: {
     [t1: string]: {
         [t2: string]: EvaluateFunction
@@ -138,9 +139,9 @@ export class Contact {
     m_bulletHitFlag = false;
 
     v_points: VelocityConstraintPoint[] = []; // VelocityConstraintPoint[maxManifoldPoints]
-    v_normal = Vec2.zero();
-    v_normalMass = Mat22.zero();
-    v_K = Mat22.zero();
+    readonly v_normal = new Vec2(0, 0);
+    readonly v_normalMass = Mat22.zero();
+    readonly v_K = Mat22.zero();
     v_pointCount = 0;
 
     v_tangentSpeed: number = 0;
@@ -153,10 +154,10 @@ export class Contact {
     v_invIB = 0;
 
     p_localPoints: Vec2[] = [] // Vec2[maxManifoldPoints];
-    p_localNormal = Vec2.zero();
-    p_localPoint = Vec2.zero();
-    p_localCenterA = Vec2.zero();
-    p_localCenterB = Vec2.zero();
+    readonly p_localNormal = new Vec2(0, 0);
+    readonly p_localPoint = new Vec2(0, 0);
+    readonly p_localCenterA = new Vec2(0, 0);
+    readonly p_localCenterB = new Vec2(0, 0);
     p_type = ManifoldType.e_circles;
     p_radiusA = 0;
     p_radiusB = 0;
@@ -213,15 +214,15 @@ export class Contact {
         this.p_invMassB = bodyB.m_invMass;
         this.p_invIA = bodyA.m_invI;
         this.p_invIB = bodyB.m_invI;
-        this.p_localCenterA = Vec2.clone(bodyA.m_sweep.localCenter);
-        this.p_localCenterB = Vec2.clone(bodyB.m_sweep.localCenter);
+        this.p_localCenterA.copyFrom(bodyA.m_sweep.localCenter);
+        this.p_localCenterB.copyFrom(bodyB.m_sweep.localCenter);
 
         this.p_radiusA = shapeA.m_radius;
         this.p_radiusB = shapeB.m_radius;
 
         this.p_type = manifold.type;
-        this.p_localNormal = Vec2.clone(manifold.localNormal);
-        this.p_localPoint = Vec2.clone(manifold.localPoint);
+        this.p_localNormal.copyFrom(manifold.localNormal);
+        this.p_localPoint.copyFrom(manifold.localPoint);
         this.p_pointCount = pointCount;
 
         for (let j = 0; j < pointCount; ++j) {
@@ -243,6 +244,7 @@ export class Contact {
             vcp.tangentMass = 0.0;
             vcp.velocityBias = 0.0;
 
+            // this.p_localPoints[j] = cp.localPoint.clone();
             this.p_localPoints[j] = cp.localPoint; // by REF!
         }
     }
@@ -266,8 +268,9 @@ export class Contact {
         const shapeA = this.m_fixtureA.getShape();
         const shapeB = this.m_fixtureB.getShape();
 
-        return this.m_manifold.getWorldManifold(worldManifold, bodyA.getTransform(),
-            shapeA.m_radius, bodyB.getTransform(), shapeB.m_radius);
+        return this.m_manifold.getWorldManifold(worldManifold,
+            bodyA.getTransform(), shapeA.m_radius,
+            bodyB.getTransform(), shapeB.m_radius);
     }
 
     /**
@@ -354,8 +357,7 @@ export class Contact {
      * Reset the friction mixture to the default value.
      */
     resetFriction() {
-        this.m_friction = mixFriction(this.m_fixtureA.m_friction,
-            this.m_fixtureB.m_friction);
+        this.m_friction = mixFriction(this.m_fixtureA.m_friction, this.m_fixtureB.m_friction);
     }
 
     /**
@@ -459,7 +461,7 @@ export class Contact {
                 for (let j = 0; j < oldManifold.pointCount; ++j) {
                     const omp = oldManifold.points[j];
                     // ContactID.key
-                    if (omp.id.key === nmp.id.key) {
+                    if (omp.cf.key === nmp.cf.key) {
                         nmp.normalImpulse = omp.normalImpulse;
                         nmp.tangentImpulse = omp.tangentImpulse;
                         break;
@@ -635,14 +637,14 @@ export class Contact {
         const localCenterA = Vec2.clone(this.p_localCenterA);
         const localCenterB = Vec2.clone(this.p_localCenterB);
 
-        const cA = Vec2.clone(positionA.c);
+        const cA = positionA.c;
         const aA = positionA.a;
-        const vA = Vec2.clone(velocityA.v);
+        const vA = velocityA.v;
         const wA = velocityA.w;
 
-        const cB = Vec2.clone(positionB.c);
+        const cB = positionB.c;
         const aB = positionB.a;
-        const vB = Vec2.clone(velocityB.v);
+        const vB = velocityB.v;
         const wB = velocityB.w;
 
         PLANCK_ASSERT && assert(manifold.pointCount > 0);
@@ -655,6 +657,8 @@ export class Contact {
         xfB.p.setCombine(1, cB, -1, Rot.mulVec2(xfB.q, localCenterB));
 
         const worldManifold = new WorldManifold();
+        // const worldManifold = s_worldManifold;
+        // worldManifold.reset();
         manifold.getWorldManifold(worldManifold, xfA, radiusA, xfB, radiusB);
 
         this.v_normal.copyFrom(worldManifold.normal);
@@ -662,8 +666,9 @@ export class Contact {
         for (let j = 0; j < this.v_pointCount; ++j) {
             const vcp = this.v_points[j]; // VelocityConstraintPoint
 
-            vcp.rA.copyFrom(Vec2.sub(worldManifold.points[j], cA));
-            vcp.rB.copyFrom(Vec2.sub(worldManifold.points[j], cB));
+            const pointj = worldManifold.points[j];
+            Vec2._sub(pointj, cA, vcp.rA);
+            Vec2._sub(pointj, cB, vcp.rB);
 
             const rnA = Vec2.cross(vcp.rA, this.v_normal);
             const rnB = Vec2.cross(vcp.rB, this.v_normal);
@@ -711,7 +716,7 @@ export class Contact {
             if (k11 * k11 < k_maxConditionNumber * (k11 * k22 - k12 * k12)) {
                 // K is safe to invert.
                 this.v_K.set(k11, k12, k12, k22);
-                this.v_normalMass.copyFrom(this.v_K.getInverse());
+                Mat22._inverse(this.v_K, this.v_normalMass);
             } else {
                 // The constraints are redundant, just use one.
                 // TODO_ERIN use deepest?
@@ -719,15 +724,15 @@ export class Contact {
             }
         }
 
-        positionA.c.copyFrom(cA);
-        positionA.a = aA;
-        velocityA.v.copyFrom(vA);
-        velocityA.w = wA;
-
-        positionB.c.copyFrom(cB);
-        positionB.a = aB;
-        velocityB.v.copyFrom(vB);
-        velocityB.w = wB;
+        // positionA.c.copyFrom(cA);
+        // positionA.a = aA;
+        // velocityA.v.copyFrom(vA);
+        // velocityA.w = wA;
+        //
+        // positionB.c.copyFrom(cB);
+        // positionB.a = aB;
+        // velocityB.v.copyFrom(vB);
+        // velocityB.w = wB;
     }
 
     warmStartConstraint(step: TimeStep) {
@@ -739,17 +744,17 @@ export class Contact {
 
         const velocityA = bodyA.c_velocity;
         const velocityB = bodyB.c_velocity;
-        const positionA = bodyA.c_position;
-        const positionB = bodyB.c_position;
+        // const positionA = bodyA.c_position;
+        // const positionB = bodyB.c_position;
 
         const mA = this.v_invMassA;
         const iA = this.v_invIA;
         const mB = this.v_invMassB;
         const iB = this.v_invIB;
 
-        const vA = Vec2.clone(velocityA.v);
+        const vA = velocityA.v;
         let wA = velocityA.w;
-        const vB = Vec2.clone(velocityB.v);
+        const vB = velocityB.v;
         let wB = velocityB.w;
 
         const normal = this.v_normal;
@@ -765,17 +770,19 @@ export class Contact {
             vB.addMul(mB, P);
         }
 
-        velocityA.v.copyFrom(vA);
+        // velocityA.v.copyFrom(vA); // mod by ref!
         velocityA.w = wA;
-        velocityB.v.copyFrom(vB);
+        // velocityB.v.copyFrom(vB); // mod by ref!
         velocityB.w = wB;
     }
 
     storeConstraintImpulses(step: TimeStep) {
         const manifold = this.m_manifold;
         for (let j = 0; j < this.v_pointCount; ++j) {
-            manifold.points[j].normalImpulse = this.v_points[j].normalImpulse;
-            manifold.points[j].tangentImpulse = this.v_points[j].tangentImpulse;
+            const vp = this.v_points[j];
+            const mp = manifold.points[j];
+            mp.normalImpulse = vp.normalImpulse;
+            mp.tangentImpulse = vp.tangentImpulse;
         }
     }
 
@@ -784,19 +791,19 @@ export class Contact {
         const bodyB = this.m_fixtureB.m_body;
 
         const velocityA = bodyA.c_velocity;
-        const positionA = bodyA.c_position;
+        // const positionA = bodyA.c_position;
 
         const velocityB = bodyB.c_velocity;
-        const positionB = bodyB.c_position;
+        // const positionB = bodyB.c_position;
 
         const mA = this.v_invMassA;
         const iA = this.v_invIA;
         const mB = this.v_invMassB;
         const iB = this.v_invIB;
 
-        const vA = Vec2.clone(velocityA.v);
+        const vA = velocityA.v;
         let wA = velocityA.w;
-        const vB = Vec2.clone(velocityB.v);
+        const vB = velocityB.v;
         let wB = velocityB.w;
 
         const normal = this.v_normal;
@@ -811,18 +818,20 @@ export class Contact {
             const vcp = this.v_points[j]; // VelocityConstraintPoint
 
             // Relative velocity at contact
-            const dv = Vec2.zero();
-            dv.addCombine(1, vB, 1, Vec2.crossSV(wB, vcp.rB));
-            dv.subCombine(1, vA, 1, Vec2.crossSV(wA, vcp.rA));
+            const dvx = vB.x - wB * vcp.rB.y - vA.x + wA * vcp.rA.y;
+            const dvy = vB.y + wB * vcp.rB.x - vA.y - wA * vcp.rA.x;
+            // const dv = Vec2.zero();
+            // dv.addCombine(1, vB, 1, Vec2.crossSV(wB, vcp.rB));
+            // dv.subCombine(1, vA, 1, Vec2.crossSV(wA, vcp.rA));
 
             // Compute tangent force
-            const vt = Vec2.dot(dv, tangent) - this.v_tangentSpeed;
-            let lambda = vcp.tangentMass * (-vt);
+            // const vt = Vec2.dot(dv, tangent) - this.v_tangentSpeed;
+            const vt = dvx * tangent.x + dvy * tangent.y - this.v_tangentSpeed;
+            let lambda = -vt * vcp.tangentMass;
 
             // Clamp the accumulated force
             const maxFriction = friction * vcp.normalImpulse;
-            const newImpulse = MathUtil.clamp(vcp.tangentImpulse + lambda, -maxFriction,
-                maxFriction);
+            const newImpulse = MathUtil.clamp(vcp.tangentImpulse + lambda, -maxFriction, maxFriction);
             lambda = newImpulse - vcp.tangentImpulse;
             vcp.tangentImpulse = newImpulse;
 
@@ -913,8 +922,8 @@ export class Contact {
             PLANCK_ASSERT && assert(a.x >= 0.0 && a.y >= 0.0);
 
             // Relative velocity at contact
-            let dv1 = Vec2.zero().add(vB).add(Vec2.crossSV(wB, vcp1.rB)).sub(vA).sub(Vec2.crossSV(wA, vcp1.rA));
-            let dv2 = Vec2.zero().add(vB).add(Vec2.crossSV(wB, vcp2.rB)).sub(vA).sub(Vec2.crossSV(wA, vcp2.rA));
+            let dv1 = vB.clone().add(Vec2.crossSV(wB, vcp1.rB)).sub(vA).sub(Vec2.crossSV(wA, vcp1.rA));
+            let dv2 = vB.clone().add(Vec2.crossSV(wB, vcp2.rB)).sub(vA).sub(Vec2.crossSV(wA, vcp2.rA));
 
             // Compute normal velocity
             let vn1 = Vec2.dot(dv1, normal);
@@ -1106,10 +1115,10 @@ export class Contact {
             }
         }
 
-        velocityA.v.copyFrom(vA);
+        // velocityA.v.copyFrom(vA); // mod by ref
         velocityA.w = wA;
 
-        velocityB.v.copyFrom(vB);
+        // velocityB.v.copyFrom(vB); // mod by ref
         velocityB.w = wB;
     }
 
@@ -1139,8 +1148,8 @@ export class Contact {
         // Contact creation may swap fixtures.
         fixtureA = contact.getFixtureA();
         fixtureB = contact.getFixtureB();
-        indexA = contact.getChildIndexA();
-        indexB = contact.getChildIndexB();
+        // indexA = contact.getChildIndexA();
+        // indexB = contact.getChildIndexB();
         const bodyA = fixtureA.getBody();
         const bodyB = fixtureB.getBody();
 
@@ -1217,10 +1226,9 @@ export class Contact {
             bodyB.setAwake(true);
         }
 
-        const typeA = fixtureA.getType(); // Shape.Type
-        const typeB = fixtureB.getType(); // Shape.Type
-
         // TODO: !!!!
+        // const typeA = fixtureA.getType(); // Shape.Type
+        // const typeB = fixtureB.getType(); // Shape.Type
         // const destroyFcn = s_registers[typeA][typeB].destroyFcn;
         // if (typeof destroyFcn === 'function') {
         //     destroyFcn(contact);
@@ -1230,8 +1238,8 @@ export class Contact {
 
 // TODO merge with ManifoldPoint
 class VelocityConstraintPoint {
-    rA = Vec2.zero();
-    rB = Vec2.zero();
+    readonly rA = new Vec2(0, 0);
+    readonly rB = new Vec2(0, 0);
     normalImpulse = 0;
     tangentImpulse = 0;
     normalMass = 0;

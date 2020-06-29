@@ -25,7 +25,7 @@ export class Rot {
     };
 
     static identity(): Rot {
-        return new Rot(0.0, 1.0);
+        return new Rot(0, 1);
     };
 
     static isValid(o: any) {
@@ -44,8 +44,8 @@ export class Rot {
      * Set to the identity rotation.
      */
     setIdentity() {
-        this.s = 0.0;
-        this.c = 1.0;
+        this.s = 0;
+        this.c = 1;
     }
 
     set(r: Rot) {
@@ -109,6 +109,13 @@ export class Rot {
         PLANCK_ASSERT && Rot.assert(rot);
         PLANCK_ASSERT && Vec2.assert(m);
         return new Vec2(rot.c * m.x - rot.s * m.y, rot.s * m.x + rot.c * m.y);
+    }
+
+    static _mulVec2(rot: Rot, v: Vec2, out: Vec2) {
+        const x = rot.c * v.x - rot.s * v.y;
+        const y = rot.s * v.x + rot.c * v.y;
+        out.x = x;
+        out.y = y;
     }
 
     static mulSub(rot: Rot, v: Vec2, w: Vec2): Vec2 {

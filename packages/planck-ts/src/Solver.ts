@@ -1,7 +1,7 @@
 import {World} from "./World";
 import {Settings} from "./Settings";
 import {Vec2} from "./common/Vec2";
-import {Distance, DistanceInput, DistanceOutput, SimplexCache} from "./collision/Distance";
+import {DistanceInput} from "./collision/Distance";
 import {Contact} from "./Contact";
 import {assert} from "./util/common";
 import {Body} from "./Body";
@@ -14,6 +14,7 @@ import {Joint} from "./Joint";
 const s_subStep = new TimeStep();
 const s_toiInput = new TOIInput();
 const s_toiOutput = new TOIOutput();
+const s_distanceInput = new DistanceInput();
 
 /**
  * Contact impulses for reporting. Impulses are used instead of forces because
@@ -215,13 +216,17 @@ export class Solver {
             const body = this.m_bodies[i];
 
             const c = Vec2.clone(body.m_sweep.c);
+            // const c = body.c_position.c; // copy to dest and modify
+            // c.copyFrom(body.m_sweep.c);
             const a = body.m_sweep.a;
             const v = Vec2.clone(body.m_linearVelocity);
+            // const v = body.c_velocity.v;
+            // v.copyFrom(body.m_linearVelocity); // copy to dest and modify
             let w = body.m_angularVelocity;
 
             // Store positions for continuous collision.
-            body.m_sweep.c0.copyFrom(body.m_sweep.c);
-            body.m_sweep.a0 = body.m_sweep.a;
+            body.m_sweep.c0.copyFrom(c);
+            body.m_sweep.a0 = a;
 
             if (body.isDynamic()) {
                 // Integrate velocities.
@@ -243,9 +248,10 @@ export class Solver {
                 w *= 1.0 / (1.0 + h * body.m_angularDamping);
             }
 
-            body.c_position.c.copyFrom(c); // woh
+            // WOOH!
+            body.c_position.c.copyFrom(c); //remove
             body.c_position.a = a;
-            body.c_velocity.v.copyFrom(v); // woh
+            body.c_velocity.v.copyFrom(v);//remove
             body.c_velocity.w = w;
         }
 
@@ -283,13 +289,11 @@ export class Solver {
         // Solve velocity constraints
         for (let i = 0; i < step.velocityIterations; ++i) {
             for (let j = 0; j < this.m_joints.length; ++j) {
-                const joint = this.m_joints[j];
-                joint.solveVelocityConstraints(step);
+                this.m_joints[j].solveVelocityConstraints(step);
             }
 
             for (let j = 0; j < this.m_contacts.length; ++j) {
-                const contact = this.m_contacts[j];
-                contact.solveVelocityConstraint(step);
+                this.m_contacts[j].solveVelocityConstraint(step);
             }
         }
 
@@ -297,8 +301,7 @@ export class Solver {
 
         // Store impulses for warm starting
         for (let i = 0; i < this.m_contacts.length; ++i) {
-            const contact = this.m_contacts[i];
-            contact.storeConstraintImpulses(step);
+            this.m_contacts[i].storeConstraintImpulses(step);
         }
 
         PLANCK_DEBUG && this.printBodies('C: ');
@@ -313,9 +316,10 @@ export class Solver {
             let w = body.c_velocity.w;
 
             // Check for large velocities
-            const translation = Vec2.mul(h, v);
-            if (Vec2.lengthSquared(translation) > Settings.maxTranslationSquared) {
-                const ratio = Settings.maxTranslation / translation.length();
+            // const translation = Vec2.mul(h, v);
+            const translationSquared = h * h * (v.x * v.x + v.y * v.y);
+            if (translationSquared > Settings.maxTranslationSquared) {
+                const ratio = Settings.maxTranslation / Math.sqrt(translationSquared);
                 v.mul(ratio);
             }
 
@@ -697,7 +701,7 @@ export class Solver {
      * @param toiA
      * @param toiB
      */
-    solveIslandTOI(subStep:TimeStep, toiA:Body, toiB:Body) {
+    solveIslandTOI(subStep: TimeStep, toiA: Body, toiB: Body) {
         // Initialize the body state.
         for (let i = 0; i < this.m_bodies.length; ++i) {
             const body = this.m_bodies[i];
@@ -728,35 +732,35 @@ export class Solver {
             }
         }
 
-        if (false) {
-            // Is the new position really safe?
-            for (let i = 0; i < this.m_contacts.length; ++i) {
-                const c = this.m_contacts[i];
-                const fA = c.getFixtureA();
-                const fB = c.getFixtureB();
-
-                const bA = fA.getBody();
-                const bB = fB.getBody();
-
-                const indexA = c.getChildIndexA();
-                const indexB = c.getChildIndexB();
-
-                const input = new DistanceInput();
-                input.proxyA.set(fA.getShape(), indexA);
-                input.proxyB.set(fB.getShape(), indexB);
-                input.transformA = bA.getTransform();
-                input.transformB = bB.getTransform();
-                input.useRadii = false;
-
-                const output = new DistanceOutput();
-                const cache = new SimplexCache();
-                Distance(output, cache, input);
-
-                if (output.distance == 0 || cache.count == 3) {
-                    cache.count += 0;
-                }
-            }
-        }
+        // TODO: debug block?
+        // if (false) {
+        //     // Is the new position really safe?
+        //     for (let i = 0; i < this.m_contacts.length; ++i) {
+        //         const c = this.m_contacts[i];
+        //         const fA = c.getFixtureA();
+        //         const fB = c.getFixtureB();
+        //
+        //         const bA = fA.getBody();
+        //         const bB = fB.getBody();
+        //
+        //         const indexA = c.getChildIndexA();
+        //         const indexB = c.getChildIndexB();
+        //
+        //         const input = s_distanceInput;
+        //         input.proxyA.set(fA.getShape(), indexA);
+        //         input.proxyB.set(fB.getShape(), indexB);
+        //         input.transformA = bA.getTransform();
+        //         input.transformB = bB.getTransform();
+        //         input.useRadii = false;
+        //
+        //         const output = DistanceOnce(input);
+        //
+        //         // if (output.distance === 0 || cache.count === 3) {
+        //         //     TODO: ??? `+= 0`
+        //         //     cache.count += 0;
+        //         // }
+        //     }
+        // }
 
         // Leap of faith to new safe state.
         toiA.m_sweep.c0.copyFrom(toiA.c_position.c);

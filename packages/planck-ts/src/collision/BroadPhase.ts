@@ -16,7 +16,7 @@ export class BroadPhase {
 
     // temp stack
     m_queryProxyId = 0;
-    m_callback = (a: any, b: any) => {
+    m_callback: (proxyA: FixtureProxy, proxyB: FixtureProxy) => void = (a, v) => {
     };
 
     constructor() {
@@ -174,36 +174,56 @@ export class BroadPhase {
      * @param {BroadPhase~AddPair} addPairCallback
      */
     updatePairs(addPairCallback: (proxyA: FixtureProxy, proxyB: FixtureProxy) => void) {
-        PLANCK_ASSERT && assert(typeof addPairCallback === 'function');
         this.m_callback = addPairCallback;
-
         // Perform tree queries for all moving proxies.
-        while (this.m_moveBuffer.length > 0) {
-            this.m_queryProxyId = this.m_moveBuffer.pop()!;
-            if (!this.m_queryProxyId) {
+
+        // while (this.m_moveBuffer.length > 0) {
+        //     this.m_queryProxyId = this.m_moveBuffer.pop()!;
+        //     if (!this.m_queryProxyId) {
+        //         continue;
+        //     }
+        //
+        //     // We have to query the tree with the fat AABB so that
+        //     // we don't fail to create a pair that may touch later.
+        //     const fatAABB = this.m_tree.getFatAABB(this.m_queryProxyId);
+        //
+        //     // Query tree, create pairs and add them pair buffer.
+        //     this.m_tree.query(fatAABB, this.queryCallback);
+        // }
+        
+        const tree = this.m_tree;
+        const buf = this.m_moveBuffer;
+        for (let i = 0; i < buf.length; ++i) {
+            const queryProxyId = buf[i];
+            if (queryProxyId === 0) {
+                // skip unbuffered
                 continue;
             }
 
             // We have to query the tree with the fat AABB so that
             // we don't fail to create a pair that may touch later.
-            const fatAABB = this.m_tree.getFatAABB(this.m_queryProxyId);
+            const fatAABB = tree.getFatAABB(queryProxyId);
 
             // Query tree, create pairs and add them pair buffer.
-            this.m_tree.query(fatAABB, this.queryCallback);
+            this.m_queryProxyId = queryProxyId;
+            tree.query(fatAABB, this.queryCallback);
         }
+        buf.length = 0;
+
 
         // Try to keep the tree balanced.
         // this.m_tree.rebalance(4);
     }
 
-    queryCallback(proxyId: number) {
+    queryCallback(proxyId: number): boolean {
+        const queryProxyId = this.m_queryProxyId;
         // A proxy cannot form a pair with itself.
-        if (proxyId === this.m_queryProxyId) {
+        if (proxyId === queryProxyId) {
             return true;
         }
 
-        const proxyIdA = Math.min(proxyId, this.m_queryProxyId);
-        const proxyIdB = Math.max(proxyId, this.m_queryProxyId);
+        const proxyIdA = Math.min(proxyId, queryProxyId);
+        const proxyIdB = Math.max(proxyId, queryProxyId);
 
         // TODO: Skip any duplicate pairs.
 

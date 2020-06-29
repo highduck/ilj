@@ -38,11 +38,10 @@ export function CollideCircles(manifold: Manifold,
     manifold.localPoint.copyFrom(circleA.m_p);
     manifold.localNormal.setZero();
     manifold.pointCount = 1;
-    manifold.points[0].localPoint.copyFrom(circleB.m_p);
-
-    // manifold.points[0].id.key = 0;
-    manifold.points[0].id.cf.indexA = 0;
-    manifold.points[0].id.cf.typeA = ContactFeatureType.e_vertex;
-    manifold.points[0].id.cf.indexB = 0;
-    manifold.points[0].id.cf.typeB = ContactFeatureType.e_vertex;
+    const mp0 = manifold.points[0];
+    mp0.localPoint.copyFrom(circleB.m_p);
+    mp0.cf.indexA = 0;
+    mp0.cf.typeA = ContactFeatureType.e_vertex;
+    mp0.cf.indexB = 0;
+    mp0.cf.typeB = ContactFeatureType.e_vertex;
 }

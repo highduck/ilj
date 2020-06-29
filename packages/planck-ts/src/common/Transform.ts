@@ -19,20 +19,18 @@ export class Transform {
         return new Transform(xf.p.clone(), xf.q.clone());
     }
 
-    static neo(position: Vec2, rotation: Rot): Transform {
-        return new Transform(position.clone(), rotation.clone());
-    }
-
     static identity(): Transform {
-        return new Transform(Vec2.zero(), Rot.identity());
+        return new Transform(new Vec2(0, 0), Rot.identity());
     }
 
     /**
      * Set this to the identity transform.
      */
     setIdentity() {
-        this.p.setZero();
-        this.q.setIdentity();
+        this.p.x = 0;
+        this.p.y = 0;
+        this.q.s = 0;
+        this.q.c = 1;
     }
 
     /**
@@ -130,7 +128,14 @@ export class Transform {
         return new Vec2(x, y);
     }
 
-    static mulXf(a: Transform, b: Transform):Transform {
+    static _mulVec2(a: Transform, b: Vec2, out: Vec2) {
+        const x = b.x;
+        const y = b.y;
+        out.x = (a.q.c * x - a.q.s * y) + a.p.x;
+        out.y = (a.q.s * x + a.q.c * y) + a.p.y;
+    }
+
+    static mulXf(a: Transform, b: Transform): Transform {
         PLANCK_ASSERT && Transform.assert(a);
         PLANCK_ASSERT && Transform.assert(b);
         // v2 = A.q.Rot(B.q.Rot(v1) + B.p) + A.p
@@ -154,6 +159,13 @@ export class Transform {
         const x = (a.q.c * px + a.q.s * py);
         const y = (-a.q.s * px + a.q.c * py);
         return new Vec2(x, y);
+    }
+
+    static _mulTVec2(a: Transform, b: Vec2, out: Vec2) {
+        const px = b.x - a.p.x;
+        const py = b.y - a.p.y;
+        out.x = a.q.c * px + a.q.s * py;
+        out.y = -a.q.s * px + a.q.c * py;
     }
 
     /**

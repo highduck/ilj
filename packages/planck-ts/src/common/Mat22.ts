@@ -96,6 +96,22 @@ export class Mat22 {
         );
     }
 
+    static _inverse(m: Mat22, out: Mat22) {
+        const a = m.a;
+        const b = m.b;
+        const c = m.c;
+        const d = m.d;
+        let det = a * d - b * c;
+        if (det !== 0.0) {
+            det = 1.0 / det;
+            // TODO: maybe do not modify here and return failure?
+        }
+        out.a = det * d;
+        out.b = -det * b;
+        out.c = -det * c;
+        out.d = det * a;
+    }
+
     /**
      * Solve A * x = b, where b is a column vector. This is more efficient than
      * computing the inverse in one-shot cases.

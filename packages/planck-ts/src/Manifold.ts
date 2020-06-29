@@ -33,10 +33,10 @@ export const enum ContactFeatureType {
  *       to facilatate warm starting
  */
 export class ManifoldPoint {
-    readonly localPoint = Vec2.zero();
+    readonly localPoint = new Vec2(0, 0);
     normalImpulse = 0;
     tangentImpulse = 0;
-    id = new ContactID();
+    readonly cf = new ContactFeature();
 }
 
 
@@ -85,13 +85,13 @@ export class Manifold {
             return;
         }
 
-        let normal = wm.normal;
+        const normal = wm.normal;
         const points = wm.points;
         const separations = wm.separations;
 
         // TODO: improve
         if (this.type === ManifoldType.e_circles) {
-            normal = new Vec2(1, 0);
+            normal.set(1, 0);
             const pointA = Transform.mulVec2(xfA, this.localPoint);
             const pointB = Transform.mulVec2(xfB, this.points[0].localPoint);
             const dist = Vec2.sub(pointB, pointA);
@@ -106,7 +106,7 @@ export class Manifold {
             points.length = 1;
             separations.length = 1;
         } else if (this.type === ManifoldType.e_faceA) {
-            normal = Rot.mulVec2(xfA.q, this.localNormal);
+            Rot._mulVec2(xfA.q, this.localNormal, normal);
             const planePoint = Transform.mulVec2(xfA, this.localPoint);
 
             for (let i = 0; i < this.pointCount; ++i) {
@@ -119,7 +119,7 @@ export class Manifold {
             points.length = this.pointCount;
             separations.length = this.pointCount;
         } else if (this.type === ManifoldType.e_faceB) {
-            normal = Rot.mulVec2(xfB.q, this.localNormal);
+            Rot._mulVec2(xfB.q, this.localNormal, normal);
             const planePoint = Transform.mulVec2(xfB, this.localPoint);
 
             for (let i = 0; i < this.pointCount; ++i) {
@@ -134,31 +134,10 @@ export class Manifold {
             // Ensure normal points from A to B.
             normal.mul(-1);
         }
-
-        wm.normal = normal;
-        wm.points = points;
-        wm.separations = separations;
-    }
-}
-
-/**
- * Contact ids to facilitate warm starting.
- *
- * @prop {ContactFeature} cf
- * @prop key Used to quickly compare contact ids.
- *
- */
-class ContactID {
-    readonly cf = new ContactFeature();
-
-    get key(): number {
-        // TODO: cache value
-        return this.cf.indexA + this.cf.indexB * 4 + this.cf.typeA * 16 + this.cf.typeB * 64;
-    }
-
-    copyFrom(o: ContactID) {
-        // this.key = o.key;
-        this.cf.copyFrom(o.cf);
+        // mod by ref
+        // wm.normal = normal;
+        // wm.points = points;
+        // wm.separations = separations;
     }
 }
 
@@ -182,6 +161,11 @@ class ContactFeature {
         this.typeA = o.typeA;
         this.typeB = o.typeB;
     }
+
+    get key(): number {
+        // TODO: cache value
+        return this.indexA + this.indexB * 4 + this.typeA * 16 + this.typeB * 64;
+    }
 }
 
 /**
@@ -192,9 +176,15 @@ class ContactFeature {
  * @prop separations A negative value indicates overlap, in meters
  */
 export class WorldManifold {
-    normal = Vec2.zero();
+    normal = new Vec2(0, 0);
     points: Vec2[] = []; // [maxManifoldPoints]
     separations: number[] = []; // float[maxManifoldPoints]
+
+    reset() {
+        this.points.length = 0;
+        this.separations.length = 0;
+        this.normal.set(0, 0);
+    }
 }
 
 /**
@@ -219,8 +209,8 @@ const enum PointState {
  */
 function getPointStates(state1: PointState[/*Settings.maxManifoldPoints*/],
                         state2: PointState[/*Settings.maxManifoldPoints*/],
-                        manifold1:Manifold,
-                        manifold2:Manifold) {
+                        manifold1: Manifold,
+                        manifold2: Manifold) {
     // for (var i = 0; i < Settings.maxManifoldPoints; ++i) {
     // state1[i] = PointState.nullState;
     // state2[i] = PointState.nullState;
@@ -228,10 +218,10 @@ function getPointStates(state1: PointState[/*Settings.maxManifoldPoints*/],
 
     // Detect persists and removes.
     for (let i = 0; i < manifold1.pointCount; ++i) {
-        const id = manifold1.points[i].id;// ContactID
+        const contactID = manifold1.points[i].cf.key;
         state1[i] = PointState.removeState;
         for (let j = 0; j < manifold2.pointCount; ++j) {
-            if (manifold2.points[j].id.key == id.key) {
+            if (manifold2.points[j].cf.key == contactID) {
                 state1[i] = PointState.persistState;
                 break;
             }
@@ -240,10 +230,10 @@ function getPointStates(state1: PointState[/*Settings.maxManifoldPoints*/],
 
     // Detect persists and adds.
     for (let i = 0; i < manifold2.pointCount; ++i) {
-        const id = manifold2.points[i].id;// ContactID
+        const contactID = manifold2.points[i].cf.key;
         state2[i] = PointState.addState;
         for (let j = 0; j < manifold1.pointCount; ++j) {
-            if (manifold1.points[j].id.key == id.key) {
+            if (manifold1.points[j].cf.key === contactID) {
                 state2[i] = PointState.persistState;
                 break;
             }
@@ -258,16 +248,22 @@ function getPointStates(state1: PointState[/*Settings.maxManifoldPoints*/],
  * @prop {ContactID} id
  */
 export class ClipVertex {
-    readonly v = Vec2.zero();
-    readonly id = new ContactID();
+    readonly v = new Vec2(0, 0);
+    readonly cf = new ContactFeature();
 
-    copyFrom(o:ClipVertex) {
+    copyFrom(o: ClipVertex) {
         this.v.copyFrom(o.v);
-        this.id.copyFrom(o.id);
+        this.cf.copyFrom(o.cf);
     }
 }
 
 export type ClipVertexPair = [ClipVertex, ClipVertex];
+//
+// export const ClipVertexPool = new Pool<ClipVertexPair>({
+//     create(): ClipVertexPair {
+//         return [new ClipVertex(), new ClipVertex()]
+//     }
+// })
 
 /**
  * Clipping for contact manifolds. Sutherland-Hodgman clipping.
@@ -279,34 +275,34 @@ export function clipSegmentToLine(vOut: ClipVertexPair,
                                   vIn: ClipVertexPair,
                                   normal: Vec2,
                                   offset: number,
-                                  vertexIndexA: number) {
+                                  vertexIndexA: number): number {
     // Start with no output points
     let numOut = 0;
-
+    const in0 = vIn[0];
+    const in1 = vIn[1];
     // Calculate the distance of end points to the line
-    const distance0 = Vec2.dot(normal, vIn[0].v) - offset;
-    const distance1 = Vec2.dot(normal, vIn[1].v) - offset;
+    const distance0 = Vec2.dot(normal, in0.v) - offset;
+    const distance1 = Vec2.dot(normal, in1.v) - offset;
 
     // If the points are behind the plane
     if (distance0 <= 0.0) {
-        vOut[numOut++].copyFrom(vIn[0]);
+        vOut[numOut++].copyFrom(in0);
     }
     if (distance1 <= 0.0) {
-        vOut[numOut++].copyFrom(vIn[1]);
+        vOut[numOut++].copyFrom(in1);
     }
 
     // If the points are on different sides of the plane
     if (distance0 * distance1 < 0.0) {
         // Find intersection point of edge and plane
         const interp = distance0 / (distance0 - distance1);
-        vOut[numOut].v.setCombine(1 - interp, vIn[0].v, interp, vIn[1].v);
-
+        const mp = vOut[numOut++];
+        mp.v.setCombine(1 - interp, in0.v, interp, in1.v);
         // VertexA is hitting edgeB.
-        vOut[numOut].id.cf.indexA = vertexIndexA;
-        vOut[numOut].id.cf.indexB = vIn[0].id.cf.indexB;
-        vOut[numOut].id.cf.typeA = ContactFeatureType.e_vertex;
-        vOut[numOut].id.cf.typeB = ContactFeatureType.e_face;
-        ++numOut;
+        mp.cf.indexA = vertexIndexA;
+        mp.cf.indexB = in0.cf.indexB;
+        mp.cf.typeA = ContactFeatureType.e_vertex;
+        mp.cf.typeB = ContactFeatureType.e_face;
     }
 
     return numOut;

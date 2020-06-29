@@ -302,10 +302,24 @@ export class Vec2 {
         return new Vec2(w * v.y, -w * v.x);
     }
 
+    static _crossVS(v: Vec2, w: number, out: Vec2) {
+        const x = w * v.x;
+        const y = w * v.y;
+        out.x = y;
+        out.y = -x;
+    }
+
     static crossSV(v: number, w: Vec2): Vec2 {
         PLANCK_ASSERT && MathUtil.assert(v);
         PLANCK_ASSERT && Vec2.assert(w);
         return new Vec2(-v * w.y, v * w.x);
+    }
+
+    static _crossSV(s: number, v: Vec2, out: Vec2) {
+        const x = s * v.x;
+        const y = s * v.y;
+        out.x = -y;
+        out.y = x;
     }
 
     /**
@@ -339,6 +353,11 @@ export class Vec2 {
         return new Vec2(v.x - w.x, v.y - w.y);
     }
 
+    static _sub(a: Vec2, b: Vec2, out: Vec2) {
+        out.x = a.x - b.x;
+        out.y = a.y - b.y;
+    }
+
     static mul(a: number, b: Vec2): Vec2 {
         PLANCK_ASSERT && MathUtil.assert(a);
         PLANCK_ASSERT && Vec2.assert(b);
@@ -367,6 +386,11 @@ export class Vec2 {
         return new Vec2(0.5 * (v.x + w.x), 0.5 * (v.y + w.y));
     }
 
+    static _mid(a: Vec2, b: Vec2, out: Vec2) {
+        out.x = 0.5 * (a.x + b.x);
+        out.y = 0.5 * (a.y + a.y);
+    }
+
     static upper(v: Vec2, w: Vec2): Vec2 {
         PLANCK_ASSERT && Vec2.assert(v);
         PLANCK_ASSERT && Vec2.assert(w);
@@ -393,5 +417,10 @@ export class Vec2 {
         v = new Vec2(v.x, v.y);
         v.clamp(max);
         return v;
+    }
+
+    static _combine(a: number, u: Vec2, b: number, v: Vec2, out: Vec2) {
+        out.x = a * u.x + b * v.x;
+        out.y = a * u.y + b * v.y;
     }
 }

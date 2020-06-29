@@ -149,7 +149,7 @@ export let Settings = {
     maxSubSteps,
     maxTOIContacts,
     maxTOIIterations,
-    maxDistnceIterations,
+    maxDistanceIterations: maxDistnceIterations,
     velocityThreshold,
     maxLinearCorrection,
     maxAngularCorrection,

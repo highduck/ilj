@@ -4,8 +4,17 @@ import {RayCastInput, RayCastOutput} from "./RayCastOptions";
 
 export class AABB {
 
-    lowerBound = Vec2.zero();
-    upperBound = Vec2.zero();
+    // lowerBound = Vec2.zero();
+    // upperBound = Vec2.zero();
+    constructor(public lx: number,
+                public ly: number,
+                public ux: number,
+                public uy: number) {
+    }
+
+    static zero(): AABB {
+        return new AABB(0, 0, 0, 0);
+    }
 
     // AABB(lower, upper) {
     //     if (!(this instanceof AABB)) {
@@ -29,9 +38,13 @@ export class AABB {
      * Verify that the bounds are sorted.
      */
     static isValid(aabb: AABB) {
-        const d = Vec2.sub(aabb.upperBound, aabb.lowerBound);
-        const valid = d.x >= 0.0 && d.y >= 0.0 && Vec2.isValid(aabb.lowerBound) && Vec2.isValid(aabb.upperBound);
-        return valid;
+        const finiteValues = MathUtil.isFinite(aabb.lx) &&
+            MathUtil.isFinite(aabb.ly) &&
+            MathUtil.isFinite(aabb.ux) &&
+            MathUtil.isFinite(aabb.uy);
+        const validBounds = aabb.ux >= aabb.lx &&
+            aabb.uy >= aabb.ly;
+        return finiteValues && validBounds;
     }
 
     static assert(o: AABB) {
@@ -46,107 +59,93 @@ export class AABB {
      * Get the center of the AABB.
      */
     getCenter() {
-        return new Vec2((this.lowerBound.x + this.upperBound.x) * 0.5, (this.lowerBound.y + this.upperBound.y) * 0.5);
+        return new Vec2(0.5 * (this.lx + this.ux), 0.5 * (this.ly + this.uy));
     }
 
     /**
      * Get the extents of the AABB (half-widths).
      */
     getExtents() {
-        return new Vec2((this.upperBound.x - this.lowerBound.x) * 0.5, (this.upperBound.y - this.lowerBound.y) * 0.5);
+        return new Vec2(0.5 * (this.ux - this.lx), 0.5 * (this.uy - this.ly));
     }
 
     /**
      * Get the perimeter length.
      */
     getPerimeter() {
-        return 2.0 * (this.upperBound.x - this.lowerBound.x + this.upperBound.y - this.lowerBound.y);
+        return 2.0 * (this.ux - this.lx + this.uy - this.ly);
     }
 
     /**
      * Combine one or two AABB into this one.
      */
     combine(a: AABB, b: AABB) {
-        //b = b || this;
-        const lowerA = a.lowerBound;
-        const upperA = a.upperBound;
-        const lowerB = b.lowerBound;
-        const upperB = b.upperBound;
+        const lowerX = Math.min(a.lx, b.lx);
+        const lowerY = Math.min(a.ly, b.ly);
+        const upperX = Math.max(b.ux, a.ux);
+        const upperY = Math.max(b.uy, a.uy);
 
-        const lowerX = Math.min(lowerA.x, lowerB.x);
-        const lowerY = Math.min(lowerA.y, lowerB.y);
-        const upperX = Math.max(upperB.x, upperA.x);
-        const upperY = Math.max(upperB.y, upperA.y);
-
-        this.lowerBound.set(lowerX, lowerY);
-        this.upperBound.set(upperX, upperY);
+        this.lx = lowerX;
+        this.ly = lowerY;
+        this.ux = upperX;
+        this.uy = upperY;
     }
 
-    combinePoints(a:Vec2, b:Vec2) {
-        this.lowerBound.set(Math.min(a.x, b.x), Math.min(a.y, b.y));
-        this.upperBound.set(Math.max(a.x, b.x), Math.max(a.y, b.y));
+    combinePoints(a: Vec2, b: Vec2) {
+        this.lx = Math.min(a.x, b.x);
+        this.ly = Math.min(a.y, b.y);
+        this.ux = Math.max(a.x, b.x);
+        this.uy = Math.max(a.y, b.y);
     }
 
-    set(aabb: AABB) {
-        this.lowerBound.set(aabb.lowerBound.x, aabb.lowerBound.y);
-        this.upperBound.set(aabb.upperBound.x, aabb.upperBound.y);
+    copyFrom(aabb: AABB) {
+        this.lx = aabb.lx;
+        this.ly = aabb.ly;
+        this.ux = aabb.ux;
+        this.uy = aabb.uy;
     }
 
     contains(aabb: AABB) {
-        return this.lowerBound.x <= aabb.lowerBound.x &&
-            this.lowerBound.y <= aabb.lowerBound.y &&
-            aabb.upperBound.x <= this.upperBound.x &&
-            aabb.upperBound.y <= this.upperBound.y;
+        return this.lx <= aabb.lx &&
+            this.ly <= aabb.ly &&
+            aabb.ux <= this.ux &&
+            aabb.uy <= this.uy;
     }
 
     extend(value: number) {
-        AABB.extend(this, value);
-        return this;
+        this.lx -= value;
+        this.ly -= value;
+        this.ux += value;
+        this.uy += value;
     }
 
-    static extend(aabb: AABB, value: number) {
-        aabb.lowerBound.x -= value;
-        aabb.lowerBound.y -= value;
-        aabb.upperBound.x += value;
-        aabb.upperBound.y += value;
-    }
-
-    static testOverlap(a: AABB, b: AABB) {
-        const d1x = b.lowerBound.x - a.upperBound.x;
-        const d2x = a.lowerBound.x - b.upperBound.x;
-
-        const d1y = b.lowerBound.y - a.upperBound.y;
-        const d2y = a.lowerBound.y - b.upperBound.y;
-
-        if (d1x > 0 || d1y > 0 || d2x > 0 || d2y > 0) {
-            return false;
-        }
-        return true;
+    static testOverlap(a: AABB, b: AABB):boolean {
+        return b.lx <= a.ux && b.ly <= a.uy && a.lx <= b.ux && a.ly <= b.uy;
     }
 
     static areEqual(a: AABB, b: AABB) {
-        return Vec2.areEqual(a.lowerBound, b.lowerBound) && Vec2.areEqual(a.upperBound, b.upperBound);
+        return a === b ||
+            (a.lx === b.lx &&
+                a.ly === b.ly &&
+                a.ux === b.ux &&
+                a.uy === b.uy);
     }
 
     static diff(a: AABB, b: AABB) {
-        const wD = Math.max(0, Math.min(a.upperBound.x, b.upperBound.x) - Math.max(b.lowerBound.x, a.lowerBound.x))
-        const hD = Math.max(0, Math.min(a.upperBound.y, b.upperBound.y) - Math.max(b.lowerBound.y, a.lowerBound.y));
-
-        const wA = a.upperBound.x - a.lowerBound.x;
-        const hA = a.upperBound.y - a.lowerBound.y;
-
-        const wB = b.upperBound.x - b.lowerBound.x;
-        const hB = b.upperBound.y - b.lowerBound.y;
-
+        const wD = Math.max(0, Math.min(a.ux, b.ux) - Math.max(b.lx, a.lx))
+        const hD = Math.max(0, Math.min(a.uy, b.uy) - Math.max(b.ly, a.ly));
+        const wA = a.ux - a.lx;
+        const hA = a.uy - a.ly;
+        const wB = b.ux - b.lx;
+        const hB = b.uy - b.ly;
         return wA * hA + wB * hB - wD * hD;
-    };
+    }
 
     /**
      * @param {RayCastOutput} output
      * @param {RayCastInput} input
      * @returns {boolean}
      */
-
     rayCast(output: RayCastOutput, input: RayCastInput) {
         // From Real-time Collision Detection, p179.
 
@@ -161,13 +160,13 @@ export class AABB {
 
         if (absD.x < MathUtil.EPSILON) {
             // Parallel.
-            if (p.x < this.lowerBound.x || this.upperBound.x < p.x) {
+            if (p.x < this.lx || this.ux < p.x) {
                 return false;
             }
         } else {
             const inv_d = 1.0 / d.x;
-            let t1 = (this.lowerBound.x - p.x) * inv_d;
-            let t2 = (this.upperBound.x - p.x) * inv_d;
+            let t1 = (this.lx - p.x) * inv_d;
+            let t2 = (this.ux - p.x) * inv_d;
 
             // Sign of the normal vector.
             let s = -1.0;
@@ -196,13 +195,13 @@ export class AABB {
 
         if (absD.x < MathUtil.EPSILON) {
             // Parallel.
-            if (p.y < this.lowerBound.y || this.upperBound.y < p.y) {
+            if (p.y < this.ly || this.uy < p.y) {
                 return false;
             }
         } else {
             const inv_d = 1.0 / d.y;
-            let t1 = (this.lowerBound.y - p.y) * inv_d;
-            let t2 = (this.upperBound.y - p.y) * inv_d;
+            let t1 = (this.ly - p.y) * inv_d;
+            let t2 = (this.uy - p.y) * inv_d;
 
             // Sign of the normal vector.
             let s = -1.0;

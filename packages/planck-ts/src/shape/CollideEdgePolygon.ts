@@ -85,6 +85,10 @@ const polygonAxis = new EPAxis();
 const polygonBA = new TempPolygon();
 const rf = new ReferenceFace();
 
+const s_clipVertexPair0: ClipVertexPair = [new ClipVertex(), new ClipVertex()];
+const s_clipVertexPair1: ClipVertexPair = [new ClipVertex(), new ClipVertex()];
+const s_clipVertexPair2: ClipVertexPair = [new ClipVertex(), new ClipVertex()];
+
 /**
  * This function collides and edge and a polygon, taking into account edge
  * adjacency.
@@ -337,10 +341,10 @@ function CollideEdgePolygon(manifold: Manifold,
     }
 
     // Use hysteresis for jitter reduction.
-    var k_relativeTol = 0.98;
-    var k_absoluteTol = 0.001;
+    const k_relativeTol = 0.98;
+    const k_absoluteTol = 0.001;
 
-    var primaryAxis;
+    let primaryAxis;
     if (polygonAxis.type === EPAxisType.e_unknown) {
         primaryAxis = edgeAxis;
     } else if (polygonAxis.separation > k_relativeTol * edgeAxis.separation + k_absoluteTol) {
@@ -349,9 +353,9 @@ function CollideEdgePolygon(manifold: Manifold,
         primaryAxis = edgeAxis;
     }
 
-    const ie: ClipVertexPair = [new ClipVertex(), new ClipVertex()];
+    const ie = s_clipVertexPair0;
 
-    if (primaryAxis.type == EPAxisType.e_edgeA) {
+    if (primaryAxis.type === EPAxisType.e_edgeA) {
         manifold.type = ManifoldType.e_faceA;
 
         // Search for the polygon normal that is most anti-parallel to the edge
@@ -370,16 +374,16 @@ function CollideEdgePolygon(manifold: Manifold,
         const i2 = i1 + 1 < polygonBA.count ? i1 + 1 : 0;
 
         ie[0].v.copyFrom(polygonBA.vertices[i1]);
-        ie[0].id.cf.indexA = 0;
-        ie[0].id.cf.indexB = i1;
-        ie[0].id.cf.typeA = ContactFeatureType.e_face;
-        ie[0].id.cf.typeB = ContactFeatureType.e_vertex;
+        ie[0].cf.indexA = 0;
+        ie[0].cf.indexB = i1;
+        ie[0].cf.typeA = ContactFeatureType.e_face;
+        ie[0].cf.typeB = ContactFeatureType.e_vertex;
 
         ie[1].v.copyFrom(polygonBA.vertices[i2]);
-        ie[1].id.cf.indexA = 0;
-        ie[1].id.cf.indexB = i2;
-        ie[1].id.cf.typeA = ContactFeatureType.e_face;
-        ie[1].id.cf.typeB = ContactFeatureType.e_vertex;
+        ie[1].cf.indexA = 0;
+        ie[1].cf.indexB = i2;
+        ie[1].cf.typeA = ContactFeatureType.e_face;
+        ie[1].cf.typeB = ContactFeatureType.e_vertex;
 
         if (front) {
             rf.i1 = 0;
@@ -398,16 +402,16 @@ function CollideEdgePolygon(manifold: Manifold,
         manifold.type = ManifoldType.e_faceB;
 
         ie[0].v.copyFrom(v1);
-        ie[0].id.cf.indexA = 0;
-        ie[0].id.cf.indexB = primaryAxis.index;
-        ie[0].id.cf.typeA = ContactFeatureType.e_vertex;
-        ie[0].id.cf.typeB = ContactFeatureType.e_face;
+        ie[0].cf.indexA = 0;
+        ie[0].cf.indexB = primaryAxis.index;
+        ie[0].cf.typeA = ContactFeatureType.e_vertex;
+        ie[0].cf.typeB = ContactFeatureType.e_face;
 
         ie[1].v.copyFrom(v2);
-        ie[1].id.cf.indexA = 0;
-        ie[1].id.cf.indexB = primaryAxis.index;
-        ie[1].id.cf.typeA = ContactFeatureType.e_vertex;
-        ie[1].id.cf.typeB = ContactFeatureType.e_face;
+        ie[1].cf.indexA = 0;
+        ie[1].cf.indexB = primaryAxis.index;
+        ie[1].cf.typeA = ContactFeatureType.e_vertex;
+        ie[1].cf.typeB = ContactFeatureType.e_face;
 
         rf.i1 = primaryAxis.index;
         rf.i2 = rf.i1 + 1 < polygonBA.count ? rf.i1 + 1 : 0;
@@ -422,19 +426,17 @@ function CollideEdgePolygon(manifold: Manifold,
     rf.sideOffset2 = Vec2.dot(rf.sideNormal2, rf.v2);
 
     // Clip incident edge against extruded edge1 side edges.
-    const clipPoints1: ClipVertexPair = [new ClipVertex(), new ClipVertex()];
-    const clipPoints2: ClipVertexPair = [new ClipVertex(), new ClipVertex()];
+    const clipPoints1 = s_clipVertexPair1;
+    const clipPoints2 = s_clipVertexPair2;
 
     // Clip to box side 1
     let np = clipSegmentToLine(clipPoints1, ie, rf.sideNormal1, rf.sideOffset1, rf.i1);
-
     if (np < Settings.maxManifoldPoints) {
         return;
     }
 
     // Clip to negative box side 1
     np = clipSegmentToLine(clipPoints2, clipPoints1, rf.sideNormal2, rf.sideOffset2, rf.i2);
-
     if (np < Settings.maxManifoldPoints) {
         return;
     }
@@ -456,14 +458,16 @@ function CollideEdgePolygon(manifold: Manifold,
             const cp = manifold.points[pointCount]; // ManifoldPoint
 
             if (primaryAxis.type === EPAxisType.e_edgeA) {
-                cp.localPoint.copyFrom(Transform.mulTVec2(xf, clipPoints2[i].v));
-                cp.id = clipPoints2[i].id;
+                // cp.localPoint.copyFrom(Transform.mulTVec2(xf, clipPoints2[i].v));
+                Transform._mulTVec2(xf, clipPoints2[i].v, cp.localPoint);
+
+                cp.cf.copyFrom(clipPoints2[i].cf);
             } else {
                 cp.localPoint.copyFrom(clipPoints2[i].v);
-                cp.id.cf.typeA = clipPoints2[i].id.cf.typeB;
-                cp.id.cf.typeB = clipPoints2[i].id.cf.typeA;
-                cp.id.cf.indexA = clipPoints2[i].id.cf.indexB;
-                cp.id.cf.indexB = clipPoints2[i].id.cf.indexA;
+                cp.cf.typeA = clipPoints2[i].cf.typeB;
+                cp.cf.typeB = clipPoints2[i].cf.typeA;
+                cp.cf.indexA = clipPoints2[i].cf.indexB;
+                cp.cf.indexB = clipPoints2[i].cf.indexA;
             }
 
             ++pointCount;

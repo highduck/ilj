@@ -6,6 +6,12 @@ import {Rot} from "../common/Rot";
 import {Settings} from "../Settings";
 import {Shape} from "../Shape";
 
+const s_direction = new Vec2(0, 0);
+const s_closestPoint = new Vec2(0, 0);
+const s_solve_sub = new Vec2(0, 0);
+const s_solve_sub2 = new Vec2(0, 0);
+const s_solve_sub3 = new Vec2(0, 0);
+
 /**
  * GJK using Voronoi regions (Christer Ericson) and Barycentric coordinates.
  */
@@ -36,8 +42,8 @@ export class DistanceInput {
  * @prop iterations number of GJK iterations used
  */
 export class DistanceOutput {
-    pointA = Vec2.zero();
-    pointB = Vec2.zero();
+    readonly pointA = Vec2.zero();
+    readonly pointB = Vec2.zero();
     distance = 0;
     iterations = 0;
 }
@@ -56,6 +62,21 @@ export class SimplexCache {
     indexA: number[] = [];
     indexB: number[] = [];
     count = 0;
+}
+
+const Distance_vec2_temp = new Vec2(0, 0);
+
+const s_simplexCache = new SimplexCache();
+const s_distanceOutput = new DistanceOutput();
+
+export function DistanceOnce(input: DistanceInput): DistanceOutput {
+    s_simplexCache.count = 0;
+    // const cache = new SimplexCache();
+    // const output = new DistanceOutput();
+    Distance(s_distanceOutput, s_simplexCache, input);
+    // Distance(output, cache, input);
+    // return output;
+    return s_distanceOutput;
 }
 
 /**
@@ -77,7 +98,7 @@ export function Distance(output: DistanceOutput, cache: SimplexCache, input: Dis
 
     // Get simplex vertices as an array.
     const vertices = simplex.m_v;// SimplexVertex
-    const k_maxIters = Settings.maxDistnceIterations;
+    const k_maxIters = Settings.maxDistanceIterations;
 
     // These store the vertices of the last simplex so that we
     // can check for duplicates and prevent cycling.
@@ -101,12 +122,13 @@ export function Distance(output: DistanceOutput, cache: SimplexCache, input: Dis
         simplex.solve();
 
         // If we have 3 points, then the origin is in the corresponding triangle.
-        if (simplex.m_count == 3) {
+        if (simplex.m_count === 3) {
             break;
         }
 
         // Compute closest point.
-        const p = simplex.getClosestPoint();
+        const p = s_closestPoint;
+        simplex.getClosestPoint(p);
         distanceSqr2 = p.lengthSquared();
 
         // Ensure progress
@@ -116,10 +138,11 @@ export function Distance(output: DistanceOutput, cache: SimplexCache, input: Dis
         distanceSqr1 = distanceSqr2;
 
         // Get search direction.
-        const d = simplex.getSearchDirection();
+        const d = s_direction;
+        simplex.getSearchDirection(d);
 
         // Ensure the search direction is numerically fit.
-        if (d.lengthSquared() < MathUtil.EPSILON * MathUtil.EPSILON) {
+        if (d.lengthSquared() < MathUtil.SQUARED_EPSILON) {
             // The origin is probably contained by a line segment
             // or triangle. Thus the shapes are overlapped.
 
@@ -133,12 +156,12 @@ export function Distance(output: DistanceOutput, cache: SimplexCache, input: Dis
         const vertex = vertices[simplex.m_count]; // SimplexVertex
 
         vertex.indexA = proxyA.getSupport(Rot.mulTVec2(xfA.q, Vec2.neg(d)));
-        vertex.wA = Transform.mulVec2(xfA, proxyA.getVertex(vertex.indexA));
+        Transform._mulVec2(xfA, proxyA.getVertex(vertex.indexA), vertex.wA);
 
         vertex.indexB = proxyB.getSupport(Rot.mulTVec2(xfB.q, d));
-        vertex.wB = Transform.mulVec2(xfB, proxyB.getVertex(vertex.indexB));
+        Transform._mulVec2(xfB, proxyB.getVertex(vertex.indexB), vertex.wB);
 
-        vertex.w = Vec2.sub(vertex.wB, vertex.wA);
+        Vec2._sub(vertex.wB, vertex.wA, vertex.w);
 
         // Iteration count is equated to the number of support point calls.
         ++iter;
@@ -148,7 +171,7 @@ export function Distance(output: DistanceOutput, cache: SimplexCache, input: Dis
         // criteria.
         let duplicate = false;
         for (let i = 0; i < saveCount; ++i) {
-            if (vertex.indexA == saveA[i] && vertex.indexB == saveB[i]) {
+            if (vertex.indexA === saveA[i] && vertex.indexB === saveB[i]) {
                 duplicate = true;
                 break;
             }
@@ -177,21 +200,24 @@ export function Distance(output: DistanceOutput, cache: SimplexCache, input: Dis
     if (input.useRadii) {
         const rA = proxyA.m_radius;
         const rB = proxyB.m_radius;
-
+        const tmp = Distance_vec2_temp;
         if (output.distance > rA + rB && output.distance > MathUtil.EPSILON) {
             // Shapes are still no overlapped.
             // Move the witness points to the outer surface.
             output.distance -= rA + rB;
-            const normal = Vec2.sub(output.pointB, output.pointA);
-            normal.normalize();
-            output.pointA.addMul(rA, normal);
-            output.pointB.subMul(rB, normal);
+
+            Vec2._sub(output.pointB, output.pointA, tmp);
+            tmp.normalize();
+            // const normal = Vec2.sub(output.pointB, output.pointA);
+            // normal.normalize();
+            output.pointA.addMul(rA, tmp);
+            output.pointB.subMul(rB, tmp);
         } else {
             // Shapes are overlapped when radii are considered.
             // Move the witness points to the middle.
-            const p = Vec2.mid(output.pointA, output.pointB);
-            output.pointA.copyFrom(p);
-            output.pointB.copyFrom(p);
+            Vec2._mid(output.pointA, output.pointB, tmp);
+            output.pointA.copyFrom(tmp);
+            output.pointB.copyFrom(tmp);
             output.distance = 0.0;
         }
     }
@@ -258,12 +284,12 @@ export class DistanceProxy {
 class SimplexVertex {
     indexA = 0; // wA index
     indexB = 0; // wB index
-    wA = Vec2.zero(); // support point in proxyA
-    wB = Vec2.zero(); // support point in proxyB
-    w = Vec2.zero(); // wB - wA
+    readonly wA = new Vec2(0, 0); // support point in proxyA
+    readonly wB = new Vec2(0, 0); // support point in proxyB
+    readonly w = new Vec2(0, 0); // wB - wA
     a = 0; // barycentric coordinate for closest point
 
-    set(v: SimplexVertex) {
+    copyFrom(v: SimplexVertex) {
         this.indexA = v.indexA;
         this.indexB = v.indexB;
         this.wA.copyFrom(v.wA);
@@ -274,10 +300,10 @@ class SimplexVertex {
 }
 
 class Simplex {
-    m_v1 = new SimplexVertex();
-    m_v2 = new SimplexVertex();
-    m_v3 = new SimplexVertex();
-    m_v = [this.m_v1, this.m_v2, this.m_v3];
+    readonly m_v1 = new SimplexVertex();
+    readonly m_v2 = new SimplexVertex();
+    readonly m_v3 = new SimplexVertex();
+    readonly m_v = [this.m_v1, this.m_v2, this.m_v3];
     m_count = 0;
 
     print() {
@@ -304,7 +330,6 @@ class Simplex {
         }
     }
 
-// (SimplexCache, DistanceProxy, ...)
     readCache(cache: SimplexCache,
               proxyA: DistanceProxy, transformA: Transform,
               proxyB: DistanceProxy, transformB: Transform) {
@@ -319,9 +344,9 @@ class Simplex {
             v.indexB = cache.indexB[i];
             const wALocal = proxyA.getVertex(v.indexA);
             const wBLocal = proxyB.getVertex(v.indexB);
-            v.wA = Transform.mulVec2(transformA, wALocal);
-            v.wB = Transform.mulVec2(transformB, wBLocal);
-            v.w = Vec2.sub(v.wB, v.wA);
+            Transform._mulVec2(transformA, wALocal, v.wA);
+            Transform._mulVec2(transformB, wBLocal, v.wB);
+            Vec2._sub(v.wB, v.wA, v.w);
             v.a = 0.0;
         }
 
@@ -330,23 +355,22 @@ class Simplex {
         if (this.m_count > 1) {
             const metric1 = cache.metric;
             const metric2 = this.getMetric();
-            if (metric2 < 0.5 * metric1 || 2.0 * metric1 < metric2
-                || metric2 < MathUtil.EPSILON) {
+            if (metric2 < 0.5 * metric1 || 2.0 * metric1 < metric2 || metric2 < MathUtil.EPSILON) {
                 // Reset the simplex.
                 this.m_count = 0;
             }
         }
 
         // If the cache is empty or invalid...
-        if (this.m_count == 0) {
+        if (this.m_count === 0) {
             const v = this.m_v[0];// SimplexVertex
             v.indexA = 0;
             v.indexB = 0;
             const wALocal = proxyA.getVertex(0);
             const wBLocal = proxyB.getVertex(0);
-            v.wA = Transform.mulVec2(transformA, wALocal);
-            v.wB = Transform.mulVec2(transformB, wBLocal);
-            v.w = Vec2.sub(v.wB, v.wA);
+            Transform._mulVec2(transformA, wALocal, v.wA);
+            Transform._mulVec2(transformB, wBLocal, v.wB);
+            Vec2._sub(v.wB, v.wA, v.w);
             v.a = 1.0;
             this.m_count = 1;
         }
@@ -361,117 +385,80 @@ class Simplex {
         }
     }
 
-
-    getSearchDirection(): Vec2 {
-        switch (this.m_count) {
-            case 1:
-                return Vec2.neg(this.m_v1.w);
-
-            case 2: {
-                const e12 = Vec2.sub(this.m_v2.w, this.m_v1.w);
-                const sgn = Vec2.cross(e12, Vec2.neg(this.m_v1.w));
-                if (sgn > 0.0) {
-                    // Origin is left of e12.
-                    return Vec2.crossSV(1.0, e12);
-                } else {
-                    // Origin is right of e12.
-                    return Vec2.crossVS(e12, 1.0);
-                }
+    getSearchDirection(out: Vec2) {
+        if (this.m_count === 1) {
+            out.copyFrom(this.m_v1.w).neg();
+        } else if (this.m_count === 2) {
+            out.copyFrom(this.m_v2.w).sub(this.m_v1.w);
+            // const sgn = Vec2.cross(e12, Vec2.neg(this.m_v1.w));
+            const sgn = -Vec2.cross(out, this.m_v1.w);
+            if (sgn > 0.0) {
+                // Origin is left of e12.
+                // return Vec2.crossSV(1.0, e12);
+                Vec2._crossSV(1, out, out);
+            } else {
+                // Origin is right of e12.
+                // return Vec2.crossVS(e12, 1.0);
+                Vec2._crossVS(out, 1, out);
             }
-
-            default:
-                PLANCK_ASSERT && assert(false);
-                return Vec2.zero();
+        } else {
+            PLANCK_ASSERT && assert(false);
         }
     }
 
-    getClosestPoint() {
-        switch (this.m_count) {
-            case 0:
-                PLANCK_ASSERT && assert(false);
-                return Vec2.zero();
-
-            case 1:
-                return Vec2.clone(this.m_v1.w);
-
-            case 2:
-                return Vec2.combine(this.m_v1.a, this.m_v1.w, this.m_v2.a, this.m_v2.w);
-
-            case 3:
-                return Vec2.zero();
-
-            default:
-                PLANCK_ASSERT && assert(false);
-                return Vec2.zero();
+    getClosestPoint(out: Vec2) {
+        const count = this.m_count;
+        if (count === 1) {
+            out.copyFrom(this.m_v1.w);
+        } else if (count === 2) {
+            Vec2._combine(this.m_v1.a, this.m_v1.w, this.m_v2.a, this.m_v2.w, out);
+        } else if (count === 3) {
+            out.setZero();
+        } else {
+            PLANCK_ASSERT && assert(false);
         }
     }
 
     getWitnessPoints(pA: Vec2, pB: Vec2) {
-        switch (this.m_count) {
-            case 0:
-                PLANCK_ASSERT && assert(false);
-                break;
-
-            case 1:
-                pA.copyFrom(this.m_v1.wA);
-                pB.copyFrom(this.m_v1.wB);
-                break;
-
-            case 2:
-                pA.setCombine(this.m_v1.a, this.m_v1.wA, this.m_v2.a, this.m_v2.wA);
-                pB.setCombine(this.m_v1.a, this.m_v1.wB, this.m_v2.a, this.m_v2.wB);
-                break;
-
-            case 3:
-                pA.setCombine(this.m_v1.a, this.m_v1.wA, this.m_v2.a, this.m_v2.wA);
-                pA.addMul(this.m_v3.a, this.m_v3.wA);
-                pB.copyFrom(pA);
-                break;
-
-            default:
-                PLANCK_ASSERT && assert(false);
-                break;
+        const count = this.m_count;
+        if (count === 1) {
+            pA.copyFrom(this.m_v1.wA);
+            pB.copyFrom(this.m_v1.wB);
+        } else if (count === 2) {
+            pA.setCombine(this.m_v1.a, this.m_v1.wA, this.m_v2.a, this.m_v2.wA);
+            pB.setCombine(this.m_v1.a, this.m_v1.wB, this.m_v2.a, this.m_v2.wB);
+        } else if (count === 3) {
+            pA.setCombine(this.m_v1.a, this.m_v1.wA, this.m_v2.a, this.m_v2.wA);
+            pA.addMul(this.m_v3.a, this.m_v3.wA);
+            pB.copyFrom(pA);
+        } else {
+            PLANCK_ASSERT && assert(false);
         }
     }
 
-    getMetric() {
-        switch (this.m_count) {
-            case 0:
-                PLANCK_ASSERT && assert(false);
-                return 0.0;
-
-            case 1:
-                return 0.0;
-
-            case 2:
-                return Vec2.distance(this.m_v1.w, this.m_v2.w);
-
-            case 3:
-                return Vec2.cross(Vec2.sub(this.m_v2.w, this.m_v1.w), Vec2.sub(this.m_v3.w,
-                    this.m_v1.w));
-
-            default:
-                PLANCK_ASSERT && assert(false);
-                return 0.0;
+    getMetric(): number {
+        const count = this.m_count;
+        if (count === 1) {
+            return 0.0;
+        } else if (count === 2) {
+            return Vec2.distance(this.m_v1.w, this.m_v2.w);
+        } else if (count === 3) {
+            return Vec2.cross(Vec2.sub(this.m_v2.w, this.m_v1.w), Vec2.sub(this.m_v3.w, this.m_v1.w));
         }
-    }
 
+        PLANCK_ASSERT && assert(false);
+        return 0.0;
+    }
 
     solve() {
-        switch (this.m_count) {
-            case 1:
-                break;
-
-            case 2:
-                this.solve2();
-                break;
-
-            case 3:
-                this.solve3();
-                break;
-
-            default:
-                PLANCK_ASSERT && assert(false);
+        const count = this.m_count;
+        if (count === 1) {
+        } else if (count === 2) {
+            this.solve2();
+        } else if (count === 3) {
+            this.solve3();
+        } else {
+            PLANCK_ASSERT && assert(false);
         }
     }
 
@@ -501,7 +488,8 @@ class Simplex {
     solve2() {
         const w1 = this.m_v1.w;
         const w2 = this.m_v2.w;
-        const e12 = Vec2.sub(w2, w1);
+        const e12 = s_solve_sub;
+        Vec2._sub(w2, w1, e12);
 
         // w1 region
         const d12_2 = -Vec2.dot(w1, e12);
@@ -518,7 +506,7 @@ class Simplex {
             // a1 <= 0, so we clamp it to 0
             this.m_v2.a = 1.0;
             this.m_count = 1;
-            this.m_v1.set(this.m_v2);
+            this.m_v1.copyFrom(this.m_v2);
             return;
         }
 
@@ -544,7 +532,8 @@ class Simplex {
         // [1 1 ][a1] = [1]
         // [w1.e12 w2.e12][a2] = [0]
         // a3 = 0
-        const e12 = Vec2.sub(w2, w1);
+        const e12 = s_solve_sub;
+        Vec2._sub(w2, w1, e12);
         const w1e12 = Vec2.dot(w1, e12);
         const w2e12 = Vec2.dot(w2, e12);
         const d12_1 = w2e12;
@@ -554,7 +543,8 @@ class Simplex {
         // [1 1 ][a1] = [1]
         // [w1.e13 w3.e13][a3] = [0]
         // a2 = 0
-        const e13 = Vec2.sub(w3, w1);
+        const e13 = s_solve_sub2;
+        Vec2._sub(w3, w1, e13);
         const w1e13 = Vec2.dot(w1, e13);
         const w3e13 = Vec2.dot(w3, e13);
         const d13_1 = w3e13;
@@ -564,7 +554,8 @@ class Simplex {
         // [1 1 ][a2] = [1]
         // [w2.e23 w3.e23][a3] = [0]
         // a1 = 0
-        const e23 = Vec2.sub(w3, w2);// Vec2
+        const e23 = s_solve_sub3;
+        Vec2._sub(w3, w2, e23);
         const w2e23 = Vec2.dot(w2, e23);
         const w3e23 = Vec2.dot(w3, e23);
         const d23_1 = w3e23;
@@ -599,7 +590,7 @@ class Simplex {
             this.m_v1.a = d13_1 * inv_d13;
             this.m_v3.a = d13_2 * inv_d13;
             this.m_count = 2;
-            this.m_v2.set(this.m_v3);
+            this.m_v2.copyFrom(this.m_v3);
             return;
         }
 
@@ -607,7 +598,7 @@ class Simplex {
         if (d12_1 <= 0.0 && d23_2 <= 0.0) {
             this.m_v2.a = 1.0;
             this.m_count = 1;
-            this.m_v1.set(this.m_v2);
+            this.m_v1.copyFrom(this.m_v2);
             return;
         }
 
@@ -615,7 +606,7 @@ class Simplex {
         if (d13_1 <= 0.0 && d23_1 <= 0.0) {
             this.m_v3.a = 1.0;
             this.m_count = 1;
-            this.m_v1.set(this.m_v3);
+            this.m_v1.copyFrom(this.m_v3);
             return;
         }
 
@@ -625,7 +616,7 @@ class Simplex {
             this.m_v2.a = d23_1 * inv_d23;
             this.m_v3.a = d23_2 * inv_d23;
             this.m_count = 2;
-            this.m_v1.set(this.m_v3);
+            this.m_v1.copyFrom(this.m_v3);
             return;
         }
 
@@ -638,23 +629,21 @@ class Simplex {
     }
 }
 
+const s_distanceInput = new DistanceInput();
+
 /**
  * Determine if two generic shapes overlap.
  */
 export function testOverlap(shapeA: Shape, indexA: number,
                             shapeB: Shape, indexB: number,
-                            xfA: Transform, xfB: Transform) {
-    const input = new DistanceInput();
+                            xfA: Transform, xfB: Transform): boolean {
+    const input = s_distanceInput;
     input.proxyA.set(shapeA, indexA);
     input.proxyB.set(shapeB, indexB);
     input.transformA = xfA;
     input.transformB = xfB;
     input.useRadii = true;
 
-    const cache = new SimplexCache();
-
-    const output = new DistanceOutput();
-    Distance(output, cache, input);
-
+    const output = DistanceOnce(input);
     return output.distance < 10.0 * MathUtil.EPSILON;
 }
