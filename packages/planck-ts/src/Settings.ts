@@ -1,4 +1,3 @@
-
 // TODO merge with World options?
 
 /**
@@ -72,7 +71,7 @@ const maxTOIIterations = 20;
 /**
  * Maximum iterations to find Distance.
  */
-const maxDistnceIterations = 20;
+const maxDistanceIterations = 20;
 
 /**
  * A velocity threshold for elastic collisions. Any collision with a relative
@@ -149,13 +148,13 @@ export let Settings = {
     maxSubSteps,
     maxTOIContacts,
     maxTOIIterations,
-    maxDistanceIterations: maxDistnceIterations,
+    maxDistanceIterations,
     velocityThreshold,
     maxLinearCorrection,
     maxAngularCorrection,
     maxTranslation,
     maxTranslationSquared,
-    maxRotation,maxRotationSquared,
+    maxRotation, maxRotationSquared,
     baumgarte,
     toiBaugarte,
 

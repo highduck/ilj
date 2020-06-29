@@ -389,9 +389,9 @@ class Simplex {
         if (this.m_count === 1) {
             out.copyFrom(this.m_v1.w).neg();
         } else if (this.m_count === 2) {
-            out.copyFrom(this.m_v2.w).sub(this.m_v1.w);
+            Vec2._sub(this.m_v2.w, this.m_v1.w, out);
             // const sgn = Vec2.cross(e12, Vec2.neg(this.m_v1.w));
-            const sgn = -Vec2.cross(out, this.m_v1.w);
+            const sgn = Vec2.cross(out, Vec2.neg(this.m_v1.w));
             if (sgn > 0.0) {
                 // Origin is left of e12.
                 // return Vec2.crossSV(1.0, e12);
@@ -637,7 +637,12 @@ const s_distanceInput = new DistanceInput();
 export function testOverlap(shapeA: Shape, indexA: number,
                             shapeB: Shape, indexB: number,
                             xfA: Transform, xfB: Transform): boolean {
-    const input = s_distanceInput;
+    // can't be quickly cached with `s_distanceInput`,
+    // because we need unique fixtures from shape and index
+    // TODO:
+    // const input = s_distanceInput;
+
+    const input = new DistanceInput();
     input.proxyA.set(shapeA, indexA);
     input.proxyB.set(shapeB, indexB);
     input.transformA = xfA;

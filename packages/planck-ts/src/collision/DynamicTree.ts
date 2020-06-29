@@ -754,6 +754,8 @@ export class DynamicTree {
         const segmentAABB = s_rayCast_segmentAABB;
         const t = s_rayCast_t;
         Vec2._combine(1 - maxFraction, p1, maxFraction, p2, t);
+        // const segmentAABB = new AABB(0, 0,0, 0);
+        // let t = Vec2.combine((1 - maxFraction), p1, maxFraction, p2);
         segmentAABB.combinePoints(p1, t);
 
         const stack = stackPool.allocate();

@@ -281,10 +281,14 @@ export function timeOfImpact(output: TOIOutput, input: TOIInput) {
     let iter = 0;
 
     // Prepare input for distance query.
+
+    // const cache = new SimplexCache();
     const cache = s_simplexCache;
     cache.count = 0;
 
-    const distanceInput = s_distanceInput;
+    // TODO: optimize
+    // const distanceInput = s_distanceInput;
+    const distanceInput = new DistanceInput();
     distanceInput.proxyA = input.proxyA;
     distanceInput.proxyB = input.proxyB;
     distanceInput.useRadii = false;
@@ -303,7 +307,9 @@ export function timeOfImpact(output: TOIOutput, input: TOIInput) {
         distanceInput.transformA = xfA;
         distanceInput.transformB = xfB;
 
+        // TODO: optimize
         const distanceOutput = s_distanceOutput;
+        // const distanceOutput = new DistanceOutput();
         Distance(distanceOutput, cache, distanceInput);
 
         // If the shapes are overlapped, we give up on continuous collision.

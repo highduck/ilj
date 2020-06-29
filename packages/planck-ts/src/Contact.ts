@@ -656,9 +656,9 @@ export class Contact {
         xfA.p.setCombine(1, cA, -1, Rot.mulVec2(xfA.q, localCenterA));
         xfB.p.setCombine(1, cB, -1, Rot.mulVec2(xfB.q, localCenterB));
 
-        const worldManifold = new WorldManifold();
-        // const worldManifold = s_worldManifold;
-        // worldManifold.reset();
+        // const worldManifold = new WorldManifold();
+        const worldManifold = s_worldManifold;
+        worldManifold.reset();
         manifold.getWorldManifold(worldManifold, xfA, radiusA, xfB, radiusB);
 
         this.v_normal.copyFrom(worldManifold.normal);

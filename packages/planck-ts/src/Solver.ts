@@ -215,13 +215,13 @@ export class Solver {
         for (let i = 0; i < this.m_bodies.length; ++i) {
             const body = this.m_bodies[i];
 
-            const c = Vec2.clone(body.m_sweep.c);
-            // const c = body.c_position.c; // copy to dest and modify
-            // c.copyFrom(body.m_sweep.c);
+            // const c = Vec2.clone(body.m_sweep.c);
+            const c = body.c_position.c; // copy to dest and modify
+            c.copyFrom(body.m_sweep.c);
             const a = body.m_sweep.a;
-            const v = Vec2.clone(body.m_linearVelocity);
-            // const v = body.c_velocity.v;
-            // v.copyFrom(body.m_linearVelocity); // copy to dest and modify
+            // const v = Vec2.clone(body.m_linearVelocity);
+            const v = body.c_velocity.v;
+            v.copyFrom(body.m_linearVelocity); // copy to dest and modify
             let w = body.m_angularVelocity;
 
             // Store positions for continuous collision.
@@ -249,9 +249,9 @@ export class Solver {
             }
 
             // WOOH!
-            body.c_position.c.copyFrom(c); //remove
+            // body.c_position.c.copyFrom(c); //remove
             body.c_position.a = a;
-            body.c_velocity.v.copyFrom(v);//remove
+            // body.c_velocity.v.copyFrom(v);//remove
             body.c_velocity.w = w;
         }
 
@@ -316,12 +316,16 @@ export class Solver {
             let w = body.c_velocity.w;
 
             // Check for large velocities
-            // const translation = Vec2.mul(h, v);
             const translationSquared = h * h * (v.x * v.x + v.y * v.y);
             if (translationSquared > Settings.maxTranslationSquared) {
                 const ratio = Settings.maxTranslation / Math.sqrt(translationSquared);
                 v.mul(ratio);
             }
+            // const translation = Vec2.mul(h, v);
+            // if (Vec2.lengthSquared(translation) > Settings.maxTranslationSquared) {
+            //     const ratio = Settings.maxTranslation / translation.length();
+            //     v.mul(ratio);
+            // }
 
             const rotation = h * w;
             if (rotation * rotation > Settings.maxRotationSquared) {
