@@ -200,7 +200,7 @@ function getRollupInput(options: CompileBundleOptions): InputOptions {
         }));
     }
 
-    const planckDev = true;
+    const planckDev = false;
 
     plugins.push(
         replace({

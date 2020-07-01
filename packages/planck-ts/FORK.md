@@ -1,8 +1,0 @@
-- AABB plain structure
-    - lowerBound -> lx, ly
-    - upperBound -> ux, uy
-- Mat22 plain structure
-    - ex.x -> a
-    - ey.x -> b
-    - ex.y -> c
-    - ey.y -> d
