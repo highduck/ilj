@@ -1,10 +1,9 @@
 import {Transform2D} from "../display/Transform2D";
-import {Engine} from "../../Engine";
 import {Entity} from "../../ecs/Entity";
 import {Matrix2D} from "@highduck/math";
 
 export function invalidateTransform3() {
-    invalidateTransformSimple3(Engine.current.root, Transform2D.IDENTITY);
+    invalidateTransformSimple3(Entity.root, Transform2D.IDENTITY);
 }
 
 function invalidateTransformSimple3(e: Entity, parent: Transform2D) {

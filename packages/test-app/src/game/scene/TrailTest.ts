@@ -40,13 +40,13 @@ export class TrailDemo {
 
     constructor() {
         const engine = Engine.current;
-        const base = engine.root.create();
+        const base = Entity.root.create();
         base.name = "Trail Demo";
 
         this.mouse = base.create();
         this.mouse.name = "Target";
         this.mouse.set(Transform2D);
-        this.mouse.set(TargetFollow).cameraPointer = engine.root.find("MainCamera");
+        this.mouse.set(TargetFollow).cameraPointer = Entity.root.find("MainCamera");
         this.mouse.touchable = false;
 
         this.ps = base.create();

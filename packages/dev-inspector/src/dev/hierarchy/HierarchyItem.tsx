@@ -37,7 +37,7 @@ function getEntityIcon(e: Entity): string {
 export class HierarchyItem extends Component<HierarchyItemProps, {}> {
 
     render(props: HierarchyItemProps) {
-        const e = props.entity;
+        const e:Entity = props.entity;
         if (!e || !e.isValid) {
             return;
         }
@@ -46,7 +46,7 @@ export class HierarchyItem extends Component<HierarchyItemProps, {}> {
             e.visible = (ev.target as HTMLInputElement).checked;
         };
         const worldActive = props.parentActive && e.visible;
-        const isRoot = e === e.world.root;
+        const isRoot = e === Entity.root;
         const isOpen = props.tree.opened.has(e) || isRoot;
         const isSelected = props.editor.selected === e;
 

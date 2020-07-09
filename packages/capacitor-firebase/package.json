@@ -21,14 +21,14 @@
   "author": "eliasku",
   "license": "MIT",
   "dependencies": {
-    "@capacitor/core": "^2.2.0",
-    "firebase": "^7.15.4"
+    "@capacitor/core": "^2.2.1",
+    "firebase": "^7.15.5"
   },
   "devDependencies": {
-    "@capacitor/android": "^2.2.0",
-    "@capacitor/ios": "^2.2.0",
+    "@capacitor/android": "^2.2.1",
+    "@capacitor/ios": "^2.2.1",
     "rimraf": "^3.0.2",
-    "typescript": "^3.9.5"
+    "typescript": "^3.9.6"
   },
   "files": [
     "dist/",

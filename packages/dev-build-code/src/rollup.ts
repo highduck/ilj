@@ -86,8 +86,8 @@ function getTerserOptions(options: CompileBundleOptions): undefined | TerserOpti
         ecma: 8,
         compress: {
             passes: 2,
-            reduce_funcs: false,
-            reduce_vars: false,
+            // reduce_funcs: false,
+            // reduce_vars: false,
             keep_infinity: true,
         },
         mangle: {
@@ -104,6 +104,7 @@ function getTerserOptions(options: CompileBundleOptions): undefined | TerserOpti
             //     ]
             // }
         },
+        toplevel: true,
         safari10: true,
         output: {
             beautify: options.debug

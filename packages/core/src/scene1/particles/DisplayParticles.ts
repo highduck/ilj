@@ -6,6 +6,10 @@ import {Drawer} from "../../drawer/Drawer";
 export class DisplayParticles extends Display2D {
     static TYPE_ID = declTypeID(Display2D);
 
+    constructor() {
+        super();
+    }
+
     draw(drawer: Drawer) {
         const layer = this.entity.tryGet(ParticleLayer);
         if (layer) {

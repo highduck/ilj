@@ -10,6 +10,9 @@ export class Display2D {
     static TYPE_ID = declTypeID();
     entity!: Entity;
 
+    constructor() {
+    }
+
     draw(drawer: Drawer): void {
 
     }

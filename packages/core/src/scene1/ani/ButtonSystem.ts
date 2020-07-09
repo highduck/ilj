@@ -9,6 +9,7 @@ import {Engine} from "../../Engine";
 import {EventData, EventReceiver} from "../EventReceiver";
 import {InteractiveManagerEvent} from "./InteractiveManager";
 import {Time} from "../../app/Time";
+import {getComponents} from "../../ecs/World";
 
 function initBaseTransform(btn: Button, transform: Transform2D) {
     btn.baseColorMultiplier.copyFrom(transform.colorMultiplier);
@@ -121,7 +122,7 @@ export class ButtonSystem {
 
     process() {
         const dt = Time.UI.dt;
-        const components = this.engine.world.components(Interactive);
+        const components = getComponents(Interactive);
         for (let i = 0; i < components.length; ++i) {
             const interactive = components[i];
             const e = interactive.entity;

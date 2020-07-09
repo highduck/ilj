@@ -26,7 +26,8 @@ export interface FlashDef {
     type: 'flash',
     id: string,
     path?: string,
-    atlas?: string
+    atlas?: string,
+    sourceScale?: number
 }
 
 export interface AudioDef {

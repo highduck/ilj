@@ -10,7 +10,7 @@ export class Camera2D {
     enabled = true;
     order = 0;
 
-    root?: Entity = undefined;
+    root: Entity = Entity.root;
     contentScale = 1;
     clearColorEnabled = false;
     readonly clearColor = new Color4();

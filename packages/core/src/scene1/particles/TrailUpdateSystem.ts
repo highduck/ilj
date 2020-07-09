@@ -1,8 +1,8 @@
-import {Engine} from "../../Engine";
 import {Trail} from "./Trail";
+import {getComponents} from "../../ecs/World";
 
 export function updateTrails() {
-    const trails = Engine.current.world.components(Trail);
+    const trails = getComponents(Trail);
     for (let i = 0; i < trails.length; ++i) {
         const trail = trails[i];
         if (trail.enabled) {

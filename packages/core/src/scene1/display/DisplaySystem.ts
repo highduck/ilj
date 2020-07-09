@@ -24,7 +24,6 @@ export class DisplaySystem {
 
     process() {
         const engine = this.engine;
-        const w = engine.world;
         const drawer = engine.drawer;
         const activeCameras = engine.cameraManager.activeCameras;
 
@@ -58,7 +57,7 @@ export class DisplaySystem {
                     camera.clearColor.argb32);
             }
 
-            this.draw(camera.root ?? w.root, Transform2D.IDENTITY);
+            this.draw(camera.root, Transform2D.IDENTITY);
 
             if (process.env.NODE_ENV === 'development') {
                 drawCameraDebugGizmos(camera);

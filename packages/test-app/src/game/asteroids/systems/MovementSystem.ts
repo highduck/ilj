@@ -1,6 +1,6 @@
 import {Motion} from "../components";
 import {Vec2} from "@highduck/math";
-import {Entity, Transform2D} from "@highduck/core";
+import {ECS_query2, Entity, Time, Transform2D} from "@highduck/core";
 
 export class MovementSystem {
 
@@ -10,10 +10,9 @@ export class MovementSystem {
     update() {
         const width = 768;
         const height = 1024;
+        const dt = Time.GAME.dt;
 
-        for (const [tr, motion] of this.root.world.query2(Transform2D, Motion)) {
-            const dt = tr.entity.dt;
-
+        for (const [tr, motion] of ECS_query2(Transform2D, Motion)) {
             tr.position.addScale(motion.velocity, dt);
 
             if (tr.position.x < 0) {

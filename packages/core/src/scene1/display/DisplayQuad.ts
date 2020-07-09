@@ -9,6 +9,10 @@ export class DisplayQuad extends Display2D {
     readonly rect: Rect = new Rect(0, 0, 1, 1);
     readonly colors: [Color32_ARGB, Color32_ARGB, Color32_ARGB, Color32_ARGB] = [0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF];
 
+    constructor() {
+        super();
+    }
+
     set color(c: number) {
         this.colors.fill(c);
     }

@@ -1,4 +1,4 @@
-import {Ani, AssetRef, Engine, Resources} from "@highduck/core";
+import {Ani, AssetRef, Engine, Resources, Entity} from "@highduck/core";
 
 export class TestAni {
 
@@ -9,7 +9,7 @@ export class TestAni {
         const test = engine.aniFactory.createFromLibrary("tests", "test");
         if (test) {
             test.name = "Flash Scene Test";
-            engine.root.append(test);
+            Entity.root.append(test);
         }
     }
 }

@@ -19,6 +19,10 @@ export class DisplayArc extends Display2D {
     colorOuter: Color32_ARGB = 0xFFFFFFFF;
     sprite?: string = undefined;
 
+    constructor() {
+        super();
+    }
+
     draw(drawer: Drawer) {
         if (this.sprite) {
             const spr = Resources.get(Sprite, this.sprite).data;

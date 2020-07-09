@@ -1,6 +1,7 @@
 import {Camera2D} from "./Camera2D";
 import {Engine} from "../../Engine";
 import {Matrix2D} from "@highduck/math";
+import {getComponents} from "../../ecs/World";
 
 export class CameraManager {
     readonly activeCameras: Camera2D[] = [];
@@ -11,7 +12,7 @@ export class CameraManager {
         const rc = engine.graphics.currentFramebufferRect;
 
         this.activeCameras.length = 0;
-        const cameras = Engine.current.world.components(Camera2D);
+        const cameras = getComponents(Camera2D);
         for (let i = 0; i < cameras.length; ++i) {
             const camera = cameras[i];
 

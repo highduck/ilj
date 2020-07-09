@@ -1,4 +1,4 @@
-import {Entity, Transform2D} from "@highduck/core";
+import {ECS_query2, ECS_query3, Entity, getComponents, Transform2D} from "@highduck/core";
 import {Asteroid, Bullet, Collision, GameState, Spaceship} from "../components";
 import {RndDefault, Vec2} from "@highduck/math";
 import {GameFactory} from "../factory";
@@ -13,27 +13,26 @@ export class GameSystem {
 
     update() {
         const root = this.factory.root;
-        const w = root.world;
 
         let spaceship: Entity | undefined;
         let hasAsteroids = false;
         let hasBullets = false;
-        for (const _ of w.query2(Bullet, Collision).entities()) {
+        for (const _ of ECS_query2(Bullet, Collision).entities()) {
             hasBullets = true;
             break;
         }
-        for (const _ of w.query2(Collision, Asteroid).entities()) {
+        for (const _ of ECS_query2(Collision, Asteroid).entities()) {
             hasAsteroids = true;
             break;
         }
-        for (const _ of w.query2(Collision, Spaceship).entities()) {
+        for (const _ of ECS_query2(Collision, Spaceship).entities()) {
             spaceship = _;
             break;
         }
 
         let gameStatesCount = 0;
 
-        const gameStates = w.components(GameState);
+        const gameStates = getComponents(GameState);
         for (let i = 0; i < gameStates.length; ++i) {
             const gameState = gameStates[i];
             if (!spaceship) {
@@ -41,9 +40,7 @@ export class GameSystem {
                     const newSpaceshipPosition = gameSize.copy().scale(0.5);
                     let clearToAddSpaceship = true;
 
-                    for (const [_, asteroidTransform, asteroidCollision]
-                        of w.query3(Asteroid, Transform2D, Collision)) {
-                        // of w.query(Asteroid, Transform2D, Collision).components()) {
+                    for (const [_, asteroidTransform, asteroidCollision] of ECS_query3(Asteroid, Transform2D, Collision)) {
                         if (asteroidTransform.position.distance(newSpaceshipPosition) <=
                             asteroidCollision.radius + 50) {
                             clearToAddSpaceship = false;

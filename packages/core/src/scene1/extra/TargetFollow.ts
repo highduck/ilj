@@ -3,6 +3,7 @@ import {Camera2D} from "../display/Camera2D";
 import {Entity} from "../../ecs/Entity";
 import {Engine} from "../../Engine";
 import {Transform2D} from "../display/Transform2D";
+import {getComponents} from "../../ecs/World";
 
 export class TargetFollow {
     static TYPE_ID = declTypeID();
@@ -15,7 +16,7 @@ export class TargetFollow {
 
 export function updateTargetFollow() {
     const engine = Engine.current;
-    const components = engine.world.components(TargetFollow);
+    const components = getComponents(TargetFollow);
     for (let i = 0; i < components.length; ++i) {
         const follow = components[i];
         const pos = follow.entity.tryGet(Transform2D);

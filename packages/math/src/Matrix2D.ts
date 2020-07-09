@@ -1,4 +1,4 @@
-import {Vec2} from "./Vec2";
+import {IVec2, Vec2} from "./Vec2";
 
 export class Matrix2D {
 

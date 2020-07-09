@@ -4,9 +4,11 @@ import {BoolField} from "./fields/BoolField";
 import {ActionField} from "./fields/ActionField";
 import {NumberField} from "./fields/NumberField";
 import {ObjectEditor} from "./inspector/ObjectEditor";
+import {ECS_stats} from "@highduck/core";
 
 export const StatsView: FunctionalComponent<{}> = (props: {}) => {
     const engine = Engine.current;
+    const ecsStats = ECS_stats();
     return <div>
         <div><b>FPS: </b>{engine.time.fps.avg}</div>
         <div><b>TRI: </b>{engine.graphics.triangles}</div>
@@ -16,8 +18,8 @@ export const StatsView: FunctionalComponent<{}> = (props: {}) => {
             <b> l: </b>{engine.time.total.toFixed(2)}
             <b> n: </b>{engine.time.index}
         </div>
-        <div><b>Objects: </b>{engine.world.size}</div>
-        <div><b>Maps: </b>{engine.world.maps.size}</div>
+        <div><b>ECS Entities: </b>{ecsStats.usedEntities}</div>
+        <div><b>ECS Types: </b>{ecsStats.usedTypes}</div>
         <div><b>Locator: </b>{engine.services.size}</div>
 
         <BoolField target={engine}

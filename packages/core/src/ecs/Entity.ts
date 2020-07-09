@@ -1,12 +1,11 @@
 import {assert} from "../util/assert";
-import {World} from "./World";
+import {_allocate, _deallocate, checkEntityPassport, deleteEntityComponent, ensureComponentMap, objs} from "./World";
 import {ConstructorWithID} from "../util/TypeID";
-import {Engine} from "../Engine";
-import {IntMap} from "../util/IntMap";
+import {IntMap} from "../ds/IntMap";
 
 export type Passport = number;
 
-const MASK_INDEX = 0xFFFFF;
+const INDEX_MASK = 0xFFFFF;
 
 interface ComponentInternals {
     entity?: Entity;
@@ -16,7 +15,6 @@ interface ComponentInternals {
 
 function checkHierarchyValidity(a: Entity, b: Entity) {
     assert(a !== b);
-    assert(a.world === b.world);
     assert(a.isValid);
     assert(b.isValid);
 }
@@ -29,20 +27,26 @@ export class Entity {
     touchable = true;
     layerMask = 0xFF;
 
-    // dt = 0;
-    // timeTotal = 0;
-    // timeScale = 1;
+    private _disposed = false;
 
-    constructor(readonly world: World,
-                readonly passport: Passport) {
+    private constructor(readonly passport: Passport) {
+    }
+
+    static readonly root = Entity.create();
+
+    static create(): Entity {
+        const pass = _allocate();
+        const e = new Entity(pass);
+        objs.set(pass & INDEX_MASK, e);
+        return e;
     }
 
     toString(): string {
-        return this.name ?? `Entity/${this.passport & MASK_INDEX}`;
+        return this.name ?? `Entity/${this.passport & INDEX_MASK}`;
     }
 
     create(name?: string, index?: number): Entity {
-        const child = this.world.create();
+        const child = Entity.create();
         child.name = name;
         if (index === 0) {
             this.prependStrict(child);
@@ -57,14 +61,14 @@ export class Entity {
     // }
 
     get isValid(): boolean {
-        return this.world?.check(this.passport) ?? false;
+        return checkEntityPassport(this.passport);
     }
 
     set<T extends object>(ctor: ConstructorWithID<T>): T {
         const data = new ctor();
         (data as ComponentInternals).entity = this;
         this.components.set(ctor.TYPE_ID, data);
-        this.world.ensure(ctor.TYPE_ID).set(this.passport & MASK_INDEX, data);
+        ensureComponentMap(ctor.TYPE_ID).set(this.passport & INDEX_MASK, data);
         return data;
     }
 
@@ -89,20 +93,20 @@ export class Entity {
         if (!data) {
             data = new ctor();
             (data as ComponentInternals).entity = this;
-            this.world.ensure(ctor.TYPE_ID).set(this.passport & MASK_INDEX, data);
+            ensureComponentMap(ctor.TYPE_ID).set(this.passport & INDEX_MASK, data);
             this.components.set(ctor.TYPE_ID, data);
         }
         return data as T;
     }
 
     delete<T extends object>(c: ConstructorWithID<T>) {
-        this.world.delete(this.passport, c.TYPE_ID);
+        deleteEntityComponent(this.passport, c.TYPE_ID);
         this.components.delete(c.TYPE_ID);
     }
 
     dispose() {
         if (!!DEBUG) {
-            assert(this.world);
+            assert(!this._disposed);
         }
 
         // - Remove Entity from parent
@@ -116,7 +120,7 @@ export class Entity {
                 entity?: Entity;
                 dispose?(): void;
             };
-            this.world.delete(this.passport, k);
+            deleteEntityComponent(this.passport, k);
             if (v.dispose !== undefined) {
                 v.dispose();
             }
@@ -125,11 +129,10 @@ export class Entity {
         // we are disposing, it could not need to clear local map?
         this.components.clear();
 
-        this.world.objs.delete(this.passport & MASK_INDEX);
-        this.world._deallocate(this.passport);
-        (this as { world?: World }).world = undefined;
+        objs.delete(this.passport & INDEX_MASK);
+        _deallocate(this.passport);
+        this._disposed = true;
     }
-
 
     /**** Hierarchy component (built-in) ****/
     parent: Entity | undefined;
@@ -449,7 +452,7 @@ export class Entity {
         let c: T | undefined;
         while (it !== undefined) {
             c = it.components.get(ctor.TYPE_ID) as (T | undefined);
-            if(c !== undefined) {
+            if (c !== undefined) {
                 return c;
             }
             it = it.parent;

@@ -1,7 +1,7 @@
 import {Disposable} from "./Disposable";
 import {ConstructorWithID} from "./TypeID";
-import {IntMap} from "./IntMap";
-import {StringMap} from "./StringMap";
+import {IntMap} from "../ds/IntMap";
+import {StringMap} from "../ds/StringMap";
 
 function isDisposable(object: any): object is Disposable {
     return object && "dispose" in object;

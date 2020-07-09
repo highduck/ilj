@@ -6,11 +6,12 @@ import {Display2D} from "../display/Display2D";
 import {DisplayQuad} from "../display/DisplayQuad";
 import {DisplaySprite} from "../display/DisplaySprite";
 import {Engine} from "../../Engine";
+import {getComponents} from "../../ecs/World";
 
 const TEMP_RECT_0 = new Rect();
 const TEMP_RECT = new Rect();
 
-function findRootRect(e: Entity, out: Rect): boolean {
+export function findRootRect(e: Entity, out: Rect): boolean {
     let it: Entity | undefined = e;
     while (it !== undefined) {
         const transform = it.tryGet(Transform2D);
@@ -70,7 +71,7 @@ function updateEntityLayout(layout: Layout) {
 }
 
 export function updateLayout() {
-    const layouts = Engine.current.world.components(Layout);
+    const layouts = getComponents(Layout);
     for (let i = 0; i < layouts.length; ++i) {
         updateEntityLayout(layouts[i]);
     }

@@ -43,7 +43,8 @@ export async function exportAssets(input: string, output: string, production = f
                 def.id,
                 path.join(input, def.path ?? def.id),
                 output,
-                def.atlas ?? def.id
+                def.atlas ?? def.id,
+                def.sourceScale ?? 1.0
             );
             list.push({
                 type: BundleItemType.Ani,

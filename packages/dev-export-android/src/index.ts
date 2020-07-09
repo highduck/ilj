@@ -33,3 +33,4 @@ export function exportAndroid(basedir?: string, target?: string, mode?: 'product
 }
 
 export * from './pkg';
+export * from './copyPublic';

@@ -3,7 +3,6 @@ import {Ani, findLinkageRef} from "./Ani";
 import {Transform2D} from "../display/Transform2D";
 import {DisplaySprite} from "../display/DisplaySprite";
 import {Display2D} from "../display/Display2D";
-import {Engine} from "../../Engine";
 import {Sprite} from "../Sprite";
 import {Matrix2D, Rect} from "@highduck/math";
 import {DisplayText} from "../display/DisplayText";
@@ -15,7 +14,7 @@ import {NodeJson} from "@highduck/anijson";
 
 export class AniFactory {
 
-    constructor(private readonly engine: Engine) {
+    constructor() {
     }
 
     applyData(entity: Entity, ref: string | undefined, data: NodeJson, library: Ani) {
@@ -116,7 +115,7 @@ export class AniFactory {
     }
 
     createAndMerge(ani: Ani, ref?: string, data?: NodeJson, over?: NodeJson): Entity {
-        const entity = this.engine.world.create();
+        const entity = Entity.create();
         entity.set(Transform2D);
         if (data) {
             this.applyData(entity, ref, data, ani);

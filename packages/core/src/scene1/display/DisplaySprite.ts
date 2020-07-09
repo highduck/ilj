@@ -121,6 +121,10 @@ export class DisplaySprite extends Display2D {
     readonly scale = new Vec2(1, 1);
     manualTarget: Rect | undefined = undefined;
 
+    constructor() {
+        super();
+    }
+
     draw(drawer: Drawer) {
         const spr = this.sprite.data;
         if (spr === undefined) {

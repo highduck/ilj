@@ -11,6 +11,10 @@ export class TrailRenderer extends Display2D {
 
     sprite?: AssetRef<Sprite>;
 
+    constructor() {
+        super();
+    }
+
     draw(drawer: Drawer) {
         const trail = this.entity.get(Trail);
         const nodes = trail._nodes;

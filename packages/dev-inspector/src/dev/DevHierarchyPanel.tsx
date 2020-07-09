@@ -3,7 +3,7 @@ import {h} from "preact";
 import {HierarchyTree} from "./hierarchy/HierarchyTree";
 import {DevApp} from "../DevApp";
 import {DevPanel} from "./DevPanel";
-import {Engine} from "@highduck/core";
+import {Entity} from "@highduck/core";
 
 export class DevHierarchyPanel extends DevPanel {
 
@@ -12,8 +12,7 @@ export class DevHierarchyPanel extends DevPanel {
     }
 
     render(app: DevApp) {
-        const engine = Engine.current;
         return <HierarchyTree editor={app.editor}
-                              root={engine.root}/>;
+                              root={Entity.root}/>;
     }
 }

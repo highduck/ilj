@@ -20,6 +20,10 @@ export class DisplayText extends Display2D {
     readonly format = new TextFormat("mini", 16);
     readonly rect = new Rect();
 
+    constructor() {
+        super();
+    }
+
     invalidateText() {
         const repoVersion = getStringRepoVersion();
         if (--this._pollCounter < 0 || this._pollVersion !== repoVersion) {
@@ -53,6 +57,16 @@ export class DisplayText extends Display2D {
 
     set text(value: string) {
         this._tokens = parseString(value);
+
+        this._pollCounter = 0;
+        this.invalidateText();
+    }
+
+    get text(): string {
+        this._pollCounter = 0;
+        this.invalidateText();
+
+        return this._rendered;
     }
 
     setText(v: string): this {

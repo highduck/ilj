@@ -54,6 +54,7 @@ export * from './scene1/EventReceiver';
 export * from './scene1/Atlas';
 
 export * from './scene1/extra/Layout';
+export * from './scene1/extra/LayoutSystem';
 export * from './scene1/extra/FastScript';
 export * from './scene1/extra/EntityAge';
 export * from './scene1/extra/TargetFollow';
@@ -64,11 +65,21 @@ export * from './rtfont/DynamicFont';
 export * from './rtfont/DynamicFontAtlas';
 
 export * from './ecs/Entity';
+export * from './ecs/World';
+export * from './ecs/Component';
 
 export * from './scene1/TextFormat';
 export * from './graphics/Texture';
 
 export * from './loaders/loadBundle';
 
-export * from './util/ArrayRun'
-export * from './util/ArraySwap'
+export * from './ds/ArrayRun';
+export * from './ds/ArraySwap';
+
+/// GCF
+export * from './gcf/Tween';
+export * from './gcf/ScreenManager';
+export * from './gcf/PopupManager';
+export * from './gcf/CameraShaker';
+export * from './gcf/SlowMotion';
+export * from './gcf/ScrollArea';

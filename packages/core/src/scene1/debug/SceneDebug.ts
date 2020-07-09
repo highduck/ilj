@@ -13,7 +13,7 @@ const RECT_TMP = new Rect();
 const VEC2_TMPS = [new Vec2(), new Vec2(), new Vec2(), new Vec2()];
 
 export function drawCameraDebugGizmos(camera: Camera2D) {
-    const root = camera.root ?? Engine.current.root;
+    const root = camera.root ?? Entity.root;
     const drawer = Engine.current.drawer;
     drawer.state.matrix.copyFrom(Matrix2D.IDENTITY);
     drawer.state.colorMultiplier.copyFrom(Color4.ONE);

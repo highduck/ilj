@@ -5,6 +5,7 @@
     "baseUrl": ".",
     "isolatedModules": false,
     "rootDir": "./src",
+    "experimentalDecorators": true,
     "paths": {
       "@highduck/math": [
         "../math/src"

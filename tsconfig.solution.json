@@ -11,6 +11,9 @@
     },
     {
       "path": "packages/dev-cli/tsconfig.esm.json"
+    },
+    {
+      "path": "packages/test-app/tsconfig.esm.json"
     }
   ],
   "files": []

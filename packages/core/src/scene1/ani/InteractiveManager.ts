@@ -87,7 +87,7 @@ export class InteractiveManager {
                         this.pointerScreenSpace.y,
                         pointerWorldSpace
                     );
-                    cursor = this.searchInteractiveTargets(pointerWorldSpace, camera.root ?? this.engine.root, this.targetsCurr);
+                    cursor = this.searchInteractiveTargets(pointerWorldSpace, camera.root, this.targetsCurr);
                 }
             }
         }
@@ -207,8 +207,8 @@ export class InteractiveManager {
         }
     }
 
-    BACK_BUTTON_EVENT = new EventData(InteractiveManagerEvent.BackButton, this.engine.root, undefined);
-    SYSTEM_PAUSE_EVENT = new EventData(InteractiveManagerEvent.SystemPause, this.engine.root, undefined);
+    BACK_BUTTON_EVENT = new EventData(InteractiveManagerEvent.BackButton, Entity.root, undefined);
+    SYSTEM_PAUSE_EVENT = new EventData(InteractiveManagerEvent.SystemPause, Entity.root, undefined);
 
     sendBackButton() {
         const ev = this.BACK_BUTTON_EVENT;

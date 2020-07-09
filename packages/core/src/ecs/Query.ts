@@ -1,53 +1,5 @@
 import {Entity} from "./Entity";
-import {IntMap} from "../util/IntMap";
-
-export class Query0 {
-    constructor(private objs: IntMap<Entity>) {
-    }
-
-    count(): number {
-        return this.objs.keys.length;
-    }
-
-    [Symbol.iterator](): IterableIterator<Entity> {
-        return this.objs.values[Symbol.iterator]();
-    }
-
-    entities(): ReadonlyArray<Entity> {
-        return this.objs.values;
-    }
-}
-
-export class Query1<T> {
-
-    constructor(private objs: IntMap<Entity>,
-                private map1: IntMap<T>) {
-    }
-
-    count(): number {
-        return this.map1.keys.length;
-    }
-
-    * entities(): IterableIterator<Entity> {
-        // 1-component query
-        const keys = this.map1.keys;
-        for (let i = 0; i < keys.length; ++i) {
-            yield this.objs.get(/* index */ keys[i]) as Entity;
-        }
-    }
-
-    [Symbol.iterator](): IterableIterator<T> {
-        return this.map1.values[Symbol.iterator]();
-    }
-
-    get componentArray(): ReadonlyArray<T> {
-        return this.map1.values;
-    }
-
-    // get entityArray(): ReadonlyArray<Entity> {
-    //     return this.objs.values;
-    // }
-}
+import {IntMap} from "../ds/IntMap";
 
 export class Query2<T1, T2> {
     private readonly types: [IntMap<T1>, IntMap<T2>];

@@ -18,8 +18,7 @@ export class Asteroids {
 
     constructor() {
         const engine = Engine.current;
-        this.base = engine.root.create();
-        this.base.name = "Asteroids Demo";
+        this.base = Entity.root.create("Asteroids Demo");
 
         this.factory = new GameFactory(this.base);
         engine.register(this.factory);

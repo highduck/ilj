@@ -1,4 +1,4 @@
-import {Color4, Matrix2D, Rect, Vec2} from "@highduck/math";
+import {Color4, IVec2, Matrix2D, Rect, Vec2} from "@highduck/math";
 import {Entity} from "../../ecs/Entity";
 import {declTypeID} from "../../util/TypeID";
 
@@ -236,7 +236,7 @@ export class Transform2D {
         return it1;
     }
 
-    static localToLocal(src: Entity, dest: Entity, pos: Vec2, out: Vec2) {
+    static localToLocal(src: Entity, dest: Entity, pos: Readonly<Vec2>, out: Vec2) {
         out.copyFrom(pos);
         const lca = Transform2D.findLowerCommonAncestor(src, dest);
         if (lca !== undefined) {

@@ -9,10 +9,8 @@ export class Entities {
     text: Entity;
 
     constructor() {
-        const engine = Engine.current;
-        const r = engine.root;
-        this.root = r.create();
-        this.root.name = "Entities Demo";
+        const r = Entity.root;
+        this.root = r.create("Entities Demo");
         this.root.set(Transform2D);
 
         this.cont = this.root.create();

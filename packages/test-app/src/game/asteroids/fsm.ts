@@ -1,4 +1,4 @@
-import {declTypeID, Engine, Entity} from "@highduck/core";
+import {declTypeID, Engine, Entity, getComponents} from "@highduck/core";
 
 interface FsmState {
     readonly onEnter?: (e: Entity) => void;
@@ -23,8 +23,7 @@ export class Fsm {
     }
 
     static update() {
-        const w = Engine.current.world;
-        const components = w.components(Fsm);
+        const components = getComponents(Fsm);
         for (let i = 0; i < components.length; ++i) {
             const fsm = components[i];
             if (fsm.state !== fsm.next) {

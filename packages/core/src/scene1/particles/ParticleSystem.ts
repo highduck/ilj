@@ -6,6 +6,8 @@ import {Entity} from "../../ecs/Entity";
 import {Transform2D} from "../display/Transform2D";
 import {Matrix2D, RndDefault, Vec2} from "@highduck/math";
 import {Engine} from "../../Engine";
+import {Resources} from "../..";
+import {getComponents} from "../../ecs/World";
 
 const TEMP_MATRIX_2D = new Matrix2D();
 const TEMP_VEC2_POS = new Vec2();
@@ -87,6 +89,17 @@ export function spawnFromEmitter(src: Entity, layer: ParticleLayer, particle: Pa
     }
 }
 
+export function spawnParticle(e: Entity, particle_id: string): Particle | undefined {
+    const decl = Resources.data(ParticleDecl, particle_id);
+    if (decl) {
+        const p = produceParticle(decl);
+        const to_layer = e.getOrCreate(ParticleLayer);
+        addParticle(to_layer, p);
+        return p;
+    }
+    return undefined;
+}
+
 export function particlesBurst(e: Entity, count: number, velocity?: Vec2) {
     const emitter = e.tryGet(ParticleEmitter);
     if (emitter && emitter.data !== undefined) {
@@ -99,7 +112,7 @@ export function particlesBurst(e: Entity, count: number, velocity?: Vec2) {
 }
 
 export function updateParticleEmitters() {
-    const emitters = Engine.current.world.components(ParticleEmitter);
+    const emitters = getComponents(ParticleEmitter);
     for (let i = 0; i < emitters.length; ++i) {
         const emitter = emitters[i];
         const dt = emitter.timer.dt;
@@ -123,7 +136,7 @@ export function updateParticleEmitters() {
 }
 
 export function updateParticleSystems() {
-    const layers = Engine.current.world.components(ParticleLayer);
+    const layers = getComponents(ParticleLayer);
     for (let i = 0; i < layers.length; ++i) {
         const layer = layers[i];
         const dt = layer.timer.dt;

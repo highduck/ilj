@@ -1,7 +1,7 @@
 import {declTypeID} from "../../util/TypeID";
 import {Entity} from "../../ecs/Entity";
-import {Engine} from "../../Engine";
 import {Time} from "../..";
+import {getComponents} from "../../ecs/World";
 
 export class EntityAge {
     static TYPE_ID = declTypeID();
@@ -15,7 +15,7 @@ const toDispose: Entity[] = [];
 export function processEntityAge() {
     toDispose.length = 0;
     const dt = Time.ROOT.dt;
-    const ages = Engine.current.world.components(EntityAge);
+    const ages = getComponents(EntityAge);
     for (let i = 0; i < ages.length; ++i) {
         const age = ages[i];
         age.lifeRemaining -= dt;

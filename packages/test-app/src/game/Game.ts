@@ -1,4 +1,4 @@
-import {Camera2D, Engine, Transform2D} from "@highduck/core";
+import {Camera2D, Engine, Entity, Transform2D} from "@highduck/core";
 import {TestAni} from "./scene/TestAni";
 import {Entities} from "./scene/Entities";
 import {TrailDemo} from "./scene/TrailTest";
@@ -14,10 +14,9 @@ const localStats = {
 
 export function startMain() {
     const engine = Engine.current;
-    const camera = engine.root.create();
+    const camera = Entity.root.create("MainCamera");
     camera.set(Camera2D);
     camera.set(Transform2D);
-    camera.name = "MainCamera";
 
     const drawerDemo = new DrawerDemo();
     const easingDemo = new EasingDemo();

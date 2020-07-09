@@ -37,6 +37,11 @@ class FrameRateMeter {
 }
 
 export class Time {
+    static readonly ROOT = new TimeLayer();
+    static readonly GAME = new TimeLayer();
+    static readonly HUD = new TimeLayer();
+    static readonly UI = new TimeLayer();
+
     // system frame timestamp in seconds
     ts = 0;
     index = 0;
@@ -48,11 +53,6 @@ export class Time {
     // user settings
     scale = 1;
     maxDelta = 0.3;
-
-    static readonly ROOT = new TimeLayer();
-    static readonly GAME = new TimeLayer();
-    static readonly HUD = new TimeLayer();
-    static readonly UI = new TimeLayer();
 
     readonly fps = new FrameRateMeter();
 

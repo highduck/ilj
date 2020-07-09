@@ -30,6 +30,7 @@ export class Color4 {
 
     static readonly ONE: Readonly<Color4> = new Color4(1, 1, 1, 1);
     static readonly ZERO: Readonly<Color4> = new Color4(0, 0, 0, 0);
+    static readonly BLACK: Readonly<Color4> = new Color4(0, 0, 0, 1);
 
     static color32(value: Color32_ARGB): Color4 {
         return new Color4(
@@ -37,6 +38,14 @@ export class Color4 {
             ((value >>> 8) & 0xFF) / 255.0,
             (value & 0xFF) / 255.0,
             (value >>> 24) / 255.0);
+    }
+
+    static color24(value: Color32_ARGB): Color4 {
+        return new Color4(
+            ((value >>> 16) & 0xFF) / 255.0,
+            ((value >>> 8) & 0xFF) / 255.0,
+            (value & 0xFF) / 255.0,
+            1);
     }
 
     constructor(public r: number = 0,
@@ -205,6 +214,21 @@ export class Color4 {
         this.b = arr[index++];
         this.a = arr[index++];
     }
+
+    static _lerp(out: Color4, a: Readonly<Color4>, b: Readonly<Color4>, t: number) {
+        const inv = 1 - t;
+        out.r = inv * a.r + t * b.r;
+        out.g = inv * a.g + t * b.g;
+        out.b = inv * a.b + t * b.b;
+        out.a = inv * a.a + t * b.a;
+    }
+
+    static _initHue(out: Color4, hue: number) {
+        const t = saturate(hue) * (HUE_TABLE.length - 1);
+        const i = t | 0;
+        out.copyFrom(HUE_TABLE[i]).lerp(HUE_TABLE[i + 1], t - i);
+    }
+
 }
 
 // HVSColor - [hue, value, saturation, alpha]
@@ -242,21 +266,12 @@ function lerpChannel(value: number, x: number, y: number) {
     return lerp(0, lerp(1, value, x), y);
 }
 
-export function setRGBForHue(rgba: Color4, hueNormalized: number): Color4 {
-    const t = saturate(hueNormalized) * (HUE_TABLE.length - 1);
-    const i = t | 0;
-
-    // return lerp(HUE_TABLE[i], HUE_TABLE[i + 1], t - i);
-    rgba.copyFrom(HUE_TABLE[i]).lerp(HUE_TABLE[i + 1], t - i);
-    return rgba;
-}
-
 export function toRGB(hvs: Color4): Color4 {
     const hue = hvs.r;
     const value = hvs.g;
     const saturation = hvs.b;
 
-    setRGBForHue(hvs, hue);
+    Color4._initHue(hvs, hue);
     hvs.r = lerpChannel(hvs.r, saturation, value);
     hvs.g = lerpChannel(hvs.g, saturation, value);
     hvs.b = lerpChannel(hvs.b, saturation, value);

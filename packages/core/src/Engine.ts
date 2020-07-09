@@ -4,7 +4,6 @@ import {Drawer} from "./drawer/Drawer";
 import {Batcher} from "./drawer/Batcher";
 import {Signal} from "./util/Signal";
 import {Resources} from "./util/Resources";
-import {World} from "./ecs/World";
 import {InputState} from "./app/InputState";
 import {Rect, Vec2} from "@highduck/math";
 import {InteractiveManager} from "./scene1/ani/InteractiveManager";
@@ -33,6 +32,11 @@ import {awaitDocument} from "./util/awaitDocument";
 import {invalidateTransform3} from "./scene1/systems/invalidateTransform";
 import {CameraManager} from "./scene1/display/CameraManager";
 import {Time} from "./app/Time";
+import {updateSlowMotion} from "./gcf/SlowMotion";
+import {updateCameraShakers} from "./gcf/CameraShaker";
+import {updateTweens} from "./gcf/Tween";
+import {updateScrollArea} from "./gcf/ScrollArea";
+import {updatePopupManagers} from "./gcf/PopupManager";
 
 export interface InitConfig {
     canvas?: HTMLCanvasElement;
@@ -60,8 +64,7 @@ export class Engine {
     readonly onRenderFinish = new Signal<Readonly<Rect>>();
     readonly frameCompleted = new Signal<void>();
 
-    readonly world: World;
-    readonly root: Entity;
+    // readonly root: Entity;
     readonly cameraManager: CameraManager;
     readonly displaySystem: DisplaySystem;
     readonly interactiveManager: InteractiveManager;
@@ -97,14 +100,13 @@ export class Engine {
         this.drawer = new Drawer(this.batcher);
         this.audio = new AudioMan(this);
 
-        this.world = new World(this);
-        this.root = this.world.root;
-        this.root.name = "Root";
-        this.root.set(Transform2D);
+        //this.root = Entity.root;
+        Entity.root.name = "Root";
+        Entity.root.getOrCreate(Transform2D);
         this.interactiveManager = new InteractiveManager(this);
         this.displaySystem = new DisplaySystem(this);
         this.buttonSystem = new ButtonSystem(this);
-        this.aniFactory = new AniFactory(this);
+        this.aniFactory = new AniFactory();
         this.cameraManager = new CameraManager();
 
         Layout.space.copyFrom(this.view.reference);
@@ -123,7 +125,7 @@ export class Engine {
         this.graphics.begin();
         this.graphics.viewport();
 
-        this.root.get(Transform2D).rect.copyFrom(rc);
+        Entity.root.get(Transform2D).rect.copyFrom(rc);
         this.drawer.begin(rc);
         {
             this.onRender.emit(rc);
@@ -145,14 +147,20 @@ export class Engine {
 
         this.time.updateTime(millis / 1000.0);
 
-        this.root.getOrCreate(Transform2D).rect.copyFrom(this.view.drawable);
+        Entity.root.getOrCreate(Transform2D).rect.copyFrom(this.view.drawable);
 
         this.interactiveManager.process();
         updateTargetFollow();
         this.buttonSystem.process();
 
-        updateFastScripts();
         this.onUpdate.emit(this.time.delta);
+
+        updateFastScripts();
+        updateSlowMotion();
+        updateCameraShakers();
+        updateTweens();
+        updateScrollArea();
+        updatePopupManagers();
 
         updateMovieClips();
         updateLayout();

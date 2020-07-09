@@ -1,5 +1,5 @@
 import path from "path";
-import fs, {readFileSync, writeFileSync} from "fs";
+import fs from "fs";
 import yargs from "yargs";
 import console from "./common/log";
 import {appicon} from "./bins/appicon";
@@ -7,8 +7,7 @@ import {exportAssets, optimizeImageFile} from "@highduck/exporter";
 import {build as ccBuild, BuildOptions, watch as ccWatch} from '@highduck/tools-build-code';
 import browserSync from "browser-sync";
 import {BuildMode, PlatformType} from "./proj/NProject";
-import {exportAndroid, readPkg} from "@highduck/export-android";
-import {copyFolderRecursiveSync} from "./common/utility";
+import {copyPublic, exportAndroid, readPkg} from "@highduck/export-android";
 
 const args = yargs
     .scriptName('ilj')
@@ -96,10 +95,11 @@ const args = yargs
             const target = platform;
             const verbose = args.verbose as boolean;
             const dest = `dist/www/${target}`;
+            const buildMode = args.mode as BuildMode;
 
             if (args.proj === false) {
                 const opts: Partial<BuildOptions> = {
-                    mode: args.mode as BuildMode,
+                    mode: buildMode,
                     target: target,
                     platform: platform,
                     dir: dest,
@@ -115,16 +115,16 @@ const args = yargs
                 const bb = ccBuild(opts);
                 const aa = exportAssets("assets", path.join(dest, 'assets'), opts.mode === 'production');
                 await Promise.all([aa, bb]);
-                copyFolderRecursiveSync('public_' + target, dest);
 
-                try {
-                    const pkg = readPkg(process.cwd());
-                    let index = readFileSync(path.join(dest, 'index.html'), 'utf8');
-                    index = index.replace(/{{VERSION_NAME}}/g, pkg.version);
-                    index = index.replace(/{{APP_NAME}}/g, pkg.appName);
-                    writeFileSync(path.join(dest, 'index.html'), index);
-                } catch {
-                }
+                const pkg = readPkg(process.cwd());
+                copyPublic({
+                    src: 'public_' + target,
+                    dest: dest,
+                    pkg: pkg,
+                    buildMode: buildMode,
+                    target: target,
+                    platform: platform
+                });
             }
             if (platform === 'android') {
                 exportAndroid(undefined, target, args.mode as BuildMode, args.debug);

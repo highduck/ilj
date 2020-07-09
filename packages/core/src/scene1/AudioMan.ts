@@ -6,6 +6,7 @@ export class AudioMan {
 
     readonly soundEnabled = new ObservableValue<boolean>(!(localStorage.getItem("sound") === "0"));
     readonly musicEnabled = new ObservableValue<boolean>(!(localStorage.getItem("music") === "0"));
+    readonly vibroEnabled = new ObservableValue<boolean>(!(localStorage.getItem("vibro") === "0"));
 
     musicVolume = 1;
     soundVolume = 1;
@@ -29,6 +30,10 @@ export class AudioMan {
                 this.music.volume(this.currentMusicVolume);
             }
         });
+
+        this.vibroEnabled.changed.on((enabled) =>
+            localStorage.setItem("vibro", enabled ? "1" : "0")
+        );
     }
 
     controlMusic(volume = 1, pitch = 1) {
@@ -88,6 +93,10 @@ export class AudioMan {
     endMute() {
         --this._muteLockers;
         this.updateMute();
+    }
+
+    vibrate(duration:number) {
+        // TODO:
     }
 
     private updateMute() {

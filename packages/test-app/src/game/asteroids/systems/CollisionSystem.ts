@@ -2,7 +2,7 @@ import {Asteroid, Bullet, Collision, Spaceship} from "../components";
 import {GameFactory} from "../factory";
 import {RndDefault, Vec2} from "@highduck/math";
 import {Fsm} from "../fsm";
-import {Engine, EntityAge, Transform2D} from "@highduck/core";
+import {ECS_query3, EntityAge, Transform2D} from "@highduck/core";
 
 export class CollisionSystem {
     constructor(readonly factory: GameFactory) {
@@ -10,11 +10,9 @@ export class CollisionSystem {
     }
 
     update() {
-        const world = Engine.current.world;
-
-        const bullets = [...world.query3(Bullet, Transform2D, Collision).entities()];
-        const asteroids = [...world.query3(Asteroid, Transform2D, Collision).entities()];
-        const spaceships = [...world.query3(Spaceship, Transform2D, Collision).entities()];
+        const bullets = [...ECS_query3(Bullet, Transform2D, Collision).entities()];
+        const asteroids = [...ECS_query3(Asteroid, Transform2D, Collision).entities()];
+        const spaceships = [...ECS_query3(Spaceship, Transform2D, Collision).entities()];
 
         for (const bullet of bullets) {
             const bulletTransform = bullet.get(Transform2D);

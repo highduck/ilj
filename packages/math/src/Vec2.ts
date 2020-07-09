@@ -1,3 +1,8 @@
+export interface IVec2 {
+    x: number;
+    y: number;
+}
+
 export class Vec2 {
 
     get length(): number {
@@ -71,6 +76,11 @@ export class Vec2 {
         this.x = v.x;
         this.y = v.y;
         return this;
+    }
+
+    set xy(v: number) {
+        this.x = v;
+        this.y = v;
     }
 
     fill(v: number): this {

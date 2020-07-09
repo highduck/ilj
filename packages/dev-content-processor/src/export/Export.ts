@@ -14,7 +14,8 @@ export function createAtlas(name: string): EAtlas {
     return atlas;
 }
 
-export async function exportFlashAsset(name: string, filepath: string, destDir: string, atlas: string) {
+export async function exportFlashAsset(name: string, filepath: string, destDir: string, atlas: string, sourceScale:number) {
+    // TODO: sourceScale ... it's hard to do :)
     const doc = AnimateDoc.openFromPath(filepath);
     await initCanvasKit();
     const exporter = new AnimateDocExporter(doc);
