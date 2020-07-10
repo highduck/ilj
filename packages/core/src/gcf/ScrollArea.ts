@@ -1,4 +1,4 @@
-import {declTypeID, Engine, Entity, Interactive, Time, Transform2D} from "..";
+import {Component, Engine, Interactive, Time, Transform2D} from "..";
 import {cubicOut, integrateExp, lerp, Rect, Vec2} from "@highduck/math";
 import {getComponents} from "../ecs/World";
 
@@ -66,10 +66,7 @@ class VelocityTracker {
 }
 
 
-export class ScrollArea {
-    static TYPE_ID = declTypeID();
-    entity!: Entity;
-
+export class ScrollArea extends Component() {
     readonly area = new Rect();
     readonly content = new Rect();
 

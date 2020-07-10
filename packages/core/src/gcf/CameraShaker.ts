@@ -1,16 +1,17 @@
-import {declTypeID, Engine, Entity, Time, Transform2D} from "..";
+import {Component, Time, Transform2D} from "..";
 import {integrateExp, lerp, reach, Vec2} from "@highduck/math";
 import {getComponents} from "../ecs/World";
 
-export class CameraShaker {
-    static TYPE_ID = declTypeID();
-    readonly entity!: Entity;
-
+export class CameraShaker extends Component() {
     state = 0;
     maxRotation = 0.25;
     readonly maxOffset = new Vec2(8, 8);
     readonly maxScale = new Vec2(0.25, 0.25);
     timer = Time.GAME;
+
+    constructor() {
+        super();
+    }
 
     start(v: number = 1) {
         this.state = Math.max(v, this.state);

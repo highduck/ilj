@@ -1,12 +1,8 @@
-import {declTypeID} from "../../util/TypeID";
-import {Entity} from "../../ecs/Entity";
-import {Vec2, Rect} from "@highduck/math";
+import {Rect, Vec2} from "@highduck/math";
 import {Transform2D} from "../display/Transform2D";
+import {Component} from "../..";
 
-export class Layout {
-    static TYPE_ID = declTypeID();
-    readonly entity!: Entity;
-
+export class Layout extends Component() {
     readonly x = new Vec2();
     readonly y = new Vec2();
     readonly fillExtra = new Rect();

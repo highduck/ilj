@@ -1,15 +1,11 @@
-import {declTypeID, Engine, Entity, getComponents} from "@highduck/core";
+import {Component, declTypeID, Engine, Entity, getComponents} from "@highduck/core";
 
 interface FsmState {
     readonly onEnter?: (e: Entity) => void;
     readonly onExit?: (e: Entity) => void;
 }
 
-export class Fsm {
-
-    static TYPE_ID = declTypeID();
-    readonly entity!: Entity;
-
+export class Fsm extends Component() {
     state?: FsmState;
     next?: FsmState;
     readonly states = new Map<string, FsmState>();

@@ -7,7 +7,7 @@ export function invalidateTransform3() {
 }
 
 function invalidateTransformSimple3(e: Entity, parent: Transform2D) {
-    let tr = e.components.get(Transform2D.TYPE_ID) as (Transform2D | undefined);
+    let tr = e.components.get(Transform2D.COMP_ID) as (Transform2D | undefined);
     if (tr !== undefined) {
         tr.buildLocalMatrix();
         Matrix2D.multiply(parent.worldMatrix, tr.matrix, tr.worldMatrix);

@@ -20,6 +20,7 @@ import {
     TrailRenderer,
     Transform2D
 } from "@highduck/core";
+import {ComponentClass} from "../../../../core/src";
 
 export interface ComponentViewProps<T = object> {
     data: T;
@@ -34,8 +35,8 @@ export interface ComponentViewConfig {
     severity?: number;
 }
 
-export const COMPONENTS_CONFIG = new Map<ConstructorWithID, ComponentViewConfig>();
-export const COMPONENTS_SEVERITY: ConstructorWithID[] = [
+export const COMPONENTS_CONFIG = new Map<ComponentClass, ComponentViewConfig>();
+export const COMPONENTS_SEVERITY: ComponentClass[] = [
     Transform2D,
     Interactive,
     MovieClipTarget,
@@ -54,7 +55,7 @@ export const COMPONENTS_SEVERITY: ConstructorWithID[] = [
     Trail
 ];
 
-export function getComponentIcon(type: ConstructorWithID): string {
+export function getComponentIcon(type: ComponentClass): string {
     const config = COMPONENTS_CONFIG.get(type);
     if (config && config.icon) {
         return config.icon;

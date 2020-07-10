@@ -1,8 +1,8 @@
-import {declTypeID} from "../../util/TypeID";
 import {Entity} from "../../ecs/Entity";
 import {Transform2D} from "../display/Transform2D";
 import {lerp, quadOut, Vec2} from "@highduck/math";
 import {Time} from "../../app/Time";
+import {Component} from "../..";
 
 class TrailNode {
     readonly position = new Vec2();
@@ -14,10 +14,7 @@ class TrailNode {
 const VEC2_0 = new Vec2();
 const VEC2_1 = new Vec2();
 
-export class Trail {
-    static TYPE_ID = declTypeID();
-    readonly entity!: Entity;
-
+export class Trail extends Component() {
     enabled = true;
 
     readonly offset = new Vec2();

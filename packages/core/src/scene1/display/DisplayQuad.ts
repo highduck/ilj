@@ -4,8 +4,6 @@ import {Display2D} from "./Display2D";
 import {declTypeID} from "../../util/TypeID";
 
 export class DisplayQuad extends Display2D {
-    static TYPE_ID = declTypeID(Display2D);
-
     readonly rect: Rect = new Rect(0, 0, 1, 1);
     readonly colors: [Color32_ARGB, Color32_ARGB, Color32_ARGB, Color32_ARGB] = [0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF];
 

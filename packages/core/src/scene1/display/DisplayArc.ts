@@ -8,8 +8,6 @@ import {Resources} from "../../util/Resources";
 const TEMP_RECT = new Rect();
 
 export class DisplayArc extends Display2D {
-    static TYPE_ID = declTypeID(Display2D);
-
     angle0 = 0;
     angle1 = 2 * Math.PI;
     radius = 10;

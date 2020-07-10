@@ -1,38 +1,28 @@
 import {Vec2} from "@highduck/math";
-import {declTypeID} from "@highduck/core";
+import {Component} from "@highduck/core";
 
-export class Animation {
-    static TYPE_ID = declTypeID();
-
+export class Animation extends Component() {
     // interface link
     // animate(float dt);
 }
 
-export class Asteroid {
-    static TYPE_ID = declTypeID();
+export class Asteroid extends Component() {
 }
 
-export class Bullet {
-    static TYPE_ID = declTypeID();
+export class Bullet extends Component() {
 }
 
-export class Collision {
-    static TYPE_ID = declTypeID();
-
+export class Collision extends Component() {
     radius: number = 0.0;
 }
 
-export class GameState {
-    static TYPE_ID = declTypeID();
-
+export class GameState extends Component() {
     lives = 3;
     level = 0;
     points = 0;
 }
 
-export class Gun {
-    static TYPE_ID = declTypeID();
-
+export class Gun extends Component() {
     shooting = false;
     readonly offsetFromParent = new Vec2();
     timeSinceLastShot = 0.0;
@@ -53,15 +43,11 @@ export class Gun {
     }
 }
 
-export class GunControls {
-    static TYPE_ID = declTypeID();
-
+export class GunControls extends Component() {
     trigger = "Space";
 }
 
-export class Motion {
-    static TYPE_ID = declTypeID();
-
+export class Motion extends Component() {
     readonly velocity = new Vec2();
     angularVelocity = 0.0;
     damping = 0.0;
@@ -74,9 +60,7 @@ export class Motion {
     }
 }
 
-export class MotionControl {
-    static TYPE_ID = declTypeID();
-
+export class MotionControl extends Component() {
     left = "ArrowLeft";
     right = "ArrowRight";
     accelerate = "ArrowUp";
@@ -84,6 +68,5 @@ export class MotionControl {
     rotationRate = 0.0;
 }
 
-export class Spaceship {
-    static TYPE_ID = declTypeID();
+export class Spaceship extends Component() {
 }

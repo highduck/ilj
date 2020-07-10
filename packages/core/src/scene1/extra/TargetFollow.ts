@@ -4,14 +4,13 @@ import {Entity} from "../../ecs/Entity";
 import {Engine} from "../../Engine";
 import {Transform2D} from "../display/Transform2D";
 import {getComponents} from "../../ecs/World";
+import {Component} from "../..";
 
-export class TargetFollow {
-    static TYPE_ID = declTypeID();
-    readonly entity!: Entity;
-    target: undefined | Entity = undefined;
+export class TargetFollow extends Component() {
+    target?: Entity = undefined;
 
     // interactive
-    cameraPointer?: Entity;
+    cameraPointer?: Entity = undefined;
 }
 
 export function updateTargetFollow() {

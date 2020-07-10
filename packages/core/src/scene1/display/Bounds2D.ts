@@ -1,8 +1,6 @@
 import {Rect} from "@highduck/math";
-import {declTypeID} from "../../util/TypeID";
+import {Component} from "../..";
 
-export class Bounds2D {
-    static TYPE_ID = declTypeID();
-
+export class Bounds2D extends Component() {
     readonly rc = new Rect();
 }

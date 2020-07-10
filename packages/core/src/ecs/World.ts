@@ -1,7 +1,7 @@
 import {Entity, Passport} from "./Entity";
 import {Query2, Query3, QueryN} from "./Query";
-import {ConstructorWithID} from "../util/TypeID";
 import {IntMap} from "../ds/IntMap";
+import {ComponentClass} from "./Component";
 
 // 0x7FF << BITS_COUNT_INDEX
 const VERSION_MASK = 0x7FF00000;
@@ -45,14 +45,14 @@ export function checkEntityPassport(passport: Passport): boolean {
     return (list[passport & INDEX_MASK] & VERSION_MASK) === (passport & VERSION_MASK);
 }
 
-export function deleteEntityComponent(passport: Passport, typeID: number) {
-    maps.get(typeID)?.delete(passport & INDEX_MASK);
+export function deleteEntityComponent(passport: Passport, componentID: number) {
+    maps.get(componentID)?.delete(passport & INDEX_MASK);
 }
 
-export function ensureComponentMap(typeID: number): IntMap<object> {
-    let storage = maps.get(typeID);
+export function ensureComponentMap(componentID: number): IntMap<object> {
+    let storage = maps.get(componentID);
     if (storage === undefined) {
-        maps.set(typeID, storage = new IntMap());
+        maps.set(componentID, storage = new IntMap());
     }
     return storage;
 }
@@ -61,29 +61,29 @@ export function getEntities(): Entity[] {
     return objs.values;
 }
 
-export function getComponents<T extends object>(type: ConstructorWithID<T>): T[] {
-    return ensureComponentMap(type.TYPE_ID).values as T[];
+export function getComponents<T extends object>(type: ComponentClass<T>): T[] {
+    return ensureComponentMap(type.COMP_ID).values as T[];
 }
 
-export function ECS_query2<T1 extends object, T2 extends object>(type1: ConstructorWithID<T1>, type2: ConstructorWithID<T2>): Query2<T1, T2> {
+export function ECS_query2<T1 extends object, T2 extends object>(type1: ComponentClass<T1>, type2: ComponentClass<T2>): Query2<T1, T2> {
     return new Query2<T1, T2>(objs,
-        ensureComponentMap(type1.TYPE_ID) as IntMap<T1>,
-        ensureComponentMap(type2.TYPE_ID) as IntMap<T2>
+        ensureComponentMap(type1.COMP_ID) as IntMap<T1>,
+        ensureComponentMap(type2.COMP_ID) as IntMap<T2>
     );
 }
 
-export function ECS_query3<T1 extends object, T2 extends object, T3 extends object>(type1: ConstructorWithID<T1>, type2: ConstructorWithID<T2>, type3: ConstructorWithID<T3>): Query3<T1, T2, T3> {
+export function ECS_query3<T1 extends object, T2 extends object, T3 extends object>(type1: ComponentClass<T1>, type2: ComponentClass<T2>, type3: ComponentClass<T3>): Query3<T1, T2, T3> {
     return new Query3<T1, T2, T3>(objs,
-        ensureComponentMap(type1.TYPE_ID) as IntMap<T1>,
-        ensureComponentMap(type2.TYPE_ID) as IntMap<T2>,
-        ensureComponentMap(type3.TYPE_ID) as IntMap<T3>
+        ensureComponentMap(type1.COMP_ID) as IntMap<T1>,
+        ensureComponentMap(type2.COMP_ID) as IntMap<T2>,
+        ensureComponentMap(type3.COMP_ID) as IntMap<T3>
     );
 }
 
-export function ECS_queryN<Tn extends object>(types: ConstructorWithID<object>[]): QueryN<Tn> {
+export function ECS_queryN<Tn extends object>(types: ComponentClass[]): QueryN<Tn> {
     const map: IntMap<Tn>[] = [];
     for (let i = 0; i < types.length; ++i) {
-        map[i] = ensureComponentMap(types[i].TYPE_ID) as IntMap<Tn>;
+        map[i] = ensureComponentMap(types[i].COMP_ID) as IntMap<Tn>;
     }
     return new QueryN<Tn>(objs, map);
 }

@@ -1,13 +1,11 @@
 import {Signal} from "../../util/Signal";
 import {Cursor} from "../../app/GameView";
 import {Entity} from "../../ecs/Entity";
-import {declTypeID} from "../../util/TypeID";
+import {Component, Component2} from "../../ecs/Component";
 import {Vec2} from "@highduck/math";
 
-export class Interactive {
-    static TYPE_ID = declTypeID();
-    readonly entity!: Entity;
-
+export class Interactive extends Component() {
+// class Interactive {
     // events
     readonly onOver = new Signal<Entity>();
     readonly onOut = new Signal<Entity>();

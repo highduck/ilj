@@ -76,7 +76,7 @@ export class DisplaySystem {
             return;
         }
 
-        const transform = e.components.get(Transform2D.TYPE_ID) as (Transform2D | undefined);
+        const transform = e.components.get(Transform2D.COMP_ID) as (Transform2D | undefined);
         if (transform !== undefined) {
             if (transform.colorMultiplier.a <= 0) {
                 return;
@@ -84,7 +84,7 @@ export class DisplaySystem {
             parentTransform = transform;
         }
 
-        const bounds = e.components.get(Bounds2D.TYPE_ID) as (Bounds2D | undefined);
+        const bounds = e.components.get(Bounds2D.COMP_ID) as (Bounds2D | undefined);
         if (bounds !== undefined && DisplaySystem._currentCamera.occlusionEnabled) {
             const worldRect = TEMP_RECT;
             transformRectMatrix2D(bounds.rc, parentTransform.worldMatrix, worldRect);
@@ -101,7 +101,7 @@ export class DisplaySystem {
             this.state.pushScissors(TEMP_RECT);
         }
 
-        const display = e.components.get(Display2D.TYPE_ID) as (Display2D | undefined);
+        const display = e.components.get(Display2D.COMP_ID) as (Display2D | undefined);
         if (display !== undefined) {
             this.state.matrix.copyFrom(parentTransform.worldMatrix);
             this.state.colorMultiplier.copyFrom(parentTransform.worldColorMultiplier);

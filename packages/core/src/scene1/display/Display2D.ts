@@ -2,17 +2,12 @@ import {Rect} from "@highduck/math";
 import {Drawer} from "../../drawer/Drawer";
 import {declTypeID} from "../../util/TypeID";
 import {Entity} from "../../ecs/Entity";
+import {Component} from "../..";
 
 const RECT_TMP = new Rect();
 
 /* eslint-disable @typescript-eslint/no-unused-vars */
-export class Display2D {
-    static TYPE_ID = declTypeID();
-    entity!: Entity;
-
-    constructor() {
-    }
-
+export class Display2D extends Component() {
     draw(drawer: Drawer): void {
 
     }

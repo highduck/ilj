@@ -1,6 +1,6 @@
-import {declTypeID} from "../util/TypeID";
 import {SignalMap} from "../util/SignalMap";
 import {Entity} from "../ecs/Entity";
+import {Component} from "..";
 
 export class EventData<T> {
     processed = false;
@@ -14,9 +14,7 @@ export class EventData<T> {
     }
 }
 
-export class EventReceiver {
-    static TYPE_ID = declTypeID();
-
+export class EventReceiver extends Component() {
     readonly hub = new SignalMap<EventData<unknown>>();
 
     emit<T>(data: EventData<T>) {

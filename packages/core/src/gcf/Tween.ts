@@ -1,11 +1,8 @@
 import {saturate} from "@highduck/math";
-import {declTypeID, Engine, Entity, Signal, Time} from "..";
+import {Component, Entity, Signal, Time} from "..";
 import {getComponents} from "../ecs/World";
 
-export class Tween {
-    static TYPE_ID = declTypeID();
-    readonly entity!: Entity;
-
+export class Tween extends Component() {
     delay = 0;
     time = 0;
     duration = 1;

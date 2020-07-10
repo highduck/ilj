@@ -1,11 +1,8 @@
-import {declTypeID, Engine, Entity, Time} from "..";
+import {Component, Engine, Time} from "..";
 import {ADSREnvelope, atADSR} from "@highduck/math";
 import {getComponents} from "../ecs/World";
 
-export class SlowMotion {
-    static TYPE_ID = declTypeID();
-    readonly entity!: Entity;
-
+export class SlowMotion extends Component() {
     readonly envelope: ADSREnvelope = {
         level: 1,
         attackLevel: 0,

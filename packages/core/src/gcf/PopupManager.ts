@@ -1,7 +1,7 @@
 import {
     assert,
     Button,
-    declTypeID,
+    Component,
     DisplayQuad,
     Engine,
     Entity,
@@ -17,15 +17,11 @@ import {resetTween} from "./Tween";
 import {backOut, cubicOut, reach, saturate} from "@highduck/math";
 import {getComponents} from "../ecs/World";
 
-export class PopupCloseTimeout {
-    static TYPE_ID = declTypeID();
+export class PopupCloseTimeout extends Component() {
     time = 0;
 }
 
-export class PopupManager {
-    static TYPE_ID = declTypeID();
-    readonly entity!: Entity;
-
+export class PopupManager extends Component() {
     active: Entity[] = [];
 
     fadeProgress = 0;

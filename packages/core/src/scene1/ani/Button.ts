@@ -1,6 +1,7 @@
 import {Signal} from "../../util/Signal";
 import {Color4, Vec2} from "@highduck/math";
 import {declTypeID} from "../../util/TypeID";
+import {Component} from "../..";
 
 export class ButtonSkin {
     sfxOver = "sfx/btn_over";
@@ -19,9 +20,7 @@ export class ButtonSkin {
     static classic = new ButtonSkin();
 }
 
-export class Button {
-    static TYPE_ID = declTypeID();
-
+export class Button extends Component() {
     skin: ButtonSkin = ButtonSkin.classic;
     readonly clicked = new Signal();
 

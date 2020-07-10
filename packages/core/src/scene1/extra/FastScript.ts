@@ -1,13 +1,9 @@
-import {declTypeID} from "../../util/TypeID";
 import {Entity} from "../../ecs/Entity";
 import {Signal} from "../../util/Signal";
-import {Engine} from "../../Engine";
 import {getComponents} from "../../ecs/World";
+import {Component} from "../..";
 
-export class FastScript {
-    static TYPE_ID = declTypeID();
-    readonly entity!: Entity;
-
+export class FastScript extends Component() {
     readonly updated = new Signal<Entity>();
 }
 

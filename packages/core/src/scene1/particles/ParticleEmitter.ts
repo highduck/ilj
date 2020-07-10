@@ -1,12 +1,8 @@
 import {EmitterData, ParticleDecl} from "./ParticleDecl";
-import {declTypeID} from "../../util/TypeID";
 import {Entity} from "../../ecs/Entity";
-import {Time} from "../..";
+import {Component, Time} from "../..";
 
-export class ParticleEmitter {
-    static TYPE_ID = declTypeID();
-    readonly entity!: Entity;
-
+export class ParticleEmitter extends Component() {
     data?: undefined | EmitterData = new EmitterData();
     layer?: Entity;
     time = 0;

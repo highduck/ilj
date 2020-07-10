@@ -1,16 +1,12 @@
-import {Color4, IVec2, Matrix2D, Rect, Vec2} from "@highduck/math";
+import {Color4, Matrix2D, Rect, Vec2} from "@highduck/math";
 import {Entity} from "../../ecs/Entity";
-import {declTypeID} from "../../util/TypeID";
+import {Component} from "../../ecs/Component";
 
-const TMP_MATRIX = new Matrix2D();
 const TEMP_VEC2_0 = new Vec2();
 const TEMP_VEC2_1 = new Vec2();
 
-export class Transform2D {
+export class Transform2D extends Component() {
     static IDENTITY: Readonly<Transform2D> = new Transform2D();
-
-    static TYPE_ID = declTypeID();
-    readonly entity!: Entity;
 
     readonly position = new Vec2(0, 0);
     readonly scale = new Vec2(1, 1);

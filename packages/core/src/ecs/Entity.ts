@@ -1,7 +1,7 @@
 import {assert} from "../util/assert";
 import {_allocate, _deallocate, checkEntityPassport, deleteEntityComponent, ensureComponentMap, objs} from "./World";
-import {ConstructorWithID} from "../util/TypeID";
 import {IntMap} from "../ds/IntMap";
+import {ComponentClass} from "./Component";
 
 export type Passport = number;
 
@@ -64,44 +64,46 @@ export class Entity {
         return checkEntityPassport(this.passport);
     }
 
-    set<T extends object>(ctor: ConstructorWithID<T>): T {
+    set<T extends object>(ctor: ComponentClass<T>): T {
         const data = new ctor();
-        (data as ComponentInternals).entity = this;
-        this.components.set(ctor.TYPE_ID, data);
-        ensureComponentMap(ctor.TYPE_ID).set(this.passport & INDEX_MASK, data);
+        (data as any).entity = this;
+        const cid = ctor.COMP_ID;
+        this.components.set(cid, data);
+        ensureComponentMap(cid).set(this.passport & INDEX_MASK, data);
         return data;
     }
 
-    tryGet<T extends object>(c: ConstructorWithID<T>): T | undefined {
-        return this.components.get(c.TYPE_ID) as (T | undefined);
+    tryGet<T extends object>(c: ComponentClass<T>): T | undefined {
+        return this.components.get(c.COMP_ID) as (T | undefined);
     }
 
-    get<T extends object>(type: ConstructorWithID<T>): T {
-        const data = this.components.get(type.TYPE_ID);
+    get<T extends object>(type: ComponentClass<T>): T {
+        const data = this.components.get(type.COMP_ID);
         if (data === undefined) {
             throw new Error(`No component ${type}`);
         }
         return data as T;
     }
 
-    has<T extends object>(c: ConstructorWithID<T>): boolean {
-        return this.components.has(c.TYPE_ID);
+    has<T extends object>(c: ComponentClass<T>): boolean {
+        return this.components.has(c.COMP_ID);
     }
 
-    getOrCreate<T extends object>(ctor: ConstructorWithID<T>): T {
-        let data = this.components.get(ctor.TYPE_ID);
+    getOrCreate<T extends object>(ctor: ComponentClass<T>): T {
+        const cid = ctor.COMP_ID;
+        let data = this.components.get(cid);
         if (!data) {
             data = new ctor();
-            (data as ComponentInternals).entity = this;
-            ensureComponentMap(ctor.TYPE_ID).set(this.passport & INDEX_MASK, data);
-            this.components.set(ctor.TYPE_ID, data);
+            (data as any).entity = this;
+            ensureComponentMap(cid).set(this.passport & INDEX_MASK, data);
+            this.components.set(cid, data);
         }
         return data as T;
     }
 
-    delete<T extends object>(c: ConstructorWithID<T>) {
-        deleteEntityComponent(this.passport, c.TYPE_ID);
-        this.components.delete(c.TYPE_ID);
+    delete<T extends object>(c: ComponentClass<T>) {
+        deleteEntityComponent(this.passport, c.COMP_ID);
+        this.components.delete(c.COMP_ID);
     }
 
     dispose() {
@@ -447,11 +449,12 @@ export class Entity {
         return this;
     }
 
-    searchRootComponent<T extends object>(ctor: ConstructorWithID<T>): T | undefined {
+    searchRootComponent<T extends object>(ctor: ComponentClass<T>): T | undefined {
+        const cid = ctor.COMP_ID;
         let it: Entity | undefined = this;
         let c: T | undefined;
         while (it !== undefined) {
-            c = it.components.get(ctor.TYPE_ID) as (T | undefined);
+            c = it.components.get(cid) as (T | undefined);
             if (c !== undefined) {
                 return c;
             }

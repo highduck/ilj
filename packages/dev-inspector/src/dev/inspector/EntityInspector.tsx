@@ -1,8 +1,9 @@
 import {FunctionalComponent, h} from "preact";
-import {ConstructorWithID, Entity} from "@highduck/core";
+import {Entity} from "@highduck/core";
 import {BoolField} from "../fields/BoolField";
 import {COMPONENTS_CONFIG, ComponentViewConfig} from "./ComponentsConfig";
 import {ObjectEditor} from "./ObjectEditor";
+import {ComponentClass} from "@highduck/core";
 
 interface EntityInspectorProps {
     entity: undefined | Entity;
@@ -33,11 +34,11 @@ export const EntityInspector: FunctionalComponent<EntityInspectorProps> = (props
         <hr/>
     ];
     for (let comp of e.components.values) {
-        const type = comp.constructor as ConstructorWithID;
+        const type = comp.constructor as ComponentClass;
         const config = COMPONENTS_CONFIG.get(type);
-        let isOpen = openedSet.get(type.TYPE_ID) ?? true;
+        let isOpen = openedSet.get(type.COMP_ID) ?? true;
         const openerIcon = isOpen ? '▼' : '►';
-        const handleToggle = (ev: MouseEvent) => openedSet.set(type.TYPE_ID, !isOpen);
+        const handleToggle = (ev: MouseEvent) => openedSet.set(type.COMP_ID, !isOpen);
         const enabled = (comp as any).enabled;
         const handleEnabling = (ev: Event) => {
             if (enabled !== undefined) {

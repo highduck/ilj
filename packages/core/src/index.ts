@@ -1,3 +1,7 @@
+export * from './ecs/Component';
+export * from './ecs/Entity';
+export * from './ecs/World';
+
 export * from './Engine';
 
 export * from './util/assert';
@@ -63,10 +67,6 @@ export * from './scene1/Font';
 
 export * from './rtfont/DynamicFont';
 export * from './rtfont/DynamicFontAtlas';
-
-export * from './ecs/Entity';
-export * from './ecs/World';
-export * from './ecs/Component';
 
 export * from './scene1/TextFormat';
 export * from './graphics/Texture';

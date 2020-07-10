@@ -1,12 +1,9 @@
-import {declTypeID} from "../../util/TypeID";
 import {Entity} from "../../ecs/Entity";
-import {Time} from "../..";
+import {Component} from "../../ecs/Component";
 import {getComponents} from "../../ecs/World";
+import {Time} from "../..";
 
-export class EntityAge {
-    static TYPE_ID = declTypeID();
-    readonly entity!: Entity;
-
+export class EntityAge extends Component() {
     lifeRemaining = 0;
 }
 

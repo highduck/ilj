@@ -2,11 +2,9 @@ import {declTypeID} from "../../util/TypeID";
 import {Color4, Matrix2D, Rect, Vec2} from "@highduck/math";
 import {Entity} from "../../ecs/Entity";
 import {Transform2D} from "./Transform2D";
+import {Component} from "../..";
 
-export class Camera2D {
-    // static main: Entity;
-    static TYPE_ID = declTypeID();
-    readonly entity!: Entity;
+export class Camera2D extends Component() {
     enabled = true;
     order = 0;
 
