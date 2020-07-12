@@ -1,9 +1,9 @@
 import {Color32_ARGB, Rect} from "@highduck/math";
 import {Drawer} from "../../drawer/Drawer";
-import {Display2D} from "./Display2D";
-import {declTypeID} from "../../util/TypeID";
+import {Display2D, Display2DComponent} from "./Display2D";
+import {ComponentTypeA} from "../..";
 
-export class DisplayQuad extends Display2D {
+export class DisplayQuadComponent extends Display2DComponent {
     readonly rect: Rect = new Rect(0, 0, 1, 1);
     readonly colors: [Color32_ARGB, Color32_ARGB, Color32_ARGB, Color32_ARGB] = [0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF];
 
@@ -53,3 +53,5 @@ export class DisplayQuad extends Display2D {
         this.colors[1] = this.colors[2] = right;
     }
 }
+
+export const DisplayQuad = new ComponentTypeA(DisplayQuadComponent, Display2D);

@@ -1,7 +1,7 @@
 import {assert} from "../util/assert";
-import {_allocate, _deallocate, checkEntityPassport, deleteEntityComponent, ensureComponentMap, objs} from "./World";
+import {_allocate, _deallocate, checkEntityPassport, objs} from "./World";
 import {IntMap} from "../ds/IntMap";
-import {ComponentClass} from "./Component";
+import {_componentTypes, ComponentType} from "./Component";
 
 export type Passport = number;
 
@@ -20,7 +20,7 @@ function checkHierarchyValidity(a: Entity, b: Entity) {
 }
 
 export class Entity {
-    readonly components = new IntMap<object>();
+    readonly components = new IntMap<any>();
 
     name?: string;
     visible = true;
@@ -64,46 +64,49 @@ export class Entity {
         return checkEntityPassport(this.passport);
     }
 
-    set<T extends object>(ctor: ComponentClass<T>): T {
-        const data = new ctor();
+    set<T>(component: ComponentType<T>): T {
+        const data = component.new();
         (data as any).entity = this;
-        const cid = ctor.COMP_ID;
-        this.components.set(cid, data);
-        ensureComponentMap(cid).set(this.passport & INDEX_MASK, data);
+        this.components.set(component.id, data);
+        component.map.set(this.passport & INDEX_MASK, data);
         return data;
     }
 
-    tryGet<T extends object>(c: ComponentClass<T>): T | undefined {
-        return this.components.get(c.COMP_ID) as (T | undefined);
+    tryGet<T>(component: ComponentType<T>): T | undefined {
+        return this.components.get(component.id) as (T | undefined);
+        // 3 access / map.get / array access
+
+        //return component.map.get(this.passport & INDEX_MASK);
+        // map.get / array access / 3 access / bit mask
     }
 
-    get<T extends object>(type: ComponentClass<T>): T {
-        const data = this.components.get(type.COMP_ID);
+    get<T>(component: ComponentType<T>): T {
+        const data = this.components.get(component.id);
         if (data === undefined) {
-            throw new Error(`No component ${type}`);
+            throw new Error(`No component ${component}`);
         }
         return data as T;
     }
 
-    has<T extends object>(c: ComponentClass<T>): boolean {
-        return this.components.has(c.COMP_ID);
+    has<T>(component: ComponentType<T>): boolean {
+        return this.components.has(component.id);
     }
 
-    getOrCreate<T extends object>(ctor: ComponentClass<T>): T {
-        const cid = ctor.COMP_ID;
+    getOrCreate<T>(component: ComponentType<T>): T {
+        const cid = component.id;
         let data = this.components.get(cid);
-        if (!data) {
-            data = new ctor();
+        if (data === undefined) {
+            data = component.new();
             (data as any).entity = this;
-            ensureComponentMap(cid).set(this.passport & INDEX_MASK, data);
+            component.map.set(this.passport & INDEX_MASK, data);
             this.components.set(cid, data);
         }
         return data as T;
     }
 
-    delete<T extends object>(c: ComponentClass<T>) {
-        deleteEntityComponent(this.passport, c.COMP_ID);
-        this.components.delete(c.COMP_ID);
+    delete<T>(component: ComponentType<T>) {
+        component.map.delete(this.passport & INDEX_MASK);
+        this.components.delete(component.id);
     }
 
     dispose() {
@@ -122,11 +125,11 @@ export class Entity {
                 entity?: Entity;
                 dispose?(): void;
             };
-            deleteEntityComponent(this.passport, k);
             if (v.dispose !== undefined) {
                 v.dispose();
             }
             v.entity = undefined;
+            _componentTypes.get(k)!.map.delete(this.passport & INDEX_MASK);
         }
         // we are disposing, it could not need to clear local map?
         this.components.clear();
@@ -449,8 +452,8 @@ export class Entity {
         return this;
     }
 
-    searchRootComponent<T extends object>(ctor: ComponentClass<T>): T | undefined {
-        const cid = ctor.COMP_ID;
+    searchRootComponent<T>(component: ComponentType<T>): T | undefined {
+        const cid = component.id;
         let it: Entity | undefined = this;
         let c: T | undefined;
         while (it !== undefined) {

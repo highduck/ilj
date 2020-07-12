@@ -26,7 +26,7 @@ import {AudioMan} from "./scene1/AudioMan";
 import {processEntityAge} from "./scene1/extra/EntityAge";
 import {updateFastScripts} from "./scene1/extra/FastScript";
 import {updateDynamicFonts} from "./rtfont/DynamicFontAtlas";
-import {Layout} from "./scene1/extra/Layout";
+import {LayoutData} from "./scene1/extra/Layout";
 import {updateLayout} from "./scene1/extra/LayoutSystem";
 import {awaitDocument} from "./util/awaitDocument";
 import {invalidateTransform3} from "./scene1/systems/invalidateTransform";
@@ -109,7 +109,7 @@ export class Engine {
         this.aniFactory = new AniFactory();
         this.cameraManager = new CameraManager();
 
-        Layout.space.copyFrom(this.view.reference);
+        LayoutData.space.copyFrom(this.view.reference);
     }
 
     private renderFrame() {

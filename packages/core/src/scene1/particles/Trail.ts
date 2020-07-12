@@ -1,8 +1,8 @@
 import {Entity} from "../../ecs/Entity";
-import {Transform2D} from "../display/Transform2D";
+import {Transform2D_Data} from "../display/Transform2D";
 import {lerp, quadOut, Vec2} from "@highduck/math";
 import {Time} from "../../app/Time";
-import {Component} from "../..";
+import {ComponentTypeA} from "../..";
 
 class TrailNode {
     readonly position = new Vec2();
@@ -14,7 +14,9 @@ class TrailNode {
 const VEC2_0 = new Vec2();
 const VEC2_1 = new Vec2();
 
-export class Trail extends Component() {
+export class Trail_Data {
+    readonly entity!: Entity;
+
     enabled = true;
 
     readonly offset = new Vec2();
@@ -42,24 +44,26 @@ export class Trail extends Component() {
         if (this._trackedTarget) {
             const pos = this._position;
             // position from tracked local space (with offset) to global and to local entity owner
-            Transform2D.updateLocalMatrixInTree(this.entity);
-            Transform2D.updateLocalMatrixInTree(this._trackedTarget);
-            Transform2D.localToLocal(this._trackedTarget, this.entity, this.offset, pos);
+            Transform2D_Data.updateLocalMatrixInTree(this.entity);
+            Transform2D_Data.updateLocalMatrixInTree(this._trackedTarget);
+            Transform2D_Data.localToLocal(this._trackedTarget, this.entity, this.offset, pos);
 
             this._positionLast.copyFrom(pos);
             this._nodes.length = 0;
             // tail
-            this._nodes[0] = new TrailNode();
-            this._nodes[0].position.copyFrom(pos);
-            this._nodes[0].energy = 0;
-            this._nodes[0].alpha = 1;
-            this._nodes[0].scale = 1;
+            let node = new TrailNode();
+            node.position.copyFrom(pos);
+            node.energy = 0;
+            node.alpha = 1;
+            node.scale = 1;
+            this._nodes[0] = node;
             // head
-            this._nodes[1] = new TrailNode();
-            this._nodes[1].position.copyFrom(pos);
-            this._nodes[1].energy = 1;
-            this._nodes[1].alpha = 1;
-            this._nodes[1].scale = 1;
+            node = new TrailNode();
+            node.position.copyFrom(pos);
+            node.energy = 1;
+            node.alpha = 1;
+            node.scale = 1;
+            this._nodes[1] = node;
         }
     }
 
@@ -68,9 +72,9 @@ export class Trail extends Component() {
         const head = this._nodes[this._nodes.length - 1];
         if (this._trackedTarget && this._trackedTarget.isValid) {
             const pos = this._position;
-            Transform2D.updateLocalMatrixInTree(this._trackedTarget);
-            Transform2D.updateLocalMatrixInTree(this.entity);
-            Transform2D.localToLocal(this._trackedTarget, this.entity, this.offset, pos);
+            Transform2D_Data.updateLocalMatrixInTree(this._trackedTarget);
+            Transform2D_Data.updateLocalMatrixInTree(this.entity);
+            Transform2D_Data.localToLocal(this._trackedTarget, this.entity, this.offset, pos);
             this.updatePosition(dt);
         } else {
             head.energy -= dt;
@@ -194,3 +198,4 @@ export class Trail extends Component() {
     }
 }
 
+export const Trail = new ComponentTypeA(Trail_Data);

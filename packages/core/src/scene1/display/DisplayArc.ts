@@ -1,13 +1,13 @@
-import {Display2D} from "./Display2D";
+import {Display2D, Display2DComponent} from "./Display2D";
 import {Color32_ARGB, Rect} from "@highduck/math";
 import {Drawer} from "../../drawer/Drawer";
 import {Sprite} from "../Sprite";
-import {declTypeID} from "../../util/TypeID";
 import {Resources} from "../../util/Resources";
+import {ComponentTypeA} from "../..";
 
 const TEMP_RECT = new Rect();
 
-export class DisplayArc extends Display2D {
+export class DisplayArcComponent extends Display2DComponent {
     angle0 = 0;
     angle1 = 2 * Math.PI;
     radius = 10;
@@ -51,3 +51,5 @@ export class DisplayArc extends Display2D {
         return out;
     }
 }
+
+export const DisplayArc = new ComponentTypeA(DisplayArcComponent, Display2D);

@@ -1,13 +1,13 @@
 import {FunctionalComponent, h} from "preact";
 import {ComponentViewProps} from "./ComponentsConfig";
-import {Transform2D} from "@highduck/core";
+import {Transform2D_Data} from "@highduck/core";
 import {Vec2Field} from "../fields/Vec2Field";
 import {NumberField} from "../fields/NumberField";
 import {RectField} from "../fields/RectField";
 import {Color4Field} from "../fields/Color4Field";
 
 export const Transform2DEditor: FunctionalComponent<ComponentViewProps> = (props: ComponentViewProps) => {
-    const data = props.data as Transform2D;
+    const data = props.data as Transform2D_Data;
     return <div>
         <Vec2Field label="Position" target={data} field="position"/>
         <Vec2Field label="Scale" target={data} field="scale"/>

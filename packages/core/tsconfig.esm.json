@@ -4,7 +4,8 @@
     "composite": true,
     "rootDir": "./src",
     "outDir": "./dist",
-    "isolatedModules": false
+    "isolatedModules": false,
+    "experimentalDecorators": true
   },
   "references": [
     {

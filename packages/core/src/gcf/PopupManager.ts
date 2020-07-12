@@ -1,7 +1,7 @@
 import {
     assert,
     Button,
-    Component,
+    ComponentTypeA,
     DisplayQuad,
     Engine,
     Entity,
@@ -17,11 +17,13 @@ import {resetTween} from "./Tween";
 import {backOut, cubicOut, reach, saturate} from "@highduck/math";
 import {getComponents} from "../ecs/World";
 
-export class PopupCloseTimeout extends Component() {
+export const PopupCloseTimeout = new ComponentTypeA(class {
     time = 0;
-}
+});
 
-export class PopupManager extends Component() {
+export const PopupManager = new ComponentTypeA(class {
+    entity!: Entity;
+
     active: Entity[] = [];
 
     fadeProgress = 0;
@@ -30,11 +32,11 @@ export class PopupManager extends Component() {
 
     back!: Entity;
     layer!: Entity;
-}
+});
 
 let popups: undefined | Entity = undefined;
 
-function getPopupManager(): PopupManager {
+function getPopupManager() {
     assert(popups !== undefined);
     const manager = popups!.tryGet(PopupManager);
     assert(manager !== undefined);

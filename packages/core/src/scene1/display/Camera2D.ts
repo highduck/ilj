@@ -1,10 +1,11 @@
-import {declTypeID} from "../../util/TypeID";
 import {Color4, Matrix2D, Rect, Vec2} from "@highduck/math";
 import {Entity} from "../../ecs/Entity";
 import {Transform2D} from "./Transform2D";
-import {Component} from "../..";
+import {createClassComponent, TypeOfComponentData} from "../..";
 
-export class Camera2D extends Component() {
+export const Camera2D = createClassComponent(class {
+    entity!: Entity;
+
     enabled = true;
     order = 0;
 
@@ -42,4 +43,7 @@ export class Camera2D extends Component() {
             -screen.y - this.relativeOrigin.y * screen.height
         );
     }
-}
+    static DD:number = 1;
+});
+
+export type Camera2D = TypeOfComponentData<typeof Camera2D>;

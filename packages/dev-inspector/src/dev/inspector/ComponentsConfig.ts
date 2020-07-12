@@ -1,12 +1,12 @@
 import {MovieClipInspector} from "./MovieClipInspector";
-import {ComponentType} from "preact";
+import {ComponentType as PreactComponentType} from "preact";
 import {Transform2DEditor} from "./Transform2DEditor";
 import {
     Button,
     Camera2D,
-    ConstructorWithID,
+    ComponentType,
     DisplayArc,
-    DisplayParticles,
+    ParticleRenderer,
     DisplayQuad,
     DisplaySprite,
     DisplayText,
@@ -20,7 +20,6 @@ import {
     TrailRenderer,
     Transform2D
 } from "@highduck/core";
-import {ComponentClass} from "../../../../core/src";
 
 export interface ComponentViewProps<T = object> {
     data: T;
@@ -30,20 +29,20 @@ export interface ComponentViewProps<T = object> {
 export interface ComponentViewConfig {
     name: string;
     kind?: string;
-    view?: ComponentType<ComponentViewProps>;
+    view?: PreactComponentType<ComponentViewProps>;
     icon?: string;
     severity?: number;
 }
 
-export const COMPONENTS_CONFIG = new Map<ComponentClass, ComponentViewConfig>();
-export const COMPONENTS_SEVERITY: ComponentClass[] = [
+export const COMPONENTS_CONFIG = new Map<ComponentType<any>, ComponentViewConfig>();
+export const COMPONENTS_SEVERITY: ComponentType<any>[] = [
     Transform2D,
     Interactive,
     MovieClipTarget,
     TrailRenderer,
     ParticleLayer,
     DisplayArc,
-    DisplayParticles,
+    ParticleRenderer,
     DisplayQuad,
     DisplaySprite,
     DisplayText,
@@ -55,7 +54,7 @@ export const COMPONENTS_SEVERITY: ComponentClass[] = [
     Trail
 ];
 
-export function getComponentIcon(type: ComponentClass): string {
+export function getComponentIcon(type: ComponentType<any>): string {
     const config = COMPONENTS_CONFIG.get(type);
     if (config && config.icon) {
         return config.icon;
@@ -103,7 +102,7 @@ COMPONENTS_CONFIG.set(ParticleLayer, {
     icon: "✨",
 });
 
-COMPONENTS_CONFIG.set(DisplayParticles, {
+COMPONENTS_CONFIG.set(ParticleRenderer, {
     name: "Particles Renderer",
     kind: "Display2D",
     icon: "🎇",

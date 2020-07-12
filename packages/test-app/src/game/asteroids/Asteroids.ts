@@ -1,6 +1,6 @@
 import {GameFactory} from "./factory";
 import {GameSystem} from "./systems/GameSystem";
-import {Fsm} from "./fsm";
+import {Fsm, updateFsm} from "./fsm";
 import {MovementSystem} from "./systems/MovementSystem";
 import {ControlSystem} from "./systems/ControlSystem";
 import {CollisionSystem} from "./systems/CollisionSystem";
@@ -31,7 +31,7 @@ export class Asteroids {
 
     update() {
         this.controls.update();
-        Fsm.update();
+        updateFsm();
         this.movement.update();
         this.collisions.update();
         this.gameSystem.update();

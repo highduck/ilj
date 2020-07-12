@@ -2,7 +2,7 @@ import {Component, h} from "preact";
 import {HierarchyTree} from "./HierarchyTree";
 import {EditorContext} from "../EditorContext";
 import {COMPONENTS_CONFIG, COMPONENTS_SEVERITY} from "../inspector/ComponentsConfig";
-import {ComponentClass, Entity} from "@highduck/core";
+import {Entity} from "@highduck/core";
 
 interface HierarchyItemProps {
     entity: Entity;
@@ -19,7 +19,7 @@ function getEntityIcon(e: Entity): string {
         const v = COMPONENTS_CONFIG.get(type);
         if (v !== undefined && v.icon !== undefined) {
             const comp = e.tryGet(type);
-            if (comp !== undefined && (comp.constructor as ComponentClass) === type) {
+            if (comp !== undefined && (comp.constructor) === type.ctor) {
                 const sev = COMPONENTS_SEVERITY.indexOf(type);
                 if (sev >= idx) {
                     idx = sev;

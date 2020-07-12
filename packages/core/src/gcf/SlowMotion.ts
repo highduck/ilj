@@ -1,8 +1,8 @@
-import {Component, Engine, Time} from "..";
+import {ComponentTypeA, Engine, Time} from "..";
 import {ADSREnvelope, atADSR} from "@highduck/math";
 import {getComponents} from "../ecs/World";
 
-export class SlowMotion extends Component() {
+export const SlowMotion = new ComponentTypeA(class {
     readonly envelope: ADSREnvelope = {
         level: 1,
         attackLevel: 0,
@@ -36,8 +36,7 @@ export class SlowMotion extends Component() {
             this.playing = true;
         }
     }
-
-}
+});
 
 export function updateSlowMotion() {
     const rootDeltaTime = Engine.current.time.delta;

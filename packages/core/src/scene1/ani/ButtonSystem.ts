@@ -1,8 +1,8 @@
-import {Button, ButtonSkin} from "./Button";
-import {Transform2D} from "../display/Transform2D";
+import {Button, Button_Data, ButtonSkin} from "./Button";
+import {Transform2D, Transform2D_Data} from "../display/Transform2D";
 import {Entity} from "../../ecs/Entity";
 import {Interactive} from "./Interactive";
-import {MovieClip2D} from "../display/MovieClip2D";
+import {MovieClip2D, MovieClip2D_Data} from "../display/MovieClip2D";
 import {Cursor} from "../../app/GameView";
 import {Color4, reach, reachDelta} from "@highduck/math";
 import {Engine} from "../../Engine";
@@ -11,18 +11,18 @@ import {InteractiveManagerEvent} from "./InteractiveManager";
 import {Time} from "../../app/Time";
 import {getComponents} from "../../ecs/World";
 
-function initBaseTransform(btn: Button, transform: Transform2D) {
+function initBaseTransform(btn: Button_Data, transform: Transform2D_Data) {
     btn.baseColorMultiplier.copyFrom(transform.colorMultiplier);
     btn.baseColorOffset.copyFrom(transform.colorOffset);
     btn.baseScale.copyFrom(transform.scale);
     btn.baseSkew.copyFrom(transform.skew);
 }
 
-function startPostTween(btn: Button) {
+function startPostTween(btn: Button_Data) {
     btn.timePost = Math.max(1 - 0.3 * Math.random(), btn.timePost);
 }
 
-function handleBackButton(btn: Button) {
+function handleBackButton(btn: Button_Data) {
     btn.clicked.emit(undefined);
     startPostTween(btn);
 }
@@ -89,7 +89,7 @@ const PUSH_COLOR_1 = new Color4(0.55, 0.55, 0.55, 1);
 const OVER_COLOR_0 = new Color4(0, 0, 0, 0);
 const OVER_COLOR_1 = new Color4(0.1, 0.1, 0.1, 0);
 
-function applySkin(skin: ButtonSkin, btn: Button, transform: Transform2D) {
+function applySkin(skin: ButtonSkin, btn: Button_Data, transform: Transform2D_Data) {
     const over = btn.timeOver;
     const push = btn.timePush;
     const post = btn.timePost;
@@ -105,7 +105,7 @@ function applySkin(skin: ButtonSkin, btn: Button, transform: Transform2D) {
     transform.scale.y = btn.baseScale.y * sy;
 }
 
-function updateMovieFrame(mc: MovieClip2D, interactive: Interactive) {
+function updateMovieFrame(mc: MovieClip2D_Data, interactive: Interactive) {
     let frame = 0;
     if (interactive.over || interactive.pushed) {
         frame = 1;

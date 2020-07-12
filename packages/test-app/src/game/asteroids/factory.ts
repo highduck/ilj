@@ -1,4 +1,4 @@
-import {DisplayQuad, Entity, EntityAge, Transform2D} from "@highduck/core";
+import {DisplayQuad, Entity, EntityAge, Transform2D, Transform2D_Data} from "@highduck/core";
 import {
     Animation,
     Asteroid,
@@ -6,7 +6,7 @@ import {
     Collision,
     GameState,
     Gun,
-    GunControls,
+    GunControls, GunData,
     Motion,
     MotionControl,
     Spaceship
@@ -150,7 +150,7 @@ export class GameFactory {
         return e;
     }
 
-    spawnUserBullet(gun: Gun, parentPosition: Transform2D): Entity {
+    spawnUserBullet(gun: GunData, parentPosition: Transform2D_Data): Entity {
         const rotation = parentPosition.rotation + gun.spreadAngle * RndDefault.range(-0.5, 0.5) * Math.PI / 180.0;
         const dir = new Vec2().direction(rotation);
         const velocity = gun.velocity;

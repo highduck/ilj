@@ -1,8 +1,12 @@
 import {Rect, Vec2} from "@highduck/math";
 import {Transform2D} from "../display/Transform2D";
-import {Component} from "../..";
+import {ComponentTypeA, Entity} from "../..";
 
-export class Layout extends Component() {
+
+export class LayoutData {
+    static readonly space = new Rect(0, 0, 1, 1);
+
+    entity!: Entity;
     readonly x = new Vec2();
     readonly y = new Vec2();
     readonly fillExtra = new Rect();
@@ -11,8 +15,6 @@ export class Layout extends Component() {
     alignX = false;
     alignY = false;
 
-    static readonly space = new Rect(0, 0, 1, 1);
-
     aligned(rel_x = 0.0, abs_x = 0.0, rel_y = 0.0, abs_y = 0.0): this {
         this.horizontal(rel_x, abs_x);
         this.vertical(rel_y, abs_y);
@@ -20,15 +22,17 @@ export class Layout extends Component() {
     }
 
     hard(x: number, y: number): this {
+        const space = LayoutData.space;
         const transform = this.entity.get(Transform2D);
-        this.horizontal(x, transform.position.x - (Layout.space.x + Layout.space.width * x));
-        this.vertical(y, transform.position.y - (Layout.space.y + Layout.space.height * y));
+        this.horizontal(x, transform.position.x - (space.x + space.width * x));
+        this.vertical(y, transform.position.y - (space.y + space.height * y));
         return this;
     }
 
     hard_y(y = 0.0): this {
+        const space = LayoutData.space;
         const transform = this.entity.get(Transform2D);
-        this.vertical(y, transform.position.y - (Layout.space.y + Layout.space.height * y));
+        this.vertical(y, transform.position.y - (space.y + space.height * y));
         return this;
     }
 
@@ -55,3 +59,5 @@ export class Layout extends Component() {
         return this;
     }
 }
+
+export const Layout = new ComponentTypeA(LayoutData);

@@ -1,15 +1,12 @@
 import {Rect} from "@highduck/math";
 import {Drawer} from "../../drawer/Drawer";
-import {declTypeID} from "../../util/TypeID";
-import {Entity} from "../../ecs/Entity";
-import {Component} from "../..";
+import {ComponentTypeA} from "../..";
 
 const RECT_TMP = new Rect();
 
 /* eslint-disable @typescript-eslint/no-unused-vars */
-export class Display2D extends Component() {
+export class Display2DComponent {
     draw(drawer: Drawer): void {
-
     }
 
     hitTest(x: number, y: number): boolean {
@@ -20,3 +17,5 @@ export class Display2D extends Component() {
         return out.set(0, 0, 0, 0);
     }
 }
+
+export const Display2D = new ComponentTypeA(Display2DComponent);

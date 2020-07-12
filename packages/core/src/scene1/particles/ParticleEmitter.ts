@@ -1,8 +1,10 @@
 import {EmitterData, ParticleDecl} from "./ParticleDecl";
 import {Entity} from "../../ecs/Entity";
-import {Component, Time} from "../..";
+import {ComponentTypeA, Time} from "../..";
 
-export class ParticleEmitter extends Component() {
+export class ParticleEmitter_Data {
+    readonly entity!: Entity;
+
     data?: undefined | EmitterData = new EmitterData();
     layer?: Entity;
     time = 0;
@@ -13,3 +15,5 @@ export class ParticleEmitter extends Component() {
         return this.data?.particle?.data;
     }
 }
+
+export const ParticleEmitter = new ComponentTypeA(ParticleEmitter_Data);

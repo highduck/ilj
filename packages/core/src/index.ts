@@ -39,7 +39,7 @@ export * from './scene1/particles/ParticleSystem';
 export * from './scene1/particles/ParticleLayer';
 export * from './scene1/particles/ParticleEmitter';
 export * from './scene1/particles/ParticleDecl';
-export * from './scene1/particles/DisplayParticles';
+export * from './scene1/particles/ParticleRenderer';
 export * from './scene1/display/Transform2D';
 export * from './scene1/display/Filters2D';
 export * from './scene1/display/DisplayText';

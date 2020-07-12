@@ -1,12 +1,14 @@
 import {Color4, Matrix2D, Rect, Vec2} from "@highduck/math";
 import {Entity} from "../../ecs/Entity";
-import {Component} from "../../ecs/Component";
+import {ComponentTypeA} from "../../ecs/Component";
 
 const TEMP_VEC2_0 = new Vec2();
 const TEMP_VEC2_1 = new Vec2();
 
-export class Transform2D extends Component() {
-    static IDENTITY: Readonly<Transform2D> = new Transform2D();
+export class Transform2D_Data {
+    static IDENTITY: Readonly<Transform2D_Data> = new Transform2D_Data();
+
+    readonly entity!: Entity;
 
     readonly position = new Vec2(0, 0);
     readonly scale = new Vec2(1, 1);
@@ -156,12 +158,12 @@ export class Transform2D extends Component() {
 
     static globalToLocal(e: Entity, pos: Vec2, out: Vec2) {
         out.copyFrom(pos);
-        Transform2D.transformDown(undefined, e, out);
+        Transform2D_Data.transformDown(undefined, e, out);
     }
 
     static globalToParent(e: Entity, pos: Vec2, out: Vec2) {
         out.copyFrom(pos);
-        Transform2D.transformDown(undefined, e.parent, out);
+        Transform2D_Data.transformDown(undefined, e.parent, out);
     }
 
     static updateLocalMatrixInTree(e: Entity) {
@@ -194,12 +196,12 @@ export class Transform2D extends Component() {
 
     static localToGlobal(e: Entity, pos: Vec2, out: Vec2) {
         out.copyFrom(pos);
-        Transform2D.transformUp(e, undefined, out);
+        Transform2D_Data.transformUp(e, undefined, out);
     }
 
     static parentToGlobal(e: Entity, pos: Vec2, out: Vec2) {
         out.copyFrom(pos);
-        Transform2D.transformUp(e.parent, undefined, out);
+        Transform2D_Data.transformUp(e.parent, undefined, out);
     }
 
     static findDepth(e: Entity): number {
@@ -213,8 +215,8 @@ export class Transform2D extends Component() {
     }
 
     static findLowerCommonAncestor(e1: Entity, e2: Entity): Entity | undefined {
-        let depth1 = Transform2D.findDepth(e1);
-        let depth2 = Transform2D.findDepth(e2);
+        let depth1 = Transform2D_Data.findDepth(e1);
+        let depth2 = Transform2D_Data.findDepth(e2);
         let it1: Entity | undefined = e1;
         let it2: Entity | undefined = e2;
         while (depth1 > depth2) {
@@ -234,16 +236,16 @@ export class Transform2D extends Component() {
 
     static localToLocal(src: Entity, dest: Entity, pos: Readonly<Vec2>, out: Vec2) {
         out.copyFrom(pos);
-        const lca = Transform2D.findLowerCommonAncestor(src, dest);
+        const lca = Transform2D_Data.findLowerCommonAncestor(src, dest);
         if (lca !== undefined) {
-            Transform2D.transformUp(src, lca, out);
-            Transform2D.transformDown(lca, dest, out);
+            Transform2D_Data.transformUp(src, lca, out);
+            Transform2D_Data.transformDown(lca, dest, out);
         }
     }
 
     static getTransformationMatrix(src: Entity, dest: Entity, out: Matrix2D) {
         out.copyFrom(Matrix2D.IDENTITY);
-        const common = Transform2D.findLowerCommonAncestor(src, dest);
+        const common = Transform2D_Data.findLowerCommonAncestor(src, dest);
         if (common !== undefined) {
             let it: Entity | undefined = dest;
             while (it !== common && it !== undefined) {
@@ -265,3 +267,5 @@ export class Transform2D extends Component() {
         }
     }
 }
+
+export const Transform2D = new ComponentTypeA(Transform2D_Data);

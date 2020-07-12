@@ -1,14 +1,17 @@
 import {Entity} from "../../ecs/Entity";
-import {Transform2D} from "./Transform2D";
-import {Display2D} from "./Display2D";
+import {Transform2D, Transform2D_Data} from "./Transform2D";
+import {Display2D, Display2DComponent} from "./Display2D";
 import {Matrix4, Rect, transformRectMatrix2D} from "@highduck/math";
 import {CheckFlag} from "../../drawer/DrawingState";
 import {Engine} from "../../Engine";
 import {drawCameraDebugGizmos} from "../debug/SceneDebug";
 import {Camera2D} from "./Camera2D";
 import {Bounds2D} from "./Bounds2D";
+import {TypeOfComponentData} from "../../ecs/Component";
 
 const TEMP_RECT = new Rect();
+
+const Display2D_ID = Display2D.id;
 
 export class DisplaySystem {
 
@@ -17,7 +20,7 @@ export class DisplaySystem {
     state = this.engine.drawer.state;
     readonly _tmpProj = new Matrix4();
 
-    static _currentCamera: Camera2D;
+    static _currentCamera: TypeOfComponentData<typeof Camera2D>;
 
     constructor(readonly engine: Engine) {
     }
@@ -57,7 +60,7 @@ export class DisplaySystem {
                     camera.clearColor.argb32);
             }
 
-            this.draw(camera.root, Transform2D.IDENTITY);
+            this.draw(camera.root, Transform2D_Data.IDENTITY);
 
             if (process.env.NODE_ENV === 'development') {
                 drawCameraDebugGizmos(camera);
@@ -71,12 +74,12 @@ export class DisplaySystem {
         drawer.state.restoreTransform();
     }
 
-    draw(e: Entity, parentTransform: Transform2D) {
+    draw(e: Entity, parentTransform: Transform2D_Data) {
         if (!e.visible || (e.layerMask & this.activeLayers) === 0) {
             return;
         }
 
-        const transform = e.components.get(Transform2D.COMP_ID) as (Transform2D | undefined);
+        const transform = e.components.get(Transform2D.id) as (Transform2D_Data | undefined);
         if (transform !== undefined) {
             if (transform.colorMultiplier.a <= 0) {
                 return;
@@ -84,10 +87,10 @@ export class DisplaySystem {
             parentTransform = transform;
         }
 
-        const bounds = e.components.get(Bounds2D.COMP_ID) as (Bounds2D | undefined);
+        const bounds = e.components.get(Bounds2D.id) as (TypeOfComponentData<typeof Bounds2D> | undefined);
         if (bounds !== undefined && DisplaySystem._currentCamera.occlusionEnabled) {
             const worldRect = TEMP_RECT;
-            transformRectMatrix2D(bounds.rc, parentTransform.worldMatrix, worldRect);
+            transformRectMatrix2D(bounds, parentTransform.worldMatrix, worldRect);
             const cameraRect = DisplaySystem._currentCamera.worldRect;
             if (worldRect.right <= cameraRect.x || worldRect.x >= cameraRect.right ||
                 worldRect.bottom <= cameraRect.y || worldRect.y >= cameraRect.bottom) {
@@ -101,7 +104,7 @@ export class DisplaySystem {
             this.state.pushScissors(TEMP_RECT);
         }
 
-        const display = e.components.get(Display2D.COMP_ID) as (Display2D | undefined);
+        const display = e.components.get(Display2D_ID) as (Display2DComponent | undefined);
         if (display !== undefined) {
             this.state.matrix.copyFrom(parentTransform.worldMatrix);
             this.state.colorMultiplier.copyFrom(parentTransform.worldColorMultiplier);

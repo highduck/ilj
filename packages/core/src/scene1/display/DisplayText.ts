@@ -1,15 +1,13 @@
-import {Display2D} from "./Display2D";
+import {Display2D, Display2DComponent} from "./Display2D";
 import {TextFormat} from "../TextFormat";
 import {Rect} from "@highduck/math";
 import {Drawer} from "../../drawer/Drawer";
-import {declTypeID} from "../../util/TypeID";
 import {Resources} from "../../util/Resources";
 import {getStringRepoVersion, parseString, renderString, StringToken} from "../../util/Texts";
 import {DynamicFont} from "../../rtfont/DynamicFont";
+import {ComponentTypeA} from "../..";
 
-export class DisplayText extends Display2D {
-    static TYPE_ID = declTypeID(Display2D);
-
+export class DisplayTextComponent extends Display2DComponent {
     _tokens: StringToken[] = [];
     _rendered: string = '';
     _pollCounter: number = 0;
@@ -83,3 +81,5 @@ export class DisplayText extends Display2D {
         return this;
     }
 }
+
+export const DisplayText = new ComponentTypeA(DisplayTextComponent, Display2D);

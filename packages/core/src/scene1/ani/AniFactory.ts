@@ -1,7 +1,7 @@
 import {Entity} from "../../ecs/Entity";
 import {Ani, findLinkageRef} from "./Ani";
 import {Transform2D} from "../display/Transform2D";
-import {DisplaySprite} from "../display/DisplaySprite";
+import {DisplaySprite, DisplaySpriteComponent} from "../display/DisplaySprite";
 import {Display2D} from "../display/Display2D";
 import {Sprite} from "../Sprite";
 import {Matrix2D, Rect} from "@highduck/math";
@@ -81,13 +81,11 @@ export class AniFactory {
             mov.fps = data.mc.f ?? 24;
         }
 
-        let sprite: DisplaySprite | undefined;
+        let sprite: DisplaySpriteComponent | undefined;
+        const display = entity.tryGet(Display2D);
 
-        if (entity.has(Display2D)) {
-            const display = entity.tryGet(Display2D);
-            if (display instanceof DisplaySprite) {
-                sprite = display as DisplaySprite;
-            }
+        if (display !== undefined && display instanceof DisplaySpriteComponent) {
+            sprite = display;
         }
 
         if (data.spr && !sprite) {

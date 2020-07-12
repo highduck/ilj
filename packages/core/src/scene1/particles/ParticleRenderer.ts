@@ -1,10 +1,10 @@
 import {ParticleLayer} from "./ParticleLayer";
-import {declTypeID} from "../../util/TypeID";
-import {Display2D} from "../display/Display2D";
+import {Display2D, Display2DComponent} from "../display/Display2D";
 import {Drawer} from "../../drawer/Drawer";
+import {ComponentTypeA, Entity} from "../..";
 
-export class DisplayParticles extends Display2D {
-    static TYPE_ID = declTypeID(Display2D);
+export class ParticleRendererComponent extends Display2DComponent {
+    readonly entity!: Entity;
 
     constructor() {
         super();
@@ -26,3 +26,5 @@ export class DisplayParticles extends Display2D {
         }
     }
 }
+
+export const ParticleRenderer = new ComponentTypeA(ParticleRendererComponent, Display2D);

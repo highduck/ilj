@@ -1,5 +1,5 @@
 import {
-    DisplayParticles,
+    ParticleRenderer,
     EmitterData,
     Engine,
     Entity,
@@ -51,7 +51,7 @@ export class TrailDemo {
 
         this.ps = base.create();
         this.ps.set(ParticleLayer);
-        this.ps.set(DisplayParticles);
+        this.ps.set(ParticleRenderer);
 
         this.trail = base.create();
         this.trail.name = "Trail";

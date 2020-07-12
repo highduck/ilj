@@ -2,9 +2,9 @@ import {Drawer} from "../../drawer/Drawer";
 import {Rect, Vec2} from "@highduck/math";
 import {AssetRef} from "../../util/Resources";
 import {Sprite} from "../Sprite";
-import {Display2D} from "./Display2D";
-import {declTypeID} from "../../util/TypeID";
+import {Display2D, Display2DComponent} from "./Display2D";
 import {SpriteFlag} from "@highduck/anijson";
+import {ComponentTypeA} from "../..";
 
 const TMP_RC = new Rect();
 
@@ -112,9 +112,7 @@ function drawGrid(drawer: Drawer, rect: Rect, grid: Rect, target: Rect, inNormal
     drawer.writeIndices(nine_patch_indices);
 }
 
-export class DisplaySprite extends Display2D {
-    static TYPE_ID = declTypeID(Display2D);
-
+export class DisplaySpriteComponent extends Display2DComponent {
     sprite: AssetRef<Sprite> = AssetRef.NONE;
     hitPixels = true;
     scaleGrid: Rect | undefined = undefined;
@@ -178,3 +176,5 @@ export class DisplaySprite extends Display2D {
         return true;
     }
 }
+
+export const DisplaySprite = new ComponentTypeA(DisplaySpriteComponent, Display2D);

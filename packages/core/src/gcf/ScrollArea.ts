@@ -1,4 +1,4 @@
-import {Component, Engine, Interactive, Time, Transform2D} from "..";
+import {ComponentTypeA, Engine, Entity, Interactive, Time, Transform2D, Transform2D_Data} from "..";
 import {cubicOut, integrateExp, lerp, Rect, Vec2} from "@highduck/math";
 import {getComponents} from "../ecs/World";
 
@@ -66,7 +66,9 @@ class VelocityTracker {
 }
 
 
-export class ScrollArea extends Component() {
+export class ScrollArea_Data {
+    readonly entity!: Entity;
+
     readonly area = new Rect();
     readonly content = new Rect();
 
@@ -111,7 +113,7 @@ export class ScrollArea extends Component() {
                 this.scrollStart.copyFrom(this.entity.get(Transform2D).pivot);
                 const pointer = this.entity.get(Interactive).pointer;
                 this.positionInitialGlobal.copyFrom(pointer);
-                Transform2D.globalToParent(this.entity, pointer, this.positionInitial);
+                Transform2D_Data.globalToParent(this.entity, pointer, this.positionInitial);
 
                 this.velocityTracker.start(this.scrollStart, Engine.current.time.total);
             });
@@ -120,6 +122,8 @@ export class ScrollArea extends Component() {
         }
     }
 }
+
+export const ScrollArea = new ComponentTypeA(ScrollArea_Data);
 
 const TEMP_RECT = new Rect();
 const TEMP_VEC2 = new Vec2();
@@ -155,7 +159,7 @@ export function updateScrollArea() {
         }
         if (scroll.down) {
             const worldPosition = scroll.entity.get(Interactive).pointer;
-            Transform2D.globalToParent(scroll.entity, worldPosition, scroll.positionLast);
+            Transform2D_Data.globalToParent(scroll.entity, worldPosition, scroll.positionLast);
 
             if (scroll.captured) {
                 const dx = scroll.positionLast.x - scroll.positionInitial.x;

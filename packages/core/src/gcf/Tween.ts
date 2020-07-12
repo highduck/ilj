@@ -1,8 +1,9 @@
 import {saturate} from "@highduck/math";
-import {Component, Entity, Signal, Time} from "..";
+import {ComponentTypeA, Entity, Signal, Time} from "..";
 import {getComponents} from "../ecs/World";
 
-export class Tween extends Component() {
+export class TweenData {
+    readonly entity!: Entity;
     delay = 0;
     time = 0;
     duration = 1;
@@ -33,15 +34,14 @@ export class Tween extends Component() {
     }
 }
 
-
-function handleEnd(tween: Tween) {
+function handleEnd(tween: TweenData) {
     tween.advanced.clear();
     if (tween.autoDestroy) {
         tween.entity.delete(Tween);
     }
 }
 
-function updateFrame(tween: Tween) {
+function updateFrame(tween: TweenData) {
     const t = saturate(tween.time / tween.duration);
     tween.advanced.emit(t);
 }
@@ -65,7 +65,9 @@ export function updateTweens() {
     }
 }
 
-export function resetTween(e: Entity): Tween {
+export const Tween = new ComponentTypeA(TweenData);
+
+export function resetTween(e: Entity): TweenData {
     const tween = e.getOrCreate(Tween);
     if (tween.time > 0 && tween.time < tween.duration) {
         tween.time = tween.duration;

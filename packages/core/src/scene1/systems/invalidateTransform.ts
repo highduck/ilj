@@ -1,13 +1,14 @@
-import {Transform2D} from "../display/Transform2D";
+import {Transform2D, Transform2D_Data} from "../display/Transform2D";
 import {Entity} from "../../ecs/Entity";
 import {Matrix2D} from "@highduck/math";
 
 export function invalidateTransform3() {
-    invalidateTransformSimple3(Entity.root, Transform2D.IDENTITY);
+    invalidateTransformSimple3(Entity.root, Transform2D_Data.IDENTITY);
 }
 
-function invalidateTransformSimple3(e: Entity, parent: Transform2D) {
-    let tr = e.components.get(Transform2D.COMP_ID) as (Transform2D | undefined);
+function invalidateTransformSimple3(e: Entity, parent: Transform2D_Data) {
+    let tr = e.components.get(Transform2D.id) as (Transform2D_Data | undefined);
+    // let tr = Transform2D.map.get(e.passport & 0xf);
     if (tr !== undefined) {
         tr.buildLocalMatrix();
         Matrix2D.multiply(parent.worldMatrix, tr.matrix, tr.worldMatrix);

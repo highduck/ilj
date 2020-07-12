@@ -1,28 +1,31 @@
 import {Vec2} from "@highduck/math";
-import {Component} from "@highduck/core";
+import {ComponentTypeA, createTagComponent} from "@highduck/core";
 
-export class Animation extends Component() {
-    // interface link
-    // animate(float dt);
-}
+export const Animation = createTagComponent();
+// interface link
+// animate(float dt);
 
-export class Asteroid extends Component() {
-}
+export const Asteroid = createTagComponent();
 
-export class Bullet extends Component() {
-}
+export const Bullet = createTagComponent();
 
-export class Collision extends Component() {
+export const Spaceship = createTagComponent();
+
+export class CollisionData {
     radius: number = 0.0;
 }
 
-export class GameState extends Component() {
+export const Collision = new ComponentTypeA(CollisionData);
+
+export class GameStateData {
     lives = 3;
     level = 0;
     points = 0;
 }
 
-export class Gun extends Component() {
+export const GameState = new ComponentTypeA(GameStateData);
+
+export class GunData {
     shooting = false;
     readonly offsetFromParent = new Vec2();
     timeSinceLastShot = 0.0;
@@ -43,11 +46,15 @@ export class Gun extends Component() {
     }
 }
 
-export class GunControls extends Component() {
+export const Gun = new ComponentTypeA(GunData);
+
+export class GunControlsData {
     trigger = "Space";
 }
 
-export class Motion extends Component() {
+export const GunControls = new ComponentTypeA(GunControlsData);
+
+export class MotionData {
     readonly velocity = new Vec2();
     angularVelocity = 0.0;
     damping = 0.0;
@@ -60,7 +67,9 @@ export class Motion extends Component() {
     }
 }
 
-export class MotionControl extends Component() {
+export const Motion = new ComponentTypeA(MotionData);
+
+export class MotionControlData {
     left = "ArrowLeft";
     right = "ArrowRight";
     accelerate = "ArrowUp";
@@ -68,5 +77,4 @@ export class MotionControl extends Component() {
     rotationRate = 0.0;
 }
 
-export class Spaceship extends Component() {
-}
+export const MotionControl = new ComponentTypeA(MotionControlData);

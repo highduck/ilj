@@ -1,22 +1,20 @@
-import {Component, Time, Transform2D} from "..";
+import {ComponentTypeA, Entity, Time, Transform2D} from "..";
 import {integrateExp, lerp, reach, Vec2} from "@highduck/math";
 import {getComponents} from "../ecs/World";
 
-export class CameraShaker extends Component() {
+export const CameraShaker = new ComponentTypeA(class {
+    readonly entity!: Entity;
+
     state = 0;
     maxRotation = 0.25;
     readonly maxOffset = new Vec2(8, 8);
     readonly maxScale = new Vec2(0.25, 0.25);
     timer = Time.GAME;
 
-    constructor() {
-        super();
-    }
-
     start(v: number = 1) {
         this.state = Math.max(v, this.state);
     }
-}
+});
 
 const TEMP_VEC2 = new Vec2();
 

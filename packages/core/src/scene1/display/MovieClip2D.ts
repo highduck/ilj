@@ -1,10 +1,10 @@
 import {Entity} from "../../ecs/Entity";
 import {Ani} from "../ani/Ani";
 import {AssetRef} from "../../util/Resources";
-import {Transform2D} from "./Transform2D";
+import {Transform2D, Transform2D_Data} from "./Transform2D";
 import {KeyframeJson, MovieJson} from "@highduck/anijson";
 import {Time} from "../../app/Time";
-import {Component} from "../..";
+import {ComponentTypeA} from "../..";
 
 // const cos = Math.cos;
 // const sin = Math.sin;
@@ -170,11 +170,15 @@ const N2_ZERO: [number, number] = [0, 0];
 const N4_ONE: [number, number, number, number] = [1, 1, 1, 1];
 const N4_ZERO: [number, number, number, number] = [0, 0, 0, 0];
 
-export class MovieClipTarget extends Component() {
+export class MovieClipTarget_Data {
     keyAnimation = 0;
 }
 
-export class MovieClip2D extends Component() {
+export const MovieClipTarget = new ComponentTypeA(MovieClipTarget_Data);
+
+export class MovieClip2D_Data {
+    readonly entity!: Entity;
+
     libraryAsset?: AssetRef<Ani>;
     movieDataSymbol?: string;
     data?: MovieJson;
@@ -236,7 +240,7 @@ export class MovieClip2D extends Component() {
         const totalTargets = data.t.length;
         let e = this.entity.childFirst;
         while (e !== undefined) {
-            const targetData = e.components.get(MovieClipTarget.COMP_ID) as MovieClipTarget | undefined;
+            const targetData = e.tryGet(MovieClipTarget);
             if (targetData !== undefined && targetData.keyAnimation < totalTargets) {
                 updateTarget(time, e, data.t[targetData.keyAnimation]);
             }
@@ -244,6 +248,8 @@ export class MovieClip2D extends Component() {
         }
     }
 }
+
+export const MovieClip2D = new ComponentTypeA(MovieClip2D_Data);
 
 function updateTarget(time: number, e: Entity, frames: KeyframeJson[]) {
     const ki = findKeyFrame(frames, time);
@@ -257,7 +263,7 @@ function updateTarget(time: number, e: Entity, frames: KeyframeJson[]) {
     const end = k1._[1];
     e.visible = k1.v ?? true;
 
-    const transform = e.components.get(Transform2D.COMP_ID) as Transform2D | undefined;
+    const transform = e.components.get(Transform2D.id) as Transform2D_Data | undefined;
     if (transform !== undefined) {
         const P = transform.position;
         const S = transform.scale;
@@ -322,7 +328,7 @@ function updateTarget(time: number, e: Entity, frames: KeyframeJson[]) {
     }
 
     if (k1.l !== undefined) {
-        const mc = e.components.get(MovieClip2D.COMP_ID) as MovieClip2D | undefined;
+        const mc = e.tryGet(MovieClip2D);
         if (mc !== undefined) {
             const loop = k1.l[0];
             if (loop === 0) {

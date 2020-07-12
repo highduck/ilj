@@ -1,10 +1,21 @@
 import {Signal} from "../../util/Signal";
 import {Cursor} from "../../app/GameView";
 import {Entity} from "../../ecs/Entity";
-import {Component, Component2} from "../../ecs/Component";
+import {_registerComponentType, newComponentID} from "../../ecs/Component";
 import {Vec2} from "@highduck/math";
+import {IntMap} from "../../ds/IntMap";
 
-export class Interactive extends Component() {
+export class Interactive {
+    static ctor = Interactive;
+    static id = newComponentID();
+
+    static new() {
+        return new Interactive();
+    }
+
+    static map = new IntMap<Interactive>();
+
+    readonly entity!: Entity;
 // class Interactive {
     // events
     readonly onOver = new Signal<Entity>();
@@ -51,3 +62,5 @@ export class Interactive extends Component() {
         this.onDown.emit(this.entity);
     }
 }
+
+_registerComponentType(Interactive);

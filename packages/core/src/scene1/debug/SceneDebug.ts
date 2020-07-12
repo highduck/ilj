@@ -1,13 +1,13 @@
 import {Entity} from "../../ecs/Entity";
 import {Drawer} from "../../drawer/Drawer";
 import {Engine} from "../../Engine";
-import {Transform2D} from "../display/Transform2D";
+import {Transform2D, Transform2D_Data} from "../display/Transform2D";
 import {Display2D} from "../display/Display2D";
 import {DisplaySystem} from "../display/DisplaySystem";
 import {Color32_ARGB, Color4, Matrix2D, Rect, transformRectMatrix2D, Vec2} from "@highduck/math";
 import {Camera2D} from "../display/Camera2D";
 import {Bounds2D} from "../display/Bounds2D";
-import {ComponentClass} from "../..";
+import {ComponentType} from "../..";
 
 const RECT_TMP = new Rect();
 const VEC2_TMPS = [new Vec2(), new Vec2(), new Vec2(), new Vec2()];
@@ -93,7 +93,7 @@ function debugDrawHitTarget(cameraRoot: Entity, drawer: Drawer) {
     drawBox(RECT_TMP, matrix, 0xFF000000, color);
 }
 
-function traverseSceneGraph<T extends object>(e: Entity, ctor: ComponentClass<T>, parentTransform: Transform2D, callback: (component: T, transform: Transform2D) => void) {
+function traverseSceneGraph<T extends object>(e: Entity, ctor: ComponentType<T>, parentTransform: Transform2D_Data, callback: (component: T, transform: Transform2D_Data) => void) {
     if (!e.visible) {
         return;
     }
@@ -124,7 +124,7 @@ function drawFills(e: Entity) {
     drawer.state.saveTransform();
     drawer.state.colorMultiplier.set(1, 1, 1, 0.25);
     drawer.state.colorOffset.set(0, 0, 0, 0);
-    traverseSceneGraph(e, Display2D, Transform2D.IDENTITY, (display, transform) => {
+    traverseSceneGraph(e, Display2D, Transform2D_Data.IDENTITY, (display, transform) => {
         const bounds = display.getBounds(RECT_TMP);
         if (!bounds.empty) {
             drawer.state.matrix.copyFrom(transform.worldMatrix);
@@ -140,9 +140,9 @@ function drawOcclusion(e: Entity) {
     drawer.state.setEmptyTexture();
     drawer.state.saveTransform();
     drawer.state.colorOffset.set(0, 0, 0, 0);
-    traverseSceneGraph(e, Bounds2D, Transform2D.IDENTITY, (bounds, transform) => {
+    traverseSceneGraph(e, Bounds2D, Transform2D_Data.IDENTITY, (bounds, transform) => {
         const worldRect = RECT_TMP;
-        transformRectMatrix2D(bounds.rc, transform.worldMatrix, worldRect);
+        transformRectMatrix2D(bounds, transform.worldMatrix, worldRect);
 
         const occluded = worldRect.right <= cameraRect.x || worldRect.x >= cameraRect.right ||
             worldRect.bottom <= cameraRect.y || worldRect.y >= cameraRect.bottom;
@@ -150,7 +150,7 @@ function drawOcclusion(e: Entity) {
         const worldColor = occluded ? 0x77FF0000 : 0x7700FF00;
         drawBox(worldRect, Matrix2D.IDENTITY, worldColor, worldColor, false);
         const boundsColor = occluded ? 0x77770000 : 0x77007700;
-        drawBox(bounds.rc, transform.worldMatrix, boundsColor, boundsColor, false);
+        drawBox(bounds, transform.worldMatrix, boundsColor, boundsColor, false);
     });
     drawer.state.restoreTransform();
 }

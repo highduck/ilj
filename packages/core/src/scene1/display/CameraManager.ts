@@ -2,9 +2,10 @@ import {Camera2D} from "./Camera2D";
 import {Engine} from "../../Engine";
 import {Matrix2D} from "@highduck/math";
 import {getComponents} from "../../ecs/World";
+import {TypeOfComponentData} from "../..";
 
 export class CameraManager {
-    readonly activeCameras: Camera2D[] = [];
+    readonly activeCameras: TypeOfComponentData<typeof Camera2D>[] = [];
 
     updateCameraStack() {
         const engine = Engine.current;

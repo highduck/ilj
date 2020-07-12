@@ -1,8 +1,8 @@
 import {FilterJson} from "@highduck/anijson";
-import {Component} from "../..";
+import {ComponentTypeA} from "../..";
 
-export class Filters2D extends Component() {
+export const Filters2D = new ComponentTypeA(class Data {
     enabled = true;
     processing = false;
     filters: FilterJson[] = [];
-}
+});

@@ -1,16 +1,17 @@
 import {Entity} from "../../ecs/Entity";
 import {Signal} from "../../util/Signal";
-import {getComponents} from "../../ecs/World";
-import {Component} from "../..";
+import {objs} from "../../ecs/World";
+import {ComponentTypeA} from "../..";
 
-export class FastScript extends Component() {
+export const FastScript = new ComponentTypeA(class {
     readonly updated = new Signal<Entity>();
-}
+});
 
 export function updateFastScripts() {
-    const scripts = getComponents(FastScript);
-    for (let i = 0; i < scripts.length; ++i) {
-        const script = scripts[i];
-        script.updated.emit(script.entity);
+    const components = FastScript.map.values;
+    const ids = FastScript.map.keys;
+
+    for (let i = 0; i < components.length; ++i) {
+        components[i].updated.emit(objs.get(ids[i])!);
     }
 }

@@ -1,6 +1,8 @@
 import {Rect} from "@highduck/math";
-import {Component} from "../..";
+import {ComponentTypeA} from "../..";
 
-export class Bounds2D extends Component() {
-    readonly rc = new Rect();
-}
+// export const Bounds2D = createClassComponent(class Bounds2D {
+//     readonly rc = new Rect();
+// });
+
+export const Bounds2D = new ComponentTypeA(Rect);

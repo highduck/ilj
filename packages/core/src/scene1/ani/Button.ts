@@ -1,7 +1,6 @@
 import {Signal} from "../../util/Signal";
 import {Color4, Vec2} from "@highduck/math";
-import {declTypeID} from "../../util/TypeID";
-import {Component} from "../..";
+import {ComponentTypeA} from "../..";
 
 export class ButtonSkin {
     sfxOver = "sfx/btn_over";
@@ -20,7 +19,7 @@ export class ButtonSkin {
     static classic = new ButtonSkin();
 }
 
-export class Button extends Component() {
+export class Button_Data {
     skin: ButtonSkin = ButtonSkin.classic;
     readonly clicked = new Signal();
 
@@ -42,3 +41,5 @@ export class Button extends Component() {
     //     return this;
     // }
 }
+
+export const Button = new ComponentTypeA(Button_Data);

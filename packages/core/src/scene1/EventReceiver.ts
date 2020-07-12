@@ -1,6 +1,6 @@
 import {SignalMap} from "../util/SignalMap";
 import {Entity} from "../ecs/Entity";
-import {Component} from "..";
+import {ComponentTypeA} from "..";
 
 export class EventData<T> {
     processed = false;
@@ -14,7 +14,7 @@ export class EventData<T> {
     }
 }
 
-export class EventReceiver extends Component() {
+export class EventReceiver_Data {
     readonly hub = new SignalMap<EventData<unknown>>();
 
     emit<T>(data: EventData<T>) {
@@ -22,6 +22,7 @@ export class EventReceiver extends Component() {
     }
 }
 
+export const EventReceiver = new ComponentTypeA(EventReceiver_Data);
 
 export function dispatchBroadcast<T>(e: Entity, data: EventData<T>) {
     const receiver = e.tryGet(EventReceiver);

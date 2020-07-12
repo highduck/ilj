@@ -1,9 +1,8 @@
 import {FunctionalComponent, h} from "preact";
-import {Entity} from "@highduck/core";
+import {_componentTypes, Entity} from "@highduck/core";
 import {BoolField} from "../fields/BoolField";
 import {COMPONENTS_CONFIG, ComponentViewConfig} from "./ComponentsConfig";
 import {ObjectEditor} from "./ObjectEditor";
-import {ComponentClass} from "@highduck/core";
 
 interface EntityInspectorProps {
     entity: undefined | Entity;
@@ -33,16 +32,18 @@ export const EntityInspector: FunctionalComponent<EntityInspectorProps> = (props
         <div>Layer Mask: 0x{e.layerMask.toString(16).toUpperCase()}</div>,
         <hr/>
     ];
-    for (let comp of e.components.values) {
-        const type = comp.constructor as ComponentClass;
-        const config = COMPONENTS_CONFIG.get(type);
-        let isOpen = openedSet.get(type.COMP_ID) ?? true;
+    for (let i = 0; i < e.components.size; ++i) {
+        const compID = e.components.keys[i];
+        const compData = e.components.values[i];
+        const compType = _componentTypes.get(compID)!;
+        const config = COMPONENTS_CONFIG.get(compType);
+        let isOpen = openedSet.get(compID) ?? true;
         const openerIcon = isOpen ? '▼' : '►';
-        const handleToggle = (ev: MouseEvent) => openedSet.set(type.COMP_ID, !isOpen);
-        const enabled = (comp as any).enabled;
+        const handleToggle = (ev: MouseEvent) => openedSet.set(compID, !isOpen);
+        const enabled = (compData as any).enabled;
         const handleEnabling = (ev: Event) => {
             if (enabled !== undefined) {
-                (comp as any).enabled = !enabled;
+                (compData as any).enabled = !enabled;
             }
             ev.stopImmediatePropagation();
         };
@@ -59,7 +60,7 @@ export const EntityInspector: FunctionalComponent<EntityInspectorProps> = (props
                        onInput={handleEnabling}
                 />
                 <span>{config && config.kind ? ("[" + config.kind + "] ") : ""}</span>
-                <b>{getComponentReadableName(comp, config)}</b>
+                <b>{getComponentReadableName(compData, config)}</b>
             </div>
         );
 
@@ -68,7 +69,7 @@ export const EntityInspector: FunctionalComponent<EntityInspectorProps> = (props
             els.push(<div style={{paddingLeft: "20px"}}>
                 {
                     h(viewClass, {
-                        data: comp,
+                        data: compData,
                         config: config
                     })
                 }

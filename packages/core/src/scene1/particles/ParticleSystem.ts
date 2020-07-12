@@ -1,18 +1,17 @@
-import {ParticleLayer} from "./ParticleLayer";
+import {ParticleLayer, ParticleLayer_Data} from "./ParticleLayer";
 import {ParticleEmitter} from "./ParticleEmitter";
 import {Particle} from "./Particle";
 import {EmitterData, ParticleDecl} from "./ParticleDecl";
 import {Entity} from "../../ecs/Entity";
-import {Transform2D} from "../display/Transform2D";
+import {Transform2D_Data} from "../display/Transform2D";
 import {Matrix2D, RndDefault, Vec2} from "@highduck/math";
-import {Engine} from "../../Engine";
 import {Resources} from "../..";
 import {getComponents} from "../../ecs/World";
 
 const TEMP_MATRIX_2D = new Matrix2D();
 const TEMP_VEC2_POS = new Vec2();
 
-export function findParticleLayer(e: Entity): ParticleLayer {
+export function findParticleLayer(e: Entity): ParticleLayer_Data {
     const emitter = e.tryGet(ParticleEmitter);
     if (emitter && emitter.layer) {
         e = emitter.layer;
@@ -20,7 +19,7 @@ export function findParticleLayer(e: Entity): ParticleLayer {
     return e.getOrCreate(ParticleLayer);
 }
 
-function addParticle(layer: ParticleLayer, particle?: Particle) {
+function addParticle(layer: ParticleLayer_Data, particle?: Particle) {
     if (particle) {
         layer.particles.primary.push(particle);
         particle.init();
@@ -52,14 +51,14 @@ function produceParticle(decl: ParticleDecl): Particle {
     return p;
 }
 
-export function spawnFromEmitter(src: Entity, layer: ParticleLayer, particle: ParticleDecl, data: EmitterData, count: number) {
+export function spawnFromEmitter(src: Entity, layer: ParticleLayer_Data, particle: ParticleDecl, data: EmitterData, count: number) {
     if (count <= 0) {
         return;
     }
     let a = data.dir.random();
-    Transform2D.updateLocalMatrixInTree(layer.entity);
-    Transform2D.updateLocalMatrixInTree(src);
-    Transform2D.getTransformationMatrix(src, layer.entity, TEMP_MATRIX_2D);
+    Transform2D_Data.updateLocalMatrixInTree(layer.entity);
+    Transform2D_Data.updateLocalMatrixInTree(src);
+    Transform2D_Data.getTransformationMatrix(src, layer.entity, TEMP_MATRIX_2D);
     while (count > 0) {
         const p = produceParticle(particle);
         addParticle(layer, p);
