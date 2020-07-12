@@ -2,8 +2,8 @@ import {Graphics} from "./Graphics";
 import {ProgramAttribute} from "./ProgramAttribute";
 import {ProgramUniform} from "./ProgramUniform";
 import {VERTEX_2D, VertexDecl} from "./VertexDecl";
-import {declTypeID} from "../util/TypeID";
 import {Color4, Matrix4, Rect, Vec2, Vec3, Vec4} from "@highduck/math";
+import {ResourceType} from "..";
 
 function checkShader(GL: WebGLRenderingContext, shader: WebGLShader, source: string): boolean {
     if (!GL.getShaderParameter(shader, GL.COMPILE_STATUS)) {
@@ -86,8 +86,6 @@ function disableVertexAttrib(GL: WebGLRenderingContext, loc: GLint): void {
 type UniformDataType = number | Matrix4 | Rect | Vec2 | Vec3 | Vec4 | Color4;
 
 export class Program {
-    static TYPE_ID = declTypeID();
-
     static current: Program | undefined;
     readonly vertex: VertexDecl;
 
@@ -266,3 +264,5 @@ export class Program {
         return this.uniforms.get(name) ?? null;
     }
 }
+
+export const ProgramResource = new ResourceType(Program);

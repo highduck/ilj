@@ -1,4 +1,4 @@
-import {Alignment, Engine, Font, Resources, TextFormat,} from "@highduck/core";
+import {Alignment, Engine, BitmapFont, BitmapFontResource, TextFormat} from "@highduck/core";
 import * as Easing from "@highduck/math";
 import {EaseFunction, Rect} from "@highduck/math";
 
@@ -19,7 +19,7 @@ class EaseFunc {
 
 export class EasingDemo {
 
-    font = Resources.get(Font, "Comfortaa-Regular");
+    font = BitmapFontResource.get("Comfortaa-Regular");
     tf = new TextFormat("Comfortaa-Regular", 16, Alignment.Center);
     cx: number = 0;
     cy: number = 0;
@@ -170,7 +170,7 @@ export class EasingDemo {
         }
     }
 
-    private drawNextText(fnt: Font, name: string) {
+    private drawNextText(fnt: BitmapFont, name: string) {
         const engine = Engine.current;
         const drawer = engine.drawer;
         drawer.state.saveMatrix().translate(this.cx, this.cy);

@@ -97,7 +97,7 @@ export class InteractiveManager {
             if (target.isValid) {
                 const interactive = target.tryGet(Interactive);
                 if (interactive && this.targetsPrev.indexOf(target) < 0) {
-                    interactive.firePointerOver();
+                    interactive.firePointerOver(target);
                 }
             }
         }
@@ -107,7 +107,7 @@ export class InteractiveManager {
             if (target.isValid) {
                 const interactive = target.tryGet(Interactive);
                 if (interactive && this.targetsCurr.indexOf(target) < 0) {
-                    interactive.firePointerOut();
+                    interactive.firePointerOut(target);
                 }
             }
         }
@@ -150,7 +150,7 @@ export class InteractiveManager {
             for (let i = 0; i < this.targetsPrev.length; ++i) {
                 const target = this.targetsPrev[i];
                 if (target.isValid) {
-                    target.tryGet(Interactive)?.firePointerDown();
+                    target.tryGet(Interactive)?.firePointerDown(target);
                 }
             }
         } else if (ev.type == "mouseup") {
@@ -159,7 +159,7 @@ export class InteractiveManager {
             for (let i = 0; i < this.targetsPrev.length; ++i) {
                 const target = this.targetsPrev[i];
                 if (target.isValid) {
-                    target.tryGet(Interactive)?.firePointerUp();
+                    target.tryGet(Interactive)?.firePointerUp(target);
                 }
             }
         } else if (ev.type == "mousemove") {
@@ -184,7 +184,7 @@ export class InteractiveManager {
                 for (let i = 0; i < this.targetsPrev.length; ++i) {
                     const target = this.targetsPrev[i];
                     if (target.isValid) {
-                        target.tryGet(Interactive)?.firePointerDown();
+                        target.tryGet(Interactive)?.firePointerDown(target);
                     }
                 }
             }
@@ -198,7 +198,7 @@ export class InteractiveManager {
                 for (let i = 0; i < this.targetsPrev.length; ++i) {
                     const target = this.targetsPrev[i];
                     if (target.isValid) {
-                        target.tryGet(Interactive)?.firePointerUp();
+                        target.tryGet(Interactive)?.firePointerUp(target);
                     }
                 }
             } else {

@@ -140,11 +140,11 @@ export class Entity {
     }
 
     /**** Hierarchy component (built-in) ****/
-    parent: Entity | undefined;
-    siblingNext: Entity | undefined;
-    siblingPrev: Entity | undefined;
-    childFirst: Entity | undefined;
-    childLast: Entity | undefined;
+    parent: Entity | undefined = undefined;
+    siblingNext: Entity | undefined = undefined;
+    siblingPrev: Entity | undefined = undefined;
+    childFirst: Entity | undefined = undefined;
+    childLast: Entity | undefined = undefined;
 
     getChildAt(index: number): Entity | undefined {
         let i = 0;

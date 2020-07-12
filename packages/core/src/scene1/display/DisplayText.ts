@@ -2,9 +2,8 @@ import {Display2D, Display2DComponent} from "./Display2D";
 import {TextFormat} from "../TextFormat";
 import {Rect} from "@highduck/math";
 import {Drawer} from "../../drawer/Drawer";
-import {Resources} from "../../util/Resources";
 import {getStringRepoVersion, parseString, renderString, StringToken} from "../../util/Texts";
-import {DynamicFont} from "../../rtfont/DynamicFont";
+import {FontResource} from "../../rtfont/Font";
 import {ComponentTypeA} from "../..";
 
 export class DisplayTextComponent extends Display2DComponent {
@@ -34,7 +33,7 @@ export class DisplayTextComponent extends Display2DComponent {
     draw(drawer: Drawer) {
         this.invalidateText();
         if (this._rendered.length > 0) {
-            const font = Resources.get(DynamicFont, this.format.font).data;
+            const font = FontResource.data(this.format.font);
             if (font !== undefined) {
                 font.drawText(this._rendered, this.format, this.rect);
             }
@@ -45,7 +44,7 @@ export class DisplayTextComponent extends Display2DComponent {
         out.set(0, 0, 0, 0);
         this.invalidateText();
         if (this._rendered.length > 0) {
-            const font = Resources.data(DynamicFont, this.format.font);
+            const font = FontResource.data(this.format.font);
             if (font !== undefined) {
                 font.textBounds(this._rendered, this.format, this.rect, out);
             }

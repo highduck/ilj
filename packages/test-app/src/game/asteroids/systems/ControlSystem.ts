@@ -2,10 +2,11 @@ import {Gun, GunControls, Motion, MotionControl} from "../components";
 import {ECS_query3, Engine, Time, Transform2D} from "@highduck/core";
 import {Vec2} from "@highduck/math";
 import {GameFactory} from "../factory";
+import {resolve} from "../../../../../core/src/util/Services";
 
 export class ControlSystem {
 
-    factory = this.engine.resolve(GameFactory);
+    factory = resolve(GameFactory);
 
     constructor(readonly engine: Engine) {
 

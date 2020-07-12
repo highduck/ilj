@@ -1,15 +1,14 @@
 import {Entity} from "../../ecs/Entity";
-import {Ani, findLinkageRef} from "./Ani";
+import {Ani, AniResource, findLinkageRef} from "./Ani";
 import {Transform2D} from "../display/Transform2D";
 import {DisplaySprite, DisplaySpriteComponent} from "../display/DisplaySprite";
 import {Display2D} from "../display/Display2D";
-import {Sprite} from "../Sprite";
+import {SpriteResource} from "../Sprite";
 import {Matrix2D, Rect} from "@highduck/math";
 import {DisplayText} from "../display/DisplayText";
 import {MovieClip2D, MovieClipTarget} from "../display/MovieClip2D";
 import {Interactive} from "./Interactive";
 import {Button} from "./Button";
-import {Resources} from "../../util/Resources";
 import {NodeJson} from "@highduck/anijson";
 
 export class AniFactory {
@@ -90,7 +89,7 @@ export class AniFactory {
 
         if (data.spr && !sprite) {
             sprite = entity.set(DisplaySprite);
-            sprite.sprite = Resources.get(Sprite, data.spr);
+            sprite.sprite = SpriteResource.get(data.spr);
             if (data.scaleGrid) {
                 sprite.scaleGrid = new Rect();
                 sprite.scaleGrid.setTuple(data.scaleGrid);
@@ -134,7 +133,7 @@ export class AniFactory {
 
     extendBounds(file: Ani, data: NodeJson, bounds: Rect, matrix: Matrix2D) {
         // if (data.spr) {
-        //     const spr = Resources.get(Sprite, data.spr).data;
+        //     const spr = SpriteResource.get(data.spr).data;
         //     if (spr) {
         //         // TODO:
         //         // bounds = combine(bounds, points_box(
@@ -180,32 +179,31 @@ export class AniFactory {
     }
 
     createScene(library: string, index: number = 0): Entity | undefined {
-        const asset = Resources.get(Ani, library);
-        if (asset.data !== undefined) {
-            const scenes = asset.data.json.scenes;
+        const data = AniResource.data(library);
+        if (data !== undefined) {
+            const scenes = data.json.scenes;
             const ids = Object.keys(scenes);
             const sceneId = ids[index % ids.length];
             console.log(sceneId);
             const libraryName = scenes[sceneId];
             console.log(libraryName);
-            return this.createFromAni(asset.data, libraryName);
+            return this.createFromAni(data, libraryName);
         }
         console.warn(`SG not found: ${library}`);
         return undefined;
     }
 
     createFromLibrary(library: string, path: string): Entity | undefined {
-        const asset = Resources.get(Ani, library);
-        if (asset.data !== undefined) {
-            return this.createFromAni(asset.data, path);
+        const data = AniResource.data(library);
+        if (data !== undefined) {
+            return this.createFromAni(data, path);
         }
         console.warn(`SG not found: ${library}`);
         return undefined;
     }
 
     getBounds(library: string, name: string): Rect {
-        const asset = Resources.get(Ani, library);
-        const file = asset.data;
+        const file = AniResource.data(library);
         if (file) {
             const data = file.get(name);
             if (data) {

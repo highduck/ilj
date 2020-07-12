@@ -2,6 +2,8 @@ export * from './ecs/Component';
 export * from './ecs/Entity';
 export * from './ecs/World';
 
+export * from './util/Resources';
+export * from './util/Services';
 export * from './Engine';
 
 export * from './util/assert';
@@ -11,27 +13,14 @@ export * from './util/Disposable';
 export * from './util/initCanvas';
 export * from './util/load';
 export * from './util/ObservableValue';
-export * from './util/Resources';
 export * from './util/Signal';
 export * from './util/SignalMap';
 export * from './util/Texts';
 export * from './util/Timer';
-export * from './util/TypeID';
 
 export * from './app/Time';
 export * from './app/GameView';
 export * from './app/InputState';
-
-export * from './util/delay';
-export * from './util/awaitDocument';
-export * from './util/assert';
-export * from './util/TypeID';
-export * from './util/Resources';
-export * from './util/Texts';
-export * from './util/Signal';
-export * from './util/SignalMap';
-export * from './util/ObservableValue';
-
 
 export * from './scene1/particles/TrailRenderer';
 export * from './scene1/particles/Trail';
@@ -63,10 +52,10 @@ export * from './scene1/extra/FastScript';
 export * from './scene1/extra/EntityAge';
 export * from './scene1/extra/TargetFollow';
 
-export * from './scene1/Font';
+export * from './scene1/BitmapFont';
 
-export * from './rtfont/DynamicFont';
-export * from './rtfont/DynamicFontAtlas';
+export * from './rtfont/Font';
+export * from './rtfont/FontAtlas';
 
 export * from './scene1/TextFormat';
 export * from './graphics/Texture';

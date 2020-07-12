@@ -1,10 +1,9 @@
 import {Engine} from "../Engine";
-import {Texture} from "../graphics/Texture";
+import {Texture, TextureResource} from "../graphics/Texture";
 import {Disposable} from "../util/Disposable";
-import {AssetRef, Resources} from "../util/Resources";
-import {Sprite} from "./Sprite";
+import {AssetRef, ResourceType} from "../util/Resources";
+import {Sprite, SpriteResource} from "./Sprite";
 import {loadJSON} from "../util/load";
-import {declTypeID} from "../util/TypeID";
 import {Rect} from "@highduck/math";
 import {AtlasJson, SpriteFlag} from "@highduck/anijson";
 import {destroyCanvas, destroyImage, loadImage, loadSplitAlpha} from "../util/loadImage";
@@ -47,8 +46,6 @@ function getScaleSuffix(scale: number): string {
 }
 
 export class Atlas implements Disposable {
-    static TYPE_ID = declTypeID();
-
     static async load(engine: Engine, path: string, scale: number): Promise<Atlas | undefined> {
         const uid = path;
         const scaleSuffix = getScaleSuffix(scale);
@@ -79,7 +76,7 @@ export class Atlas implements Disposable {
         console.debug("Atlas Base Path: ", basePath);
 
         for (const page of meta.pages) {
-            const textureAsset = Resources.get(Texture, page.img);
+            const textureAsset = TextureResource.get(page.img);
             this.pages.push(textureAsset);
             for (const id of Object.keys(page.sprites)) {
                 const data = page.sprites[id];
@@ -87,7 +84,7 @@ export class Atlas implements Disposable {
                 sprite.rect.readFromArray(data, 0);
                 sprite.tex.readFromArray(data, 4);
 
-                const assetSprite = Resources.get(Sprite, id);
+                const assetSprite = SpriteResource.get(id);
                 assetSprite.reset(sprite);
                 this.sprites.set(id, assetSprite);
             }
@@ -116,7 +113,9 @@ export class Atlas implements Disposable {
                 destroyCanvas(canvas);
             }
             // await texture.loadBasis(atlasPagePath.replace('.png', '.basis'));
-            Resources.reset(Texture, page.img, texture);
+            TextureResource.reset(page.img, texture);
         }
     }
 }
+
+export const AtlasResource = new ResourceType(Atlas);

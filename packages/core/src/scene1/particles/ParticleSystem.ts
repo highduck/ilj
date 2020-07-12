@@ -1,11 +1,10 @@
 import {ParticleLayer, ParticleLayer_Data} from "./ParticleLayer";
 import {ParticleEmitter} from "./ParticleEmitter";
 import {Particle} from "./Particle";
-import {EmitterData, ParticleDecl} from "./ParticleDecl";
+import {EmitterData, ParticleDecl, ParticleDeclResource} from "./ParticleDecl";
 import {Entity} from "../../ecs/Entity";
 import {Transform2D_Data} from "../display/Transform2D";
 import {Matrix2D, RndDefault, Vec2} from "@highduck/math";
-import {Resources} from "../..";
 import {getComponents} from "../../ecs/World";
 
 const TEMP_MATRIX_2D = new Matrix2D();
@@ -88,8 +87,8 @@ export function spawnFromEmitter(src: Entity, layer: ParticleLayer_Data, particl
     }
 }
 
-export function spawnParticle(e: Entity, particle_id: string): Particle | undefined {
-    const decl = Resources.data(ParticleDecl, particle_id);
+export function spawnParticle(e: Entity, particleID: string): Particle | undefined {
+    const decl = ParticleDeclResource.data(particleID);
     if (decl) {
         const p = produceParticle(decl);
         const to_layer = e.getOrCreate(ParticleLayer);

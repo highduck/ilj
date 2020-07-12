@@ -1,8 +1,7 @@
 import {Display2D, Display2DComponent} from "./Display2D";
 import {Color32_ARGB, Rect} from "@highduck/math";
 import {Drawer} from "../../drawer/Drawer";
-import {Sprite} from "../Sprite";
-import {Resources} from "../../util/Resources";
+import {SpriteResource} from "../Sprite";
 import {ComponentTypeA} from "../..";
 
 const TEMP_RECT = new Rect();
@@ -23,7 +22,7 @@ export class DisplayArcComponent extends Display2DComponent {
 
     draw(drawer: Drawer) {
         if (this.sprite) {
-            const spr = Resources.get(Sprite, this.sprite).data;
+            const spr = SpriteResource.get(this.sprite).data;
             if (spr && spr.texture.data) {
                 TEMP_RECT.set(spr.tex.centerX, spr.tex.y, 0, spr.tex.height);
                 drawer.state.setTextureRegion(spr.texture.data, TEMP_RECT);

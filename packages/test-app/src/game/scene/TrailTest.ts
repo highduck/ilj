@@ -1,15 +1,15 @@
 import {
-    ParticleRenderer,
     EmitterData,
     Engine,
     Entity,
     ParticleAlphaMode,
     ParticleDecl,
+    ParticleDeclResource,
     ParticleEmitter,
     ParticleLayer,
+    ParticleRenderer,
     ParticleScaleMode,
-    Resources,
-    Sprite,
+    SpriteResource,
     TargetFollow,
     Trail,
     TrailRenderer,
@@ -18,7 +18,7 @@ import {
 
 function initDustParticles(engine: Engine): ParticleDecl {
     const decl = new ParticleDecl();
-    decl.sprite = Resources.get(Sprite, "old/rect");
+    decl.sprite = SpriteResource.get("old/rect");
     decl.alphaMode = ParticleAlphaMode.LifeSine;
     decl.angleVelocityFactor = 0.3;
     decl.scaleMode = ParticleScaleMode.Range;
@@ -29,7 +29,7 @@ function initDustParticles(engine: Engine): ParticleDecl {
     decl.scaleEnd.range(0.2, 0.7);
     decl.colorOffset.a = 1;
     decl.alphaStart.range(0.2, 0.5);
-    Resources.get(ParticleDecl, "dust").reset(decl);
+    ParticleDeclResource.reset("dust", decl);
     return decl;
 }
 
@@ -63,7 +63,7 @@ export class TrailDemo {
 
         const emitter = this.mouse.set(ParticleEmitter);
         emitter.data = new EmitterData();
-        emitter.data.particle = Resources.get(ParticleDecl, "dust");
+        emitter.data.particle = ParticleDeclResource.get("dust");
         emitter.data.interval = 0.01;
         emitter.data.burst = 10;
         // emitter.data.rect = screen_rect;

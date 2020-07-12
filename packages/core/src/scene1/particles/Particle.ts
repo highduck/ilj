@@ -3,14 +3,14 @@ import {Color4, lerp, quadOut, Rect, saturate} from "@highduck/math";
 import {AssetRef} from "../../util/Resources";
 import {Sprite} from "../Sprite";
 import {Drawer} from "../../drawer/Drawer";
-import {DynamicFont} from "../../rtfont/DynamicFont";
+import {Font} from "../../rtfont/Font";
 
 const RECT_TEMP = new Rect();
 
 export class Particle {
     sprite: AssetRef<Sprite> = AssetRef.NONE;
     text?: string;
-    font?: AssetRef<DynamicFont>;
+    font?: AssetRef<Font>;
     fontSize = 0;
     // pivot
     px = 0.0;

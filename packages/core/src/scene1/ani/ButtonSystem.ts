@@ -1,7 +1,7 @@
 import {Button, Button_Data, ButtonSkin} from "./Button";
 import {Transform2D, Transform2D_Data} from "../display/Transform2D";
 import {Entity} from "../../ecs/Entity";
-import {Interactive} from "./Interactive";
+import {Interactive, InteractiveComponent} from "./Interactive";
 import {MovieClip2D, MovieClip2D_Data} from "../display/MovieClip2D";
 import {Cursor} from "../../app/GameView";
 import {Color4, reach, reachDelta} from "@highduck/math";
@@ -9,7 +9,7 @@ import {Engine} from "../../Engine";
 import {EventData, EventReceiver} from "../EventReceiver";
 import {InteractiveManagerEvent} from "./InteractiveManager";
 import {Time} from "../../app/Time";
-import {getComponents} from "../../ecs/World";
+import {objs} from "../../ecs/World";
 
 function initBaseTransform(btn: Button_Data, transform: Transform2D_Data) {
     btn.baseColorMultiplier.copyFrom(transform.colorMultiplier);
@@ -81,6 +81,7 @@ function initEvents(e: Entity) {
     interactive.onOut.on(onOut);
     interactive.onDown.on(onDown);
     interactive.onClicked.on(onClicked);
+    interactive.cursor = Cursor.Button;
     e.getOrCreate(EventReceiver).hub.on(InteractiveManagerEvent.BackButton, onBackButton);
 }
 
@@ -105,7 +106,7 @@ function applySkin(skin: ButtonSkin, btn: Button_Data, transform: Transform2D_Da
     transform.scale.y = btn.baseScale.y * sy;
 }
 
-function updateMovieFrame(mc: MovieClip2D_Data, interactive: Interactive) {
+function updateMovieFrame(mc: MovieClip2D_Data, interactive: InteractiveComponent) {
     let frame = 0;
     if (interactive.over || interactive.pushed) {
         frame = 1;
@@ -116,52 +117,45 @@ function updateMovieFrame(mc: MovieClip2D_Data, interactive: Interactive) {
     mc.gotoAndStop(frame);
 }
 
-export class ButtonSystem {
-    constructor(readonly engine: Engine) {
-    }
-
-    process() {
-        const dt = Time.UI.dt;
-        const components = getComponents(Interactive);
-        for (let i = 0; i < components.length; ++i) {
-            const interactive = components[i];
-            const e = interactive.entity;
-            const btn = e.tryGet(Button);
-            if (btn === undefined) {
-                continue;
-            }
-            const transform = e.tryGet(Transform2D);
-            if (!btn.initialized) {
-                btn.initialized = true;
-                interactive.cursor = Cursor.Button;
-                if (transform !== undefined) {
-                    initBaseTransform(btn, transform);
-                }
-                initEvents(e);
-            }
-            const skin = btn.skin;
-
-            btn.timeOver = reachDelta(btn.timeOver,
-                interactive.over ? 1.0 : 0.0,
-                dt * skin.overSpeedForward,
-                -dt * skin.overSpeedBackward);
-
-            btn.timePush = reachDelta(btn.timePush,
-                interactive.pushed ? 1.0 : 0.0,
-                dt * skin.pushSpeedForward,
-                -dt * skin.pushSpeedBackward);
-
-            btn.timePost = reach(btn.timePost, 0.0, 2.0 * dt);
-
+export function updateButtons() {
+    const dt = Time.UI.dt;
+    const entities = Button.map.keys;
+    const buttons = Button.map.values;
+    const interactives = Interactive.map;
+    const transforms = Transform2D.map;
+    for (let i = 0; i < buttons.length; ++i) {
+        const ei = entities[i];
+        const btn = buttons[i];
+        const transform = transforms.get(ei);
+        if (!btn.initialized) {
+            btn.initialized = true;
             if (transform !== undefined) {
-                applySkin(skin, btn, transform);
+                initBaseTransform(btn, transform);
             }
+            initEvents(objs.get(ei)!);
+        }
+        const interactive = interactives.get(ei)!;
+        const skin = btn.skin;
+        btn.timeOver = reachDelta(btn.timeOver,
+            interactive.over ? 1.0 : 0.0,
+            dt * skin.overSpeedForward,
+            -dt * skin.overSpeedBackward);
 
-            if (btn.movieFrames) {
-                const mc = e.tryGet(MovieClip2D);
-                if (mc !== undefined) {
-                    updateMovieFrame(mc, interactive);
-                }
+        btn.timePush = reachDelta(btn.timePush,
+            interactive.pushed ? 1.0 : 0.0,
+            dt * skin.pushSpeedForward,
+            -dt * skin.pushSpeedBackward);
+
+        btn.timePost = reach(btn.timePost, 0.0, 2.0 * dt);
+
+        if (transform !== undefined) {
+            applySkin(skin, btn, transform);
+        }
+
+        if (btn.movieFrames) {
+            const mc = MovieClip2D.map.get(ei);
+            if (mc !== undefined) {
+                updateMovieFrame(mc, interactive);
             }
         }
     }

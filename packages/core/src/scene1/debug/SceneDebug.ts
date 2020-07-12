@@ -5,15 +5,15 @@ import {Transform2D, Transform2D_Data} from "../display/Transform2D";
 import {Display2D} from "../display/Display2D";
 import {DisplaySystem} from "../display/DisplaySystem";
 import {Color32_ARGB, Color4, Matrix2D, Rect, transformRectMatrix2D, Vec2} from "@highduck/math";
-import {Camera2D} from "../display/Camera2D";
+import {Camera2DComponent} from "../display/Camera2D";
 import {Bounds2D} from "../display/Bounds2D";
 import {ComponentType} from "../..";
 
 const RECT_TMP = new Rect();
 const VEC2_TMPS = [new Vec2(), new Vec2(), new Vec2(), new Vec2()];
 
-export function drawCameraDebugGizmos(camera: Camera2D) {
-    const root = camera.root ?? Entity.root;
+export function drawCameraDebugGizmos(camera: Camera2DComponent) {
+    const root = camera.root;
     const drawer = Engine.current.drawer;
     drawer.state.matrix.copyFrom(Matrix2D.IDENTITY);
     drawer.state.colorMultiplier.copyFrom(Color4.ONE);
@@ -35,7 +35,7 @@ export function drawCameraDebugGizmos(camera: Camera2D) {
     }
 }
 
-function debugDrawPointer(camera: Camera2D) {
+function debugDrawPointer(camera: Camera2DComponent) {
     const engine = Engine.current;
     const v = VEC2_TMPS[0];
     const ptr = engine.interactiveManager.pointerScreenSpace;
@@ -155,7 +155,7 @@ function drawOcclusion(e: Entity) {
     drawer.state.restoreTransform();
 }
 
-function debugCameraGizmo(camera: Camera2D, drawer: Drawer) {
+function debugCameraGizmo(camera: Camera2DComponent, drawer: Drawer) {
     RECT_TMP.copyFrom(camera.worldRect);
     RECT_TMP.expand(-10, -10);
     drawBox(RECT_TMP, Matrix2D.IDENTITY, 0xFFFFFFFF, 0xFF000000);

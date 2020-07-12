@@ -3,29 +3,27 @@ import {Graphics} from "./graphics/Graphics";
 import {Drawer} from "./drawer/Drawer";
 import {Batcher} from "./drawer/Batcher";
 import {Signal} from "./util/Signal";
-import {Resources} from "./util/Resources";
 import {InputState} from "./app/InputState";
 import {Rect, Vec2} from "@highduck/math";
 import {InteractiveManager} from "./scene1/ani/InteractiveManager";
 import {DisplaySystem} from "./scene1/display/DisplaySystem";
 import {Transform2D} from "./scene1/display/Transform2D";
-import {ButtonSystem} from "./scene1/ani/ButtonSystem";
+import {updateButtons} from "./scene1/ani/ButtonSystem";
 import {Entity} from "./ecs/Entity";
 import {updateMovieClips} from "./scene1/display/MovieClipSystem";
 import {updateParticleEmitters, updateParticleSystems} from "./scene1/particles/ParticleSystem";
-import {Constructor, ConstructorWithID, getTypeID} from "./util/TypeID";
 import {AniFactory} from "./scene1/ani/AniFactory";
 import {updateTrails} from "./scene1/particles/TrailUpdateSystem";
 import {updateTargetFollow} from "./scene1/extra/TargetFollow";
 import {initCanvas} from "./util/initCanvas";
-import {Texture} from "./graphics/Texture";
-import {Program} from "./graphics/Program";
+import {TextureResource} from "./graphics/Texture";
+import {ProgramResource} from "./graphics/Program";
 import {createEmptyTexture} from "./graphics/util/createEmptyTexture";
 import {createProgram2D} from "./graphics/util/createProgram2D";
 import {AudioMan} from "./scene1/AudioMan";
 import {processEntityAge} from "./scene1/extra/EntityAge";
 import {updateFastScripts} from "./scene1/extra/FastScript";
-import {updateDynamicFonts} from "./rtfont/DynamicFontAtlas";
+import {updateFonts} from "./rtfont/FontAtlas";
 import {LayoutData} from "./scene1/extra/Layout";
 import {updateLayout} from "./scene1/extra/LayoutSystem";
 import {awaitDocument} from "./util/awaitDocument";
@@ -68,7 +66,6 @@ export class Engine {
     readonly cameraManager: CameraManager;
     readonly displaySystem: DisplaySystem;
     readonly interactiveManager: InteractiveManager;
-    readonly buttonSystem: ButtonSystem;
     readonly aniFactory: AniFactory;
     readonly audio: AudioMan;
 
@@ -93,8 +90,10 @@ export class Engine {
         this.input = new InputState(this.view.canvas);
         this.input.dpr = this.view.dpr;
 
-        Resources.reset(Texture, "empty", createEmptyTexture(this.graphics));
-        Resources.reset(Program, "2d", createProgram2D(this.graphics));
+        // Resources.reset(Texture, "empty", createEmptyTexture(this.graphics));
+        // Resources.reset(Program, "2d", createProgram2D(this.graphics));
+        TextureResource.reset("empty", createEmptyTexture(this.graphics));
+        ProgramResource.reset("2d", createProgram2D(this.graphics));
 
         this.batcher = new Batcher(this.graphics);
         this.drawer = new Drawer(this.batcher);
@@ -105,7 +104,6 @@ export class Engine {
         Entity.root.getOrCreate(Transform2D);
         this.interactiveManager = new InteractiveManager(this);
         this.displaySystem = new DisplaySystem(this);
-        this.buttonSystem = new ButtonSystem(this);
         this.aniFactory = new AniFactory();
         this.cameraManager = new CameraManager();
 
@@ -135,7 +133,7 @@ export class Engine {
         // this.statsGraph.draw();
         this.drawer.end();
 
-        updateDynamicFonts();
+        updateFonts();
 
         //this.graphics.end();
     }
@@ -151,7 +149,7 @@ export class Engine {
 
         this.interactiveManager.process();
         updateTargetFollow();
-        this.buttonSystem.process();
+        updateButtons();
 
         this.onUpdate.emit(this.time.delta);
 
@@ -182,22 +180,6 @@ export class Engine {
         processEntityAge();
         this.input.update(this.view.dpr);
         this.frameCompleted.emit();
-    }
-
-    // locator
-    readonly services = new Map<number, object>();
-
-    register(instance: object) {
-        this.services.set(getTypeID(instance.constructor as ConstructorWithID), instance);
-    }
-
-    resolve<T extends object>(ctor: Constructor<T>): T {
-        const id = getTypeID(ctor);
-        const obj = this.services.get(id);
-        if (obj !== undefined) {
-            return obj as T;
-        }
-        throw `${id} not found`;
     }
 
     start() {

@@ -5,6 +5,7 @@ import {MovementSystem} from "./systems/MovementSystem";
 import {ControlSystem} from "./systems/ControlSystem";
 import {CollisionSystem} from "./systems/CollisionSystem";
 import {Engine, Entity} from "@highduck/core";
+import {register} from "../../../../core/src/util/Services";
 
 export class Asteroids {
 
@@ -21,7 +22,7 @@ export class Asteroids {
         this.base = Entity.root.create("Asteroids Demo");
 
         this.factory = new GameFactory(this.base);
-        engine.register(this.factory);
+        register(this.factory);
 
         this.gameSystem = new GameSystem(this.factory);
         this.movement = new MovementSystem(this.base);

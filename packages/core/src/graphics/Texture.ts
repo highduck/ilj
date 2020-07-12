@@ -1,6 +1,6 @@
 import {Graphics} from "./Graphics";
-import {declTypeID} from "../util/TypeID";
 import {Rect, Vec2} from "@highduck/math";
+import {ResourceType} from "..";
 
 const enum TextureType {
     Color32,
@@ -42,8 +42,6 @@ function setupEnd(GL: WebGLRenderingContext, target: GLenum, mipmapFiltering: bo
 }
 
 export class Texture {
-    static TYPE_ID = declTypeID();
-
     target: GLenum;
     texture: WebGLTexture;
     type: TextureType = TextureType.Color32;
@@ -111,7 +109,7 @@ export class Texture {
 
     upload(source: TexImageSource, premultiply: boolean = true) {
         const GL = this.graphics.gl;
-        if(premultiply) {
+        if (premultiply) {
             GL.pixelStorei(GL.UNPACK_PREMULTIPLY_ALPHA_WEBGL, 1);
         }
         setupBegin(GL, this.target, this.texture);
@@ -126,7 +124,7 @@ export class Texture {
 
         setupEnd(GL, this.target, this.hasMipMap);
 
-        if(premultiply) {
+        if (premultiply) {
             GL.pixelStorei(GL.UNPACK_PREMULTIPLY_ALPHA_WEBGL, 0);
         }
     }
@@ -207,3 +205,5 @@ export class Texture {
     //     setupEnd(GL, this.target, this.hasMipMap);
     // }
 }
+
+export const TextureResource = new ResourceType(Texture);

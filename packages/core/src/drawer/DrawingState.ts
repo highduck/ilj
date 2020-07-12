@@ -1,6 +1,6 @@
 import {BlendMode} from "../graphics/BlendMode";
-import {Program} from "../graphics/Program";
-import {Texture} from "../graphics/Texture";
+import {Program, ProgramResource} from "../graphics/Program";
+import {Texture, TextureResource} from "../graphics/Texture";
 import {
     Color32_ABGR_PMA,
     Color32_ARGB,
@@ -12,7 +12,6 @@ import {
     Rect,
     Vec2
 } from "@highduck/math";
-import {Resources} from "../util/Resources";
 import {assert} from "../util/assert";
 
 const vec4Multiply3Add4From32 = (v1: Color4, v2: Color4, offset32: Color32_ARGB) => {
@@ -35,8 +34,8 @@ export const enum CheckFlag {
 }
 
 export class DrawingState {
-    readonly defaultProgram: Program;
-    readonly defaultTexture: Texture;
+    readonly defaultProgram = ProgramResource.require("2d");
+    readonly defaultTexture = TextureResource.require("empty");
 
     // transform states
     readonly canvas = new Rect();
@@ -85,8 +84,6 @@ export class DrawingState {
     checkFlags: CheckFlag = 0;
 
     constructor() {
-        this.defaultProgram = Resources.require(Program, "2d");
-        this.defaultTexture = Resources.require(Texture, "empty");
     }
 
     finish() {

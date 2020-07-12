@@ -1,7 +1,6 @@
 import {Engine} from "../Engine";
 import {Texture} from "../graphics/Texture";
-import {Resources} from "../util/Resources";
-import {DynamicFont} from "../rtfont/DynamicFont";
+import {FontResource} from "./Font";
 
 const SPACE_REGEX = /\s/gm;
 const SPACE_CODE = ' '.charCodeAt(0);
@@ -24,22 +23,16 @@ export interface CharacterData {
     dv: number;
 }
 
-export function updateDynamicFonts() {
-    const objects = Resources.objects(DynamicFont);
-    if (objects === undefined) {
-        return;
-    }
+export function updateFonts() {
+    const objects = FontResource.map.values;
     for (let i = 0; i < objects.length; ++i) {
         const font = objects[i].data;
         font !== undefined && font.atlas.dirty && font.atlas.updateTexture();
     }
 }
 
-export function resetDynamicFonts() {
-    const objects = Resources.objects(DynamicFont);
-    if (objects === undefined) {
-        return;
-    }
+export function resetFonts() {
+    const objects = FontResource.map.values;
     for (let i = 0; i < objects.length; ++i) {
         const font = objects[i].data;
         font !== undefined && font.atlas.dirty && font.atlas.resetSheet('');
@@ -56,7 +49,7 @@ const CHAR_BOUNDING_BOX = {
     descent: 0
 };
 
-export class DynamicFontAtlas {
+export class FontAtlas {
 
     canvas!: HTMLCanvasElement;
     ctx!: CanvasRenderingContext2D;
@@ -298,7 +291,6 @@ export class DynamicFontAtlas {
         this.addCharacter(code);
         return this.characterMap.get(code)!;
     }
-
 
     private setupContext() {
         this.canvas.width = this.sheetWidth;

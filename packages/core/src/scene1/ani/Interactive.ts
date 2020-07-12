@@ -1,23 +1,10 @@
 import {Signal} from "../../util/Signal";
 import {Cursor} from "../../app/GameView";
 import {Entity} from "../../ecs/Entity";
-import {_registerComponentType, newComponentID} from "../../ecs/Component";
+import {ComponentTypeA} from "../../ecs/Component";
 import {Vec2} from "@highduck/math";
-import {IntMap} from "../../ds/IntMap";
 
-export class Interactive {
-    static ctor = Interactive;
-    static id = newComponentID();
-
-    static new() {
-        return new Interactive();
-    }
-
-    static map = new IntMap<Interactive>();
-
-    readonly entity!: Entity;
-// class Interactive {
-    // events
+export class InteractiveComponent {
     readonly onOver = new Signal<Entity>();
     readonly onOut = new Signal<Entity>();
     readonly onDown = new Signal<Entity>();
@@ -36,31 +23,31 @@ export class Interactive {
     // World-space pointer (or camera-root space)
     readonly pointer = new Vec2();
 
-    firePointerOut() {
-        this.onOut.emit(this.entity);
+    firePointerOut(target: Entity) {
+        this.onOut.emit(target);
         this.over = false;
         this.pushed = false;
     }
 
-    firePointerOver() {
+    firePointerOver(target: Entity) {
         this.over = true;
-        this.onOver.emit(this.entity);
+        this.onOver.emit(target);
     }
 
-    firePointerUp() {
+    firePointerUp(target: Entity) {
         const shouldBeClicked = this.pushed && this.over;
         this.pushed = false;
-        this.onUp.emit(this.entity);
+        this.onUp.emit(target);
 
         if (shouldBeClicked) {
-            this.onClicked.emit(this.entity);
+            this.onClicked.emit(target);
         }
     }
 
-    firePointerDown() {
+    firePointerDown(target: Entity) {
         this.pushed = true;
-        this.onDown.emit(this.entity);
+        this.onDown.emit(target);
     }
 }
 
-_registerComponentType(Interactive);
+export const Interactive = new ComponentTypeA(InteractiveComponent);

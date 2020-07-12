@@ -1,15 +1,15 @@
 import {Color4, Matrix2D, Rect, Vec2} from "@highduck/math";
 import {Entity} from "../../ecs/Entity";
 import {Transform2D} from "./Transform2D";
-import {createClassComponent, TypeOfComponentData} from "../..";
+import {ComponentTypeA, createClassComponent, TypeOfComponentData} from "../..";
 
-export const Camera2D = createClassComponent(class {
+export class Camera2DComponent {
     entity!: Entity;
 
     enabled = true;
     order = 0;
 
-    root: Entity = Entity.root;
+    root = Entity.root;
     contentScale = 1;
     clearColorEnabled = false;
     readonly clearColor = new Color4();
@@ -43,7 +43,6 @@ export const Camera2D = createClassComponent(class {
             -screen.y - this.relativeOrigin.y * screen.height
         );
     }
-    static DD:number = 1;
-});
+}
 
-export type Camera2D = TypeOfComponentData<typeof Camera2D>;
+export const Camera2D = new ComponentTypeA(Camera2DComponent);

@@ -4,6 +4,7 @@ import {BoolField} from "./fields/BoolField";
 import {ActionField} from "./fields/ActionField";
 import {NumberField} from "./fields/NumberField";
 import {ObjectEditor} from "./inspector/ObjectEditor";
+import {_services} from "@highduck/core";
 
 export const StatsView: FunctionalComponent<{}> = (props: {}) => {
     const engine = Engine.current;
@@ -18,7 +19,7 @@ export const StatsView: FunctionalComponent<{}> = (props: {}) => {
         </div>
         <div><b>ECS Entities: </b>{ECS_getUsedCount()}</div>
         <div><b>ECS Types: </b>{_componentTypes.size}</div>
-        <div><b>Locator: </b>{engine.services.size}</div>
+        <div><b>Locator: </b>{_services.size}</div>
 
         <BoolField target={engine}
                    field="running"/>

@@ -1,9 +1,9 @@
-import {declTypeID} from "../util/TypeID";
 import {Engine} from "../Engine";
 import {BoundsBuilder, Rect} from "@highduck/math";
 import {TextFormat} from "../scene1/TextFormat";
 import {loadFontFace} from "./loadFontFace";
-import {DynamicFontAtlas} from "./DynamicFontAtlas";
+import {FontAtlas} from "./FontAtlas";
+import {ResourceType} from "..";
 
 const LF = '\n'.charCodeAt(0);
 const BOUNDS_BUILDER_TMP = new BoundsBuilder();
@@ -11,21 +11,19 @@ const BOUNDS_RC_TMP = new Rect();
 // const PT_2_PX = 1.33333333;
 const PT_2_PX = 1;
 
-export class DynamicFont {
+export class Font {
 
-    static TYPE_ID = declTypeID();
-
-    static async load(engine: Engine, family: string, url: string, size: number, scale: number): Promise<DynamicFont> {
+    static async load(engine: Engine, family: string, url: string, size: number, scale: number): Promise<Font> {
         try {
             await loadFontFace(family, engine.assetsPath + "/" + url, {});
         } catch {
             console.warn(`Font ${family} load error`);
         }
-        const atlas = new DynamicFontAtlas(engine, family, size, scale);
-        return new DynamicFont(engine, atlas);
+        const atlas = new FontAtlas(engine, family, size, scale);
+        return new Font(engine, atlas);
     }
 
-    constructor(private engine: Engine, readonly atlas: DynamicFontAtlas) {
+    constructor(private engine: Engine, readonly atlas: FontAtlas) {
     }
 
     draw(text: string, size: number, x: number, y: number, lineHeight: number, lineSpacing: number) {
@@ -180,3 +178,5 @@ export class DynamicFont {
         drawerState.restoreColor();
     }
 }
+
+export const FontResource = new ResourceType(Font);

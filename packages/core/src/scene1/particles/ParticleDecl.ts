@@ -1,9 +1,8 @@
 import {Particle} from "./Particle";
-import {declTypeID} from "../../util/TypeID";
 import {Color32_ARGB, Color4, Rect, RndDefault, Vec2} from "@highduck/math";
-import {AssetRef} from "../../util/Resources";
+import {AssetRef, ResourceType} from "../../util/Resources";
 import {Sprite} from "../Sprite";
-import {DynamicFont} from "../../rtfont/DynamicFont";
+import {Font} from "../../rtfont/Font";
 
 export const enum ParticleScaleMode {
     None = 0,
@@ -117,11 +116,9 @@ class RandomFloatRange {
 }
 
 export class ParticleDecl {
-    static TYPE_ID = declTypeID();
-
     sprite: AssetRef<Sprite> = AssetRef.NONE;
 
-    font?: AssetRef<DynamicFont>;
+    font?: AssetRef<Font>;
     fontSize = 0;
 
     scaleMode = ParticleScaleMode.None;
@@ -178,6 +175,8 @@ export class ParticleDecl {
         return c;
     }
 }
+
+export const ParticleDeclResource = new ResourceType(ParticleDecl);
 
 export class EmitterData {
     interval = 0.5;

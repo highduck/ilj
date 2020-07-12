@@ -1,7 +1,6 @@
 import {Engine} from "../../Engine";
 import {loadJSON} from "../../util/load";
-import {declTypeID} from "../../util/TypeID";
-import {AssetRef, Resources} from "../../util/Resources";
+import {AssetRef, ResourceType} from "../../util/Resources";
 import {AniJson, NodeJson} from "@highduck/anijson";
 
 type LinkageRef = {
@@ -27,16 +26,14 @@ export function findLinkageRef(linkage: string): LinkageRef | undefined {
 }
 
 export function registerAniLibrary(name: string, ani: Ani): AssetRef<Ani> {
-    const ref = Resources.reset(Ani, name, ani);
+    const ref = AniResource.reset(name, ani);
     ani.backReference = ref;
     registerLinkages(ani, ani.json.linkages);
     return ref;
 }
 
 export class Ani {
-    static TYPE_ID = declTypeID();
-
-    readonly lookup:{ [key: string]: NodeJson };
+    readonly lookup: { [key: string]: NodeJson };
     backReference: AssetRef<Ani> | undefined;
 
     constructor(public json: AniJson) {
@@ -53,3 +50,5 @@ export class Ani {
         return new Ani(json as AniJson);
     }
 }
+
+export const AniResource = new ResourceType(Ani);

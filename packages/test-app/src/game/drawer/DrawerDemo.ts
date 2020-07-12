@@ -1,4 +1,4 @@
-import {AssetRef, Engine, Font, Resources, Texture} from "@highduck/core";
+import {AssetRef, Engine, BitmapFont, BitmapFontResource, Texture} from "@highduck/core";
 import {Poly2Tri} from "@highduck/polykit";
 
 class ExampleMesh2D {
@@ -30,7 +30,7 @@ export class DrawerDemo {
     exampleMesh2D = new ExampleMesh2D();
     polyKitMesh = new ExampleMesh2D();
     customTexture = new Texture(Engine.current.graphics);
-    readonly font: AssetRef<Font> = Resources.get(Font, "Comfortaa-Regular");
+    readonly font: AssetRef<BitmapFont> = BitmapFontResource.get("Comfortaa-Regular");
 
     constructor() {
         this.customTexture.uploadPixels(4, 4, new Uint8Array(new Uint32Array([

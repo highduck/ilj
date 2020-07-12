@@ -1,8 +1,8 @@
-import {Ani, AssetRef, Engine, Resources, Entity} from "@highduck/core";
+import {Ani, AniResource, AssetRef, Engine, Entity} from "@highduck/core";
 
 export class TestAni {
 
-    ani: AssetRef<Ani> = Resources.get(Ani, "tests");
+    ani: AssetRef<Ani> = AniResource.get("tests");
 
     constructor() {
         const engine = Engine.current;

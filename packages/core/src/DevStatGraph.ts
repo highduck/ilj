@@ -1,6 +1,5 @@
 import {Engine} from "./Engine";
-import {Resources} from "./util/Resources";
-import {DynamicFont} from "./rtfont/DynamicFont";
+import {Font, FontResource} from "./rtfont/Font";
 import {TextFormat} from "./scene1/TextFormat";
 
 export class DevStatGraph {
@@ -33,7 +32,7 @@ export class DevStatGraph {
         }
 
         const drawer = Engine.current.drawer;
-        const font = Resources.get(DynamicFont, "Comfortaa-Regular").data;
+        const font = FontResource.data("Comfortaa-Regular");
         if (font !== undefined) {
             font.draw(this.max.toString(), 16, 0, 20, 16, 0);
             font.draw(this.min.toString(), 16, 0, 20 + 200, 16, 0);

@@ -1,5 +1,5 @@
 import {Engine} from "../Engine";
-import {Ani, Atlas, DynamicFont, loadJSON, registerAniLibrary, Resources} from "..";
+import {Ani, Atlas, Font, FontResource, loadJSON, registerAniLibrary} from "..";
 import {Bundle, BundleFontItem, BundleItem, BundleItemType} from "@highduck/anijson";
 
 async function loadItems(items: BundleItem[]) {
@@ -26,10 +26,10 @@ async function loadItems(items: BundleItem[]) {
                 const font = item as BundleFontItem;
                 if (font.id && font.path) {
                     loaders.push(
-                        DynamicFont
+                        Font
                             .load(engine, font.id, font.path, font.size !== undefined ? font.size : 16, texturesScale)
-                            .then((res: DynamicFont) => {
-                                Resources.reset(DynamicFont, font.id, res);
+                            .then((res: Font) => {
+                                FontResource.reset(font.id, res);
                             })
                     );
                 }

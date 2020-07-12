@@ -1,11 +1,10 @@
 import {Engine} from "../Engine";
 import {BoundsBuilder, Rect} from "@highduck/math";
-import {Sprite} from "./Sprite";
+import {Sprite, SpriteResource} from "./Sprite";
 import {loadJSON} from "../util/load";
 import {TextFormat} from "./TextFormat";
-import {declTypeID} from "../util/TypeID";
-import {AssetRef, Resources} from "../util/Resources";
-import {GlyphJson, FontJson, SpriteFlag} from "@highduck/anijson";
+import {AssetRef, ResourceType} from "../util/Resources";
+import {FontJson, GlyphJson, SpriteFlag} from "@highduck/anijson";
 
 const LF = '\n'.charCodeAt(0);
 
@@ -17,13 +16,11 @@ type GlyphData = {
     lod: AssetRef<Sprite>[];
 };
 
-export class Font {
+export class BitmapFont {
 
-    static TYPE_ID = declTypeID();
-
-    static async load(engine: Engine, url: string): Promise<Font> {
+    static async load(engine: Engine, url: string): Promise<BitmapFont> {
         const json = await loadJSON(engine.assetsPath + "/" + url + ".font.json");
-        return new Font(engine, json as FontJson);
+        return new BitmapFont(engine, json as FontJson);
     }
 
     bitmapSizeTable: number[]; /* u16[] */
@@ -41,7 +38,7 @@ export class Font {
                     this.map.set(code, {
                         json: g,
                         lod: data.sizes.map(
-                            (bitmapFontSize: number) => Resources.get(Sprite, g.sprite + "_" + bitmapFontSize)
+                            (bitmapFontSize: number) => SpriteResource.get(g.sprite + "_" + bitmapFontSize)
                         )
                     });
                 }
@@ -252,3 +249,5 @@ export class Font {
         drawerState.restoreColor();
     }
 }
+
+export const BitmapFontResource = new ResourceType(BitmapFont);
