@@ -27,8 +27,8 @@
   },
   "devDependencies": {
     "@types/canvaskit-wasm": "0.16.2",
-    "@types/glob": "^7.1.2",
-    "@types/node": "^14.0.14",
+    "@types/glob": "^7.1.3",
+    "@types/node": "^14.0.22",
     "rimraf": "^3.0.2",
     "typescript": "^3.9.6"
   }

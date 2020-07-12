@@ -22,7 +22,7 @@
   "license": "MIT",
   "dependencies": {
     "@capacitor/core": "^2.2.1",
-    "firebase": "^7.15.5"
+    "firebase": "^7.16.0"
   },
   "devDependencies": {
     "@capacitor/android": "^2.2.1",
