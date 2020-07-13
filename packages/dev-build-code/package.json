@@ -39,6 +39,7 @@
     "typescript": "^3.9.6"
   },
   "devDependencies": {
+    "@types/babel__core": "^7.1.9",
     "@types/node": "^14.0.22",
     "@types/resolve": "^1.17.1",
     "@types/rimraf": "^3.0.0"
