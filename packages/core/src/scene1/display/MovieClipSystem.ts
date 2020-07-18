@@ -1,8 +1,9 @@
 import {MovieClip2D} from "./MovieClip2D";
-import {getComponents} from "../../ecs/World";
+import {EntityMap} from "../../ecs";
 
 export function updateMovieClips() {
-    const movies = getComponents(MovieClip2D);
+    const movies = MovieClip2D.map.values;
+    const entities = MovieClip2D.map.keys;
     for (let i = 0; i < movies.length; ++i) {
         const mov = movies[i];
         if (mov.playing) {
@@ -12,8 +13,9 @@ export function updateMovieClips() {
         if (mov.dirty) {
             const data = mov.getMovieClipData();
             if (data !== undefined) {
+                const entity = EntityMap.get(entities[i])!;
                 mov.truncTime(data);
-                mov.applyFrameData(data);
+                mov.applyFrameData(entity, data);
             }
             mov.dirty = false;
         }

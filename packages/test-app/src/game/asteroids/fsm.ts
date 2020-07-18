@@ -1,4 +1,4 @@
-import {ComponentTypeA, Entity, getComponents} from "@highduck/core";
+import {ComponentTypeA, Entity, EntityMap} from "@highduck/core";
 
 interface FsmState {
     readonly onEnter?: (e: Entity) => void;
@@ -7,8 +7,6 @@ interface FsmState {
 
 export const Fsm = new ComponentTypeA(
     class Data {
-        readonly entity!: Entity;
-
         state?: FsmState;
         next?: FsmState;
         readonly states = new Map<string, FsmState>();
@@ -24,12 +22,14 @@ export const Fsm = new ComponentTypeA(
 );
 
 export function updateFsm() {
-    const components = getComponents(Fsm);
+    const components = Fsm.map.values;
+    const entities = Fsm.map.keys;
     for (let i = 0; i < components.length; ++i) {
         const fsm = components[i];
         if (fsm.state !== fsm.next) {
-            fsm.state?.onExit?.(fsm.entity);
-            fsm.next?.onEnter?.(fsm.entity);
+            const entity = EntityMap.get(entities[i])!;
+            fsm.state?.onExit?.(entity);
+            fsm.next?.onEnter?.(entity);
             fsm.state = fsm.next;
         }
     }

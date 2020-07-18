@@ -1,12 +1,11 @@
 import {Camera2D} from "../display/Camera2D";
-import {Entity} from "../../ecs/Entity";
 import {Engine} from "../../Engine";
 import {Transform2D} from "../display/Transform2D";
-import {getComponents} from "../../ecs/World";
-import {ComponentTypeA} from "../..";
+import {ComponentTypeA, EntityComponentType, Entity, getComponents} from "../../ecs";
 
 export class TargetFollow_Data {
-    readonly entity!: Entity;
+    constructor(readonly entity: Entity) {
+    }
 
     target: Entity | undefined = undefined;
 
@@ -14,7 +13,7 @@ export class TargetFollow_Data {
     cameraPointer: Entity | undefined = undefined;
 }
 
-export const TargetFollow = new ComponentTypeA(TargetFollow_Data);
+export const TargetFollow = new EntityComponentType(TargetFollow_Data);
 
 export function updateTargetFollow() {
     const engine = Engine.current;

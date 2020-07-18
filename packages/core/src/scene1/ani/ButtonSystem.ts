@@ -1,6 +1,5 @@
 import {Button, Button_Data, ButtonSkin} from "./Button";
 import {Transform2D, Transform2D_Data} from "../display/Transform2D";
-import {Entity} from "../../ecs/Entity";
 import {Interactive, InteractiveComponent} from "./Interactive";
 import {MovieClip2D, MovieClip2D_Data} from "../display/MovieClip2D";
 import {Cursor} from "../../app/GameView";
@@ -9,7 +8,7 @@ import {Engine} from "../../Engine";
 import {EventData, EventReceiver} from "../EventReceiver";
 import {InteractiveManagerEvent} from "./InteractiveManager";
 import {Time} from "../../app/Time";
-import {objs} from "../../ecs/World";
+import {Entity, EntityMap} from "../../ecs";
 
 function initBaseTransform(btn: Button_Data, transform: Transform2D_Data) {
     btn.baseColorMultiplier.copyFrom(transform.colorMultiplier);
@@ -132,7 +131,7 @@ export function updateButtons() {
             if (transform !== undefined) {
                 initBaseTransform(btn, transform);
             }
-            initEvents(objs.get(ei)!);
+            initEvents(EntityMap.get(ei)!);
         }
         const interactive = interactives.get(ei)!;
         const skin = btn.skin;

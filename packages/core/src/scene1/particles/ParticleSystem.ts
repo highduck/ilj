@@ -2,10 +2,9 @@ import {ParticleLayer, ParticleLayer_Data} from "./ParticleLayer";
 import {ParticleEmitter} from "./ParticleEmitter";
 import {Particle} from "./Particle";
 import {EmitterData, ParticleDecl, ParticleDeclResource} from "./ParticleDecl";
-import {Entity} from "../../ecs/Entity";
 import {Transform2D_Data} from "../display/Transform2D";
 import {Matrix2D, RndDefault, Vec2} from "@highduck/math";
-import {getComponents} from "../../ecs/World";
+import {Entity, getComponents} from "../../ecs";
 
 const TEMP_MATRIX_2D = new Matrix2D();
 const TEMP_VEC2_POS = new Vec2();

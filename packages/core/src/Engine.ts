@@ -9,7 +9,7 @@ import {InteractiveManager} from "./scene1/ani/InteractiveManager";
 import {DisplaySystem} from "./scene1/display/DisplaySystem";
 import {Transform2D} from "./scene1/display/Transform2D";
 import {updateButtons} from "./scene1/ani/ButtonSystem";
-import {Entity} from "./ecs/Entity";
+import {ECS_getUsedCount, Entity} from "./ecs/Entity";
 import {updateMovieClips} from "./scene1/display/MovieClipSystem";
 import {updateParticleEmitters, updateParticleSystems} from "./scene1/particles/ParticleSystem";
 import {AniFactory} from "./scene1/ani/AniFactory";
@@ -27,7 +27,7 @@ import {updateFonts} from "./rtfont/FontAtlas";
 import {LayoutData} from "./scene1/extra/Layout";
 import {updateLayout} from "./scene1/extra/LayoutSystem";
 import {awaitDocument} from "./util/awaitDocument";
-import {invalidateTransform3} from "./scene1/systems/invalidateTransform";
+import {invalidateTransform} from "./scene1/systems/invalidateTransform";
 import {CameraManager} from "./scene1/display/CameraManager";
 import {Time} from "./app/Time";
 import {updateSlowMotion} from "./gcf/SlowMotion";
@@ -35,6 +35,7 @@ import {updateCameraShakers} from "./gcf/CameraShaker";
 import {updateTweens} from "./gcf/Tween";
 import {updateScrollArea} from "./gcf/ScrollArea";
 import {updatePopupManagers} from "./gcf/PopupManager";
+import {Profiler} from "./profiler/Profiler";
 
 export interface InitConfig {
     canvas?: HTMLCanvasElement;
@@ -70,7 +71,7 @@ export class Engine {
     readonly audio: AudioMan;
 
     // DEBUG
-    // readonly statsGraph = new DevStatGraph();
+    readonly profiler = new Profiler();
 
     constructor(config: InitConfig) {
         Engine.current = this;
@@ -90,8 +91,6 @@ export class Engine {
         this.input = new InputState(this.view.canvas);
         this.input.dpr = this.view.dpr;
 
-        // Resources.reset(Texture, "empty", createEmptyTexture(this.graphics));
-        // Resources.reset(Program, "2d", createProgram2D(this.graphics));
         TextureResource.reset("empty", createEmptyTexture(this.graphics));
         ProgramResource.reset("2d", createProgram2D(this.graphics));
 
@@ -99,7 +98,6 @@ export class Engine {
         this.drawer = new Drawer(this.batcher);
         this.audio = new AudioMan(this);
 
-        //this.root = Entity.root;
         Entity.root.name = "Root";
         Entity.root.getOrCreate(Transform2D);
         this.interactiveManager = new InteractiveManager(this);
@@ -118,6 +116,9 @@ export class Engine {
             console.warn("WebGL: context lost");
             return;
         }
+
+        this.profiler.beginGroup("Render");
+
         const rc = this.view.drawable;
         this.graphics.currentFramebufferRect.copyFrom(rc);
         this.graphics.begin();
@@ -130,29 +131,70 @@ export class Engine {
             this.displaySystem.process();
             this.onRenderFinish.emit(rc);
         }
-        // this.statsGraph.draw();
+        // ~~~ force draw
+        this.batcher.flush();
+
+        this.profiler.endGroup("Render");
+
+        this.profiler.beginGroup("Profiler");
+
+        if (this.profiler.enabled) {
+            this.profiler.getGraph('FPS').threshold = 30;
+            this.profiler.getGraph('Frame').threshold = (1.0 / 60.0) * 1000 * 1000;
+            // this.profiler.getGraph('entities').threshold = 1000;
+            // this.profiler.getGraph('tris').threshold = 2000;
+            // this.profiler.getGraph('dc').threshold = 25;
+
+            this.profiler.setFrameGraphValue('FPS', this.time.fps.frame);
+            // this.profiler.setFrameGraphValue('elapsed', this.time.raw);
+            // this.profiler.setFrameGraphValue('tris', this.graphics.triangles);
+            // this.profiler.setFrameGraphValue('dc', this.graphics.drawCalls);
+            this.profiler.setFrameGraphValue('entities', ECS_getUsedCount());
+            // this.profiler.setFrameGraphValue('RAF skipped', this.RAFSkipped);
+            this.profiler.draw(this.drawer);
+        }
+        // ~~~ force draw
+        this.batcher.flush();
+
+        this.profiler.endGroup("Profiler");
+
         this.drawer.end();
 
+        this.profiler.beginGroup("updateFonts");
         updateFonts();
+        this.profiler.endGroup("updateFonts");
 
         //this.graphics.end();
     }
 
     handleFrame(millis: number) {
+        this.profiler.beginGroup("Frame");
+
         if (this._running) {
             requestAnimationFrame(this.handleFrame);
         }
 
+        this.profiler.beginGroup("Pre Update");
+
         this.time.updateTime(millis / 1000.0);
+        if (process.env.NODE_ENV === 'development' || this.profiler.enabled) {
+            this.time.fps.calcFPS(this.time.raw);
+        }
 
         Entity.root.getOrCreate(Transform2D).rect.copyFrom(this.view.drawable);
 
         this.interactiveManager.process();
+
+        this.profiler.endGroup("Pre Update");
+
+        this.profiler.beginGroup("Game Update");
+        this.onUpdate.emit(this.time.delta);
+        this.profiler.endGroup("Game Update");
+
+        this.profiler.beginGroup("Update");
+
         updateTargetFollow();
         updateButtons();
-
-        this.onUpdate.emit(this.time.delta);
-
         updateFastScripts();
         updateSlowMotion();
         updateCameraShakers();
@@ -162,10 +204,14 @@ export class Engine {
 
         updateMovieClips();
         updateLayout();
+        this.profiler.endGroup("Update");
 
-        // invalidateTransform();
-        // invalidateTransform2();
-        invalidateTransform3();
+        this.profiler.beginGroup("Late Update");
+
+        // remove any entities
+        processEntityAge();
+
+        invalidateTransform();
 
         updateTrails();
         updateParticleEmitters();
@@ -173,13 +219,20 @@ export class Engine {
 
         this.cameraManager.updateCameraStack();
 
+        this.input.update(this.view.dpr);
+
+        this.profiler.endGroup("Late Update");
+
         // Render
         this.renderFrame();
+        this.frameCompleted.emit();
 
         // Late Update
-        processEntityAge();
-        this.input.update(this.view.dpr);
-        this.frameCompleted.emit();
+        // this.profiler.beginGroup("Late Update");
+
+        // this.profiler.endGroup("Late Update");
+
+        this.profiler.endGroup("Frame");
     }
 
     start() {

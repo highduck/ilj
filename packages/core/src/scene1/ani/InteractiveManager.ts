@@ -87,7 +87,9 @@ export class InteractiveManager {
                         this.pointerScreenSpace.y,
                         pointerWorldSpace
                     );
+                    //if (camera.worldRect.contains(pointerWorldSpace.x, pointerWorldSpace.y)) {
                     cursor = this.searchInteractiveTargets(pointerWorldSpace, camera.root, this.targetsCurr);
+                    //}
                 }
             }
         }

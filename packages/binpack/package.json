@@ -13,10 +13,10 @@
     "test": "cd test && tsc -b && node dist/index.js"
   },
   "devDependencies": {
-    "@babel/core": "^7.10.4",
+    "@babel/core": "^7.10.5",
     "@babel/preset-env": "^7.10.4",
-    "@rollup/plugin-babel": "^5.0.4",
-    "@rollup/plugin-node-resolve": "^8.1.0",
+    "@rollup/plugin-babel": "^5.1.0",
+    "@rollup/plugin-node-resolve": "^8.4.0",
     "rimraf": "^3.0.2",
     "rollup": "^2.21.0",
     "rollup-plugin-analyzer": "^3.3.0",

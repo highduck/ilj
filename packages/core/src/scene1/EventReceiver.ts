@@ -1,6 +1,5 @@
 import {SignalMap} from "../util/SignalMap";
-import {Entity} from "../ecs/Entity";
-import {ComponentTypeA} from "..";
+import {Entity, ComponentTypeA} from "../ecs";
 
 export class EventData<T> {
     processed = false;

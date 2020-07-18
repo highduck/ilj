@@ -229,6 +229,19 @@ export class Color4 {
         out.copyFrom(HUE_TABLE[i]).lerp(HUE_TABLE[i + 1], t - i);
     }
 
+
+    static _combine(multiplier1: Readonly<Color4>, offset1: Readonly<Color4>,
+                    multiplier2: Readonly<Color4>, offset2: Readonly<Color4>,
+                    outMultiplier: Color4, outOffset: Color4) {
+        outOffset.r = offset2.r * multiplier1.r + offset1.r;
+        outOffset.g = offset2.g * multiplier1.g + offset1.g;
+        outOffset.b = offset2.b * multiplier1.b + offset1.b;
+        outOffset.a = offset1.a + offset2.a;
+        outMultiplier.r = multiplier1.r * multiplier2.r;
+        outMultiplier.g = multiplier1.g * multiplier2.g;
+        outMultiplier.b = multiplier1.b * multiplier2.b;
+        outMultiplier.a = multiplier1.a * multiplier2.a;
+    }
 }
 
 // HVSColor - [hue, value, saturation, alpha]

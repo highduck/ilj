@@ -1,6 +1,7 @@
-import {ComponentTypeA, Engine, Time} from "..";
+import {Engine} from "../Engine";
+import {Time} from "../app/Time";
 import {ADSREnvelope, atADSR} from "@highduck/math";
-import {getComponents} from "../ecs/World";
+import {ComponentTypeA, getComponents} from "../ecs";
 
 export const SlowMotion = new ComponentTypeA(class {
     readonly envelope: ADSREnvelope = {

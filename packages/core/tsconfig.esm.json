@@ -5,7 +5,10 @@
     "rootDir": "./src",
     "outDir": "./dist",
     "isolatedModules": false,
-    "experimentalDecorators": true
+    "experimentalDecorators": true,
+    "sourceMap": false,
+    "inlineSourceMap": true,
+    "inlineSources": true
   },
   "references": [
     {

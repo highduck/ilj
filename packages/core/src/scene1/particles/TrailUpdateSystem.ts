@@ -1,5 +1,5 @@
 import {Trail} from "./Trail";
-import {getComponents} from "../../ecs/World";
+import {getComponents} from "../../ecs";
 
 export function updateTrails() {
     const trails = getComponents(Trail);

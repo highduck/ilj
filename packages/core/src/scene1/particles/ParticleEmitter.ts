@@ -1,9 +1,10 @@
 import {EmitterData, ParticleDecl} from "./ParticleDecl";
 import {Entity} from "../../ecs/Entity";
-import {ComponentTypeA, Time} from "../..";
+import {ComponentTypeA, EntityComponentType, Time} from "../..";
 
 export class ParticleEmitter_Data {
-    readonly entity!: Entity;
+    constructor(readonly entity: Entity) {
+    }
 
     data?: undefined | EmitterData = new EmitterData();
     layer?: Entity;
@@ -16,4 +17,4 @@ export class ParticleEmitter_Data {
     }
 }
 
-export const ParticleEmitter = new ComponentTypeA(ParticleEmitter_Data);
+export const ParticleEmitter = new EntityComponentType(ParticleEmitter_Data);

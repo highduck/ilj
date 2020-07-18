@@ -1,6 +1,6 @@
 import {Rect} from "@highduck/math";
 import {Drawer} from "../../drawer/Drawer";
-import {ComponentTypeA} from "../..";
+import {ComponentTypeA} from "../../ecs";
 
 const RECT_TMP = new Rect();
 

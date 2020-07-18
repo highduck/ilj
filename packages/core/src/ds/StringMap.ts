@@ -9,12 +9,13 @@ export class StringMap<T> {
     }
 
     set(key: string, value: T) {
-        const idx = this.map.get(key);
+        let idx = this.map.get(key);
         if (idx === undefined) {
-            this.map.set(key, this.values.length);
+            idx = this.values.length;
+            this.map.set(key, idx);
             // this.keys.push(key);
-            this.values.push(value);
         }
+        this.values[idx] = value;
     }
 
     get(key: string): T | undefined {

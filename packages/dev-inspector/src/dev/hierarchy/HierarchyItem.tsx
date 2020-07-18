@@ -19,7 +19,7 @@ function getEntityIcon(e: Entity): string {
         const v = COMPONENTS_CONFIG.get(type);
         if (v !== undefined && v.icon !== undefined) {
             const comp = e.tryGet(type);
-            if (comp !== undefined && (comp.constructor) === type.ctor) {
+            if (comp !== undefined && (comp.constructor) === type.identity) {
                 const sev = COMPONENTS_SEVERITY.indexOf(type);
                 if (sev >= idx) {
                     idx = sev;

@@ -1,7 +1,7 @@
 import {Color32_ARGB, Rect} from "@highduck/math";
 import {Drawer} from "../../drawer/Drawer";
 import {Display2D, Display2DComponent} from "./Display2D";
-import {ComponentTypeA} from "../..";
+import {ComponentTypeA} from "../../ecs";
 
 export class DisplayQuadComponent extends Display2DComponent {
     readonly rect: Rect = new Rect(0, 0, 1, 1);

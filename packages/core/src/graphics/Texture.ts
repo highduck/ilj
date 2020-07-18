@@ -1,6 +1,6 @@
 import {Graphics} from "./Graphics";
 import {Rect, Vec2} from "@highduck/math";
-import {ResourceType} from "..";
+import {ResourceType} from "../util/Resources";
 
 const enum TextureType {
     Color32,

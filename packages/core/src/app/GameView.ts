@@ -31,7 +31,7 @@ export class GameView {
     readonly client = new Rect(0, 0, 1, 1);
 
     // limit for x3, x4 displays
-    dprLimit = 4;
+    dprLimit = 2;
 
     // drawing / virtual
     dpr = 1;
@@ -119,6 +119,10 @@ export class GameView {
 
         let sizeChanged = false;
 
+        x = x | 0;
+        y = y | 0;
+        w = w | 0;
+        h = h | 0;
         if (this.canvas.width !== drawableWidth || this.canvas.height !== drawableHeight || dpr !== this.dpr) {
 
             drawable.width = drawableWidth;

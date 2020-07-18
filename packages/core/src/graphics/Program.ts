@@ -3,7 +3,7 @@ import {ProgramAttribute} from "./ProgramAttribute";
 import {ProgramUniform} from "./ProgramUniform";
 import {VERTEX_2D, VertexDecl} from "./VertexDecl";
 import {Color4, Matrix4, Rect, Vec2, Vec3, Vec4} from "@highduck/math";
-import {ResourceType} from "..";
+import {ResourceType} from "../util/Resources";
 
 function checkShader(GL: WebGLRenderingContext, shader: WebGLShader, source: string): boolean {
     if (!GL.getShaderParameter(shader, GL.COMPILE_STATUS)) {

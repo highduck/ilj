@@ -22,7 +22,7 @@
   },
   "devDependencies": {
     "@types/he": "^1.1.1",
-    "@types/node": "^14.0.22",
+    "@types/node": "^14.0.23",
     "@types/pako": "^1.0.1",
     "rimraf": "^3.0.2",
     "typescript": "^3.9.6"

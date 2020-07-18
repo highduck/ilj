@@ -1,7 +1,8 @@
 declare module '@rollup/plugin-babel' {
     import {Plugin} from 'rollup';
+    export type RollupBabelInputPluginOptions = any;
 
-    export function babel(options?: any): Plugin;
+    export function babel(options?: RollupBabelInputPluginOptions): Plugin;
 }
 
 declare module '@rollup/plugin-strip' {

@@ -4,7 +4,7 @@ import {Rect} from "@highduck/math";
 import {Drawer} from "../../drawer/Drawer";
 import {getStringRepoVersion, parseString, renderString, StringToken} from "../../util/Texts";
 import {FontResource} from "../../rtfont/Font";
-import {ComponentTypeA} from "../..";
+import {ComponentTypeA} from "../../ecs";
 
 export class DisplayTextComponent extends Display2DComponent {
     _tokens: StringToken[] = [];

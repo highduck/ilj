@@ -1,10 +1,9 @@
 import {FunctionalComponent, h} from "preact";
-import {_componentTypes, ECS_getUsedCount, Engine} from "@highduck/core";
+import {_componentTypes, _services, ECS_getUsedCount, Engine} from "@highduck/core";
 import {BoolField} from "./fields/BoolField";
 import {ActionField} from "./fields/ActionField";
 import {NumberField} from "./fields/NumberField";
 import {ObjectEditor} from "./inspector/ObjectEditor";
-import {_services} from "@highduck/core";
 
 export const StatsView: FunctionalComponent<{}> = (props: {}) => {
     const engine = Engine.current;
@@ -18,7 +17,7 @@ export const StatsView: FunctionalComponent<{}> = (props: {}) => {
             <b> n: </b>{engine.time.index}
         </div>
         <div><b>ECS Entities: </b>{ECS_getUsedCount()}</div>
-        <div><b>ECS Types: </b>{_componentTypes.size}</div>
+        <div><b>ECS Types: </b>{_componentTypes.length}</div>
         <div><b>Locator: </b>{_services.size}</div>
 
         <BoolField target={engine}

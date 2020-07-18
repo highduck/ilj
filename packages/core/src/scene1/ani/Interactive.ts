@@ -1,7 +1,7 @@
 import {Signal} from "../../util/Signal";
 import {Cursor} from "../../app/GameView";
 import {Entity} from "../../ecs/Entity";
-import {ComponentTypeA} from "../../ecs/Component";
+import {ComponentTypeA} from "../../ecs";
 import {Vec2} from "@highduck/math";
 
 export class InteractiveComponent {

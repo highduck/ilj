@@ -1,9 +1,11 @@
-import {ComponentTypeA, Entity, Time, Transform2D} from "..";
+import {Transform2D} from "../scene1/display/Transform2D";
 import {integrateExp, lerp, reach, Vec2} from "@highduck/math";
-import {getComponents} from "../ecs/World";
+import {Entity, EntityComponentType, getComponents} from "../ecs";
+import {Time} from "../app/Time";
 
-export const CameraShaker = new ComponentTypeA(class {
-    readonly entity!: Entity;
+export const CameraShaker = new EntityComponentType(class {
+    constructor(readonly entity: Entity) {
+    }
 
     state = 0;
     maxRotation = 0.25;

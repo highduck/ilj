@@ -4,14 +4,12 @@ import {Drawer} from "../../drawer/Drawer";
 import {Sprite} from "../Sprite";
 import {AssetRef} from "../../util/Resources";
 import {SpriteFlag} from "@highduck/anijson";
-import {ComponentTypeA, ParticleRendererComponent, Entity} from "../..";
+import {EntityComponentType, Entity} from "../../ecs";
 
 export class TrailRendererComponent extends Display2DComponent {
-    readonly entity!: Entity;
-
     sprite?: AssetRef<Sprite>;
 
-    constructor() {
+    constructor(readonly entity: Entity) {
         super();
     }
 
@@ -71,4 +69,4 @@ export class TrailRendererComponent extends Display2DComponent {
     }
 }
 
-export const TrailRenderer = new ComponentTypeA(TrailRendererComponent, Display2D);
+export const TrailRenderer = new EntityComponentType(TrailRendererComponent, Display2D);

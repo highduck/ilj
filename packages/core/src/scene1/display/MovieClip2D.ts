@@ -1,10 +1,9 @@
-import {Entity} from "../../ecs/Entity";
+import {ComponentTypeA, Entity} from "../../ecs";
 import {Ani} from "../ani/Ani";
 import {AssetRef} from "../../util/Resources";
-import {Transform2D, Transform2D_Data} from "./Transform2D";
+import {Transform2D} from "./Transform2D";
 import {KeyframeJson, MovieJson} from "@highduck/anijson";
 import {Time} from "../../app/Time";
-import {ComponentTypeA} from "../..";
 
 // const cos = Math.cos;
 // const sin = Math.sin;
@@ -177,11 +176,9 @@ export class MovieClipTarget_Data {
 export const MovieClipTarget = new ComponentTypeA(MovieClipTarget_Data);
 
 export class MovieClip2D_Data {
-    readonly entity!: Entity;
-
-    libraryAsset?: AssetRef<Ani>;
-    movieDataSymbol?: string;
-    data?: MovieJson;
+    libraryAsset: AssetRef<Ani> | undefined = undefined;
+    movieDataSymbol: string | undefined = undefined;
+    data: MovieJson | undefined = undefined;
 
     _time = 0.0;
     playing = true;
@@ -218,11 +215,7 @@ export class MovieClip2D_Data {
 
     set time(v: number) {
         this._time = v;
-        const data = this.getMovieClipData();
-        if (data !== undefined) {
-            this.truncTime(data);
-            this.applyFrameData(data);
-        }
+        this.dirty = true;
     }
 
     get time(): number {
@@ -235,21 +228,21 @@ export class MovieClip2D_Data {
         this.dirty = true;
     }
 
-    applyFrameData(data: MovieJson) {
+    applyFrameData(entity: Entity, data: MovieJson) {
         const time = this.discreteMode ? Math.trunc(this._time) : this._time;
         const totalTargets = data.t.length;
-        let e = this.entity.childFirst;
-        while (e !== undefined) {
-            const targetData = e.tryGet(MovieClipTarget);
+        for (let it = entity.childFirst; it !== undefined; it = it.siblingNext) {
+            const targetData = it.tryGet(MovieClipTarget);
             if (targetData !== undefined && targetData.keyAnimation < totalTargets) {
-                updateTarget(time, e, data.t[targetData.keyAnimation]);
+                updateTarget(time, it, data.t[targetData.keyAnimation]);
             }
-            e = e.siblingNext;
         }
     }
 }
 
 export const MovieClip2D = new ComponentTypeA(MovieClip2D_Data);
+
+const transformMap = Transform2D.map;
 
 function updateTarget(time: number, e: Entity, frames: KeyframeJson[]) {
     const ki = findKeyFrame(frames, time);
@@ -263,7 +256,7 @@ function updateTarget(time: number, e: Entity, frames: KeyframeJson[]) {
     const end = k1._[1];
     e.visible = k1.v ?? true;
 
-    const transform = e.components.get(Transform2D.id) as Transform2D_Data | undefined;
+    const transform = transformMap.get(e.index);
     if (transform !== undefined) {
         const P = transform.position;
         const S = transform.scale;

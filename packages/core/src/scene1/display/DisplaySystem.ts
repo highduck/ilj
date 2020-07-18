@@ -1,17 +1,19 @@
 import {Entity} from "../../ecs/Entity";
 import {Transform2D, Transform2D_Data} from "./Transform2D";
-import {Display2D, Display2DComponent} from "./Display2D";
-import {Matrix4, Rect, transformRectMatrix2D} from "@highduck/math";
+import {Display2D} from "./Display2D";
+import {Color4, Matrix2D, Matrix4, Rect, transformRectMatrix2D} from "@highduck/math";
 import {CheckFlag} from "../../drawer/DrawingState";
 import {Engine} from "../../Engine";
 import {drawCameraDebugGizmos} from "../debug/SceneDebug";
 import {Camera2D} from "./Camera2D";
 import {Bounds2D} from "./Bounds2D";
-import {TypeOfComponentData} from "../../ecs/Component";
+import {TypeOfComponent} from "../../ecs/Component";
 
 const TEMP_RECT = new Rect();
 
-const Display2D_ID = Display2D.id;
+const transformMap = Transform2D.map;
+const cullingMap = Bounds2D.map;
+const displayMap = Display2D.map;
 
 export class DisplaySystem {
 
@@ -20,7 +22,7 @@ export class DisplaySystem {
     state = this.engine.drawer.state;
     readonly _tmpProj = new Matrix4();
 
-    static _currentCamera: TypeOfComponentData<typeof Camera2D>;
+    static _currentCamera: TypeOfComponent<typeof Camera2D>;
 
     constructor(readonly engine: Engine) {
     }
@@ -30,9 +32,10 @@ export class DisplaySystem {
         const drawer = engine.drawer;
         const activeCameras = engine.cameraManager.activeCameras;
 
-        drawer.state.saveTransform();
-        drawer.state.saveMVP();
-        drawer.state.saveScissors();
+        drawer.state
+            .saveTransform()
+            .saveMVP()
+            .saveScissors();
         this._tmpProj.copyFrom(drawer.state.mvp);
 
         for (let i = 0; i < activeCameras.length; ++i) {
@@ -49,11 +52,16 @@ export class DisplaySystem {
             drawer.state.checkFlags |= CheckFlag.MVP;
 
             // if (camera.clearColorEnabled) {
-            //drawer.invalidateForce();
-            // graphics.clear(camera.clearColor);
+            //     drawer.invalidateForce();
+            //     engine.graphics.clear(camera.clearColor);
             // }
+            drawer.state.colorMultiplier.copyFrom(Color4.ONE);
+            drawer.state.colorOffset.copyFrom(Color4.ZERO);
+            drawer.state.matrix.copyFrom(Matrix2D.IDENTITY);
 
             if (camera.clearColorEnabled) {
+                // drawer.state.setTexture(drawer.state.defaultTexture);
+                // drawer.state.setTextureRegion(drawer.state.defaultTexture);
                 drawer.state.setEmptyTexture();
                 drawer.quadColor(camera.worldRect.x, camera.worldRect.y,
                     camera.worldRect.width, camera.worldRect.height,
@@ -67,11 +75,13 @@ export class DisplaySystem {
             }
 
             drawer.batcher.flush();
+            // drawer.batcher.state.invalidate();
         }
 
-        drawer.state.restoreScissors();
-        drawer.state.restoreMVP();
-        drawer.state.restoreTransform();
+        drawer.state
+            .restoreScissors()
+            .restoreMVP()
+            .restoreTransform();
     }
 
     draw(e: Entity, parentTransform: Transform2D_Data) {
@@ -79,7 +89,8 @@ export class DisplaySystem {
             return;
         }
 
-        const transform = e.components.get(Transform2D.id) as (Transform2D_Data | undefined);
+        const entityIndex = e.index;
+        const transform = transformMap.get(entityIndex);
         if (transform !== undefined) {
             if (transform.colorMultiplier.a <= 0) {
                 return;
@@ -87,9 +98,10 @@ export class DisplaySystem {
             parentTransform = transform;
         }
 
-        const bounds = e.components.get(Bounds2D.id) as (TypeOfComponentData<typeof Bounds2D> | undefined);
+        const bounds = cullingMap.get(entityIndex);
         if (bounds !== undefined && DisplaySystem._currentCamera.occlusionEnabled) {
             const worldRect = TEMP_RECT;
+            /*#__NOINLINE__*/
             transformRectMatrix2D(bounds, parentTransform.worldMatrix, worldRect);
             const cameraRect = DisplaySystem._currentCamera.worldRect;
             if (worldRect.right <= cameraRect.x || worldRect.x >= cameraRect.right ||
@@ -104,7 +116,7 @@ export class DisplaySystem {
             this.state.pushScissors(TEMP_RECT);
         }
 
-        const display = e.components.get(Display2D_ID) as (Display2DComponent | undefined);
+        const display = displayMap.get(entityIndex);
         if (display !== undefined) {
             this.state.matrix.copyFrom(parentTransform.worldMatrix);
             this.state.colorMultiplier.copyFrom(parentTransform.worldColorMultiplier);

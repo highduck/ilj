@@ -2,7 +2,7 @@ import {Display2D, Display2DComponent} from "./Display2D";
 import {Color32_ARGB, Rect} from "@highduck/math";
 import {Drawer} from "../../drawer/Drawer";
 import {SpriteResource} from "../Sprite";
-import {ComponentTypeA} from "../..";
+import {ComponentTypeA} from "../../ecs";
 
 const TEMP_RECT = new Rect();
 

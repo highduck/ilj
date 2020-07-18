@@ -8,6 +8,7 @@ export interface CopyPublicOptions {
     src: string,
     dest: string,
     pkg: Pkg,
+    flags: string[],
     buildMode: string,
     target: string,
     platform: string
@@ -16,14 +17,19 @@ export interface CopyPublicOptions {
 export function copyPublic(options: CopyPublicOptions) {
     try {
         const pkg = readPkg(process.cwd());
-        const view = {
+        const view:any = {
             VERSION_NAME: pkg.version,
             APP_NAME: pkg.appName,
             BUILD_MODE: pkg.appName,
+            DEVELOPMENT: options.buildMode === 'development',
             PRODUCTION: options.buildMode === 'production',
             TARGET: options.target,
             PLATFORM: options.platform
         };
+
+        for(const flag of options.flags) {
+            view[flag] = true;
+        }
 
         const files = glob.sync(path.join(options.src, '**/*'));
         for (const file of files) {

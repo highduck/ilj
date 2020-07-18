@@ -1,10 +1,7 @@
 import {
     assert,
     Button,
-    ComponentTypeA,
     DisplayQuad,
-    Engine,
-    Entity,
     EntityAge,
     EventReceiver,
     Interactive,
@@ -12,17 +9,19 @@ import {
     Layout,
     Time,
     Transform2D
-} from "..";
+} from "../";
+import {Engine} from '../Engine';
+import {ComponentTypeA, Entity, EntityComponentType} from "../ecs";
 import {resetTween} from "./Tween";
 import {backOut, cubicOut, reach, saturate} from "@highduck/math";
-import {getComponents} from "../ecs/World";
 
 export const PopupCloseTimeout = new ComponentTypeA(class {
     time = 0;
 });
 
-export const PopupManager = new ComponentTypeA(class {
-    entity!: Entity;
+export const PopupManager = new EntityComponentType(class {
+    constructor(readonly entity: Entity) {
+    }
 
     active: Entity[] = [];
 
@@ -163,7 +162,7 @@ export function closePopup(e: Entity) {
 }
 
 export function updatePopupManagers() {
-    const managers = getComponents(PopupManager);
+    const managers = PopupManager.components();
     const dt = Time.UI.dt;
     for (let i = 0; i < managers.length; ++i) {
         const manager = managers[i];

@@ -1,6 +1,9 @@
 import {Engine} from "../Engine";
-import {Ani, Atlas, Font, FontResource, loadJSON, registerAniLibrary} from "..";
+import {Atlas} from "../scene1/Atlas";
+import {Ani, registerAniLibrary} from "../scene1/ani/Ani";
+import {Font, FontResource} from "../rtfont/Font";
 import {Bundle, BundleFontItem, BundleItem, BundleItemType} from "@highduck/anijson";
+import {loadJSON} from "../util/load";
 
 async function loadItems(items: BundleItem[]) {
     const engine = Engine.current;

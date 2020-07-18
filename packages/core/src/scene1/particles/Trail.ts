@@ -2,7 +2,7 @@ import {Entity} from "../../ecs/Entity";
 import {Transform2D_Data} from "../display/Transform2D";
 import {lerp, quadOut, Vec2} from "@highduck/math";
 import {Time} from "../../app/Time";
-import {ComponentTypeA} from "../..";
+import {ComponentTypeA, EntityComponentType} from "../..";
 
 class TrailNode {
     readonly position = new Vec2();
@@ -15,7 +15,8 @@ const VEC2_0 = new Vec2();
 const VEC2_1 = new Vec2();
 
 export class Trail_Data {
-    readonly entity!: Entity;
+    constructor(readonly entity: Entity) {
+    }
 
     enabled = true;
 
@@ -198,4 +199,4 @@ export class Trail_Data {
     }
 }
 
-export const Trail = new ComponentTypeA(Trail_Data);
+export const Trail = new EntityComponentType(Trail_Data);

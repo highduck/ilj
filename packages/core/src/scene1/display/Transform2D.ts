@@ -1,14 +1,11 @@
 import {Color4, Matrix2D, Rect, Vec2} from "@highduck/math";
-import {Entity} from "../../ecs/Entity";
-import {ComponentTypeA} from "../../ecs/Component";
+import {ComponentTypeA, Entity} from "../../ecs";
 
 const TEMP_VEC2_0 = new Vec2();
 const TEMP_VEC2_1 = new Vec2();
 
 export class Transform2D_Data {
     static IDENTITY: Readonly<Transform2D_Data> = new Transform2D_Data();
-
-    readonly entity!: Entity;
 
     readonly position = new Vec2(0, 0);
     readonly scale = new Vec2(1, 1);
@@ -27,34 +24,6 @@ export class Transform2D_Data {
 
     scissors: Rect | undefined = undefined;
     hitArea: Rect | undefined = undefined;
-
-    static getWorldMatrix(entity: Entity, out: Matrix2D): Matrix2D {
-        let e: Entity | undefined = entity;
-        while (e !== undefined) {
-            const tr = e.tryGet(Transform2D);
-            if (tr !== undefined) {
-                tr.getWorldMatrix(out);
-                return out;
-            }
-            e = e.parent;
-        }
-        out.copyFrom(Matrix2D.IDENTITY);
-        return out;
-    }
-
-    getWorldMatrix(out: Matrix2D): Matrix2D {
-        const e = this.entity;
-        while (e.parent !== undefined) {
-            const tr = e.parent.tryGet(Transform2D);
-            if (tr !== undefined) {
-                tr.getWorldMatrix(out);
-                Matrix2D.multiply(out, this.matrix, out);
-                return out;
-            }
-        }
-        out.copyFrom(this.matrix);
-        return out;
-    }
 
     getScreenScissors(viewMatrix: Matrix2D, worldMatrix: Matrix2D, out: Rect) {
         if (this.scissors !== undefined) {
@@ -119,7 +88,7 @@ export class Transform2D_Data {
         return this.colorOffset.a;
     }
 
-    buildLocalMatrix(): Matrix2D {
+    buildLocalMatrix() {
         const x = this.position.x + this.origin.x;
         const y = this.position.y + this.origin.y;
         const xx = -this.origin.x - this.pivot.x;
@@ -137,7 +106,6 @@ export class Transform2D_Data {
         m.d = rd;
         m.x = x + ra * xx + rc * yy;
         m.y = y + rd * yy + rb * xx;
-        return m;
 
         // this.matrix.set(1, 0, 0, 1,
         //     this.origin.x,
@@ -264,6 +232,21 @@ export class Transform2D_Data {
                 }
                 it = it.parent;
             }
+        }
+    }
+
+    static calcWorldMatrix(entity: Entity, out: Matrix2D) {
+        let it: Entity | undefined = entity;
+        const transformMap = Transform2D.map;
+        while (it !== undefined) {
+            const transform = transformMap.get(it.index);
+            if (transform !== undefined) {
+                Matrix2D.multiply(out, transform.matrix, out);
+            }
+            it = it.parent;
+        }
+        if (!Matrix2D.inverse(out)) {
+            out.copyFrom(Matrix2D.IDENTITY);
         }
     }
 }

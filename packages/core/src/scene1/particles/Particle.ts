@@ -1,11 +1,12 @@
 import {ParticleAlphaMode, ParticleScaleMode} from "./ParticleDecl";
-import {Color4, lerp, quadOut, Rect, saturate} from "@highduck/math";
+import {Color4, lerp, Matrix2D, quadOut, Rect, saturate} from "@highduck/math";
 import {AssetRef} from "../../util/Resources";
 import {Sprite} from "../Sprite";
 import {Drawer} from "../../drawer/Drawer";
 import {Font} from "../../rtfont/Font";
 
 const RECT_TEMP = new Rect();
+const s_matrix = new Matrix2D();
 
 export class Particle {
     sprite: AssetRef<Sprite> = AssetRef.NONE;
@@ -156,32 +157,39 @@ export class Particle {
         return this.bounds;
     }
 
-    drawCycled(drawer: Drawer) {
+    drawCycled(matrix: Matrix2D, colorMultiplier:Color4, colorOffset:Color4, drawer: Drawer) {
         const camera = drawer.state.canvas;
         const width = camera.width;
         const box = RECT_TEMP.copyFrom(this.updateBounds()).scale(this.sx, this.sy);
         box.x += this.x;
         box.y += this.y;
         if (box.right >= camera.x && box.x <= camera.right) {
-            this.draw(drawer, 0);
+            this.draw(matrix, colorMultiplier, colorOffset, drawer, 0);
         }
         if (box.right > camera.right && box.right - width >= camera.x && box.x - width <= camera.right) {
-            this.draw(drawer, -width);
+            this.draw(matrix, colorMultiplier, colorOffset, drawer, -width);
         }
         if (this.bounds.x < camera.x && box.right + width >= camera.x && box.x + width <= camera.right) {
-            this.draw(drawer, width);
+            this.draw(matrix, colorMultiplier, colorOffset, drawer, width);
         }
     }
 
-    draw(drawer: Drawer, offsetX: number) {
-        drawer.state
-            .saveTransform()
-            .translate(this.x + this.px + offsetX, this.y + this.py)
-            .scale(this.sx, this.sy)
-            .rotate(this.angle)
-            .translate(-this.px, -this.py)
-            .combineColor(this.color, this.offset);
-        {
+    draw(matrix: Matrix2D, colorMultiplier:Color4, colorOffset:Color4, drawer: Drawer, offsetX: number) {
+        buildMatrix(this.x + offsetX, this.y, this.sx, this.sy, this.angle, this.px, this.py, s_matrix);
+        Matrix2D.multiply(matrix, s_matrix, drawer.state.matrix);
+        Color4._combine(
+            colorMultiplier, colorOffset,
+            this.color, this.offset,
+            drawer.state.colorMultiplier, drawer.state.colorOffset
+        );
+        // drawer.state
+        //     .saveTransform()
+        //     .translate(this.x + this.px + offsetX, this.y + this.py)
+        //     .scale(this.sx, this.sy)
+        //     .rotate(this.angle)
+        //     .translate(-this.px, -this.py)
+        //     .combineColor(this.color, this.offset);
+        // {
             const size = this.fontSize;
             if (this.sprite.data !== undefined) {
                 this.sprite.data.draw(drawer);
@@ -189,7 +197,33 @@ export class Particle {
                 const width = this.font.data.getTextSegmentWidth(this.text, size, 0, this.text.length);
                 this.font.data.draw(this.text, size, -0.5 * width, 0.5 * size, size, 0);
             }
-        }
-        drawer.state.restoreTransform();
+        // }
+        // drawer.state.restoreTransform();
     }
+}
+
+function buildMatrix(x: number,
+                     y: number,
+                     sx: number,
+                     sy: number,
+                     angle: number,
+                     px: number,
+                     py: number,
+                     out: Matrix2D) {
+    x += px;
+    y += py;
+
+    const cs = Math.cos(angle);
+    const sn = Math.sin(angle);
+    const ra = cs * sx;
+    const rb = sn * sx;
+    const rc = -sn * sy;
+    const rd = cs * sy;
+
+    out.a = ra;
+    out.b = rb;
+    out.c = rc;
+    out.d = rd;
+    out.x = x - ra * px - rc * py;
+    out.y = y - rd * py - rb * px;
 }

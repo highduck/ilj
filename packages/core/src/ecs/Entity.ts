@@ -1,16 +1,65 @@
 import {assert} from "../util/assert";
-import {_allocate, _deallocate, checkEntityPassport, objs} from "./World";
 import {IntMap} from "../ds/IntMap";
-import {_componentTypes, ComponentType} from "./Component";
+import {_entityComponentList, Component, unbindAllComponents} from "./Component";
 
-export type Passport = number;
+const freeIndices: number[] = [];
+const versions: number[] = [];
 
-const INDEX_MASK = 0xFFFFF;
+/**
+ Entity Index -> Entity Wrapper Object
 
-interface ComponentInternals {
-    entity?: Entity;
+ - set Entity Index and Object
+ - delete Entity Index and Object
+ query 0: values() and size
+ query N: get Entity object by Entity Index
+ **/
+export const EntityMap = new IntMap<Entity>();
 
-    dispose?(): void;
+let _next = 0;
+let _available = 0;
+
+// TODO: batch allocator
+// allocate_n(amount:number, out:Entity[]) {}
+
+function _deallocate(index: number) {
+    // increase VERSION
+    ++versions[index];
+    freeIndices[index] = _next;
+    _next = index;
+    ++_available;
+}
+
+function _allocate(): number {
+    if (_available !== 0) {
+        const nextFreeIndex = freeIndices[_next];
+        const index = _next;
+        // freeList[index] = index;
+        _next = nextFreeIndex;
+        --_available;
+        return index;
+    }
+    // there will be initial VERSION = 0
+    // returns new length - 1 to point prev
+    // const index = freeIndices.length;
+    // freeIndices[index] = index;
+    // return index;
+    const index = versions.length;
+    versions[index] = 0;
+    _entityComponentList[index] = [];
+    return index;
+}
+
+// entities in use right now
+export function ECS_getUsedCount() {
+    return versions.length - _available;
+}
+
+// export function checkEntityPassport(passport: Passport): boolean {
+//     return (list[passport & INDEX_MASK] & VERSION_MASK) === (passport & VERSION_MASK);
+// }
+
+export function getEntities(): Entity[] {
+    return EntityMap.values;
 }
 
 function checkHierarchyValidity(a: Entity, b: Entity) {
@@ -20,29 +69,28 @@ function checkHierarchyValidity(a: Entity, b: Entity) {
 }
 
 export class Entity {
-    readonly components = new IntMap<any>();
-
-    name?: string;
+    name: string | undefined = undefined;
     visible = true;
     touchable = true;
     layerMask = 0xFF;
 
     private _disposed = false;
 
-    private constructor(readonly passport: Passport) {
+    private constructor(readonly index: number,
+                        readonly version: number) {
     }
 
     static readonly root = Entity.create();
 
     static create(): Entity {
-        const pass = _allocate();
-        const e = new Entity(pass);
-        objs.set(pass & INDEX_MASK, e);
+        const index = _allocate();
+        const e = new Entity(index, versions[index]);
+        EntityMap.set(index, e);
         return e;
     }
 
     toString(): string {
-        return this.name ?? `Entity/${this.passport & INDEX_MASK}`;
+        return this.name ?? `Entity/${this.index}`;
     }
 
     create(name?: string, index?: number): Entity {
@@ -61,57 +109,48 @@ export class Entity {
     // }
 
     get isValid(): boolean {
-        return checkEntityPassport(this.passport);
+        // return checkEntityPassport(this.passport);
+        return versions[this.index] === this.version;
     }
 
-    set<T>(component: ComponentType<T>): T {
-        const data = component.new();
-        (data as any).entity = this;
-        this.components.set(component.id, data);
-        component.map.set(this.passport & INDEX_MASK, data);
-        return data;
+    set<T>(component: Component<T>): T {
+        return component.bind(this.index);
     }
 
-    tryGet<T>(component: ComponentType<T>): T | undefined {
-        return this.components.get(component.id) as (T | undefined);
-        // 3 access / map.get / array access
-
-        //return component.map.get(this.passport & INDEX_MASK);
-        // map.get / array access / 3 access / bit mask
+    tryGet<T>(component: Component<T>): T | undefined {
+        return component.map.get(this.index);
     }
 
-    get<T>(component: ComponentType<T>): T {
-        const data = this.components.get(component.id);
+    get<T>(component: Component<T>): T {
+        const data = component.map.get(this.index);
+        // const data = this.components.get(component.id);
         if (data === undefined) {
             throw new Error(`No component ${component}`);
         }
-        return data as T;
+        return data;
     }
 
-    has<T>(component: ComponentType<T>): boolean {
-        return this.components.has(component.id);
+    has<T>(component: Component<T>): boolean {
+        // return this.components.has(component.id);
+        return component.map.has(this.index);
     }
 
-    getOrCreate<T>(component: ComponentType<T>): T {
-        const cid = component.id;
-        let data = this.components.get(cid);
+    getOrCreate<T>(component: Component<T>): T {
+        let data = component.map.get(this.index);
         if (data === undefined) {
-            data = component.new();
-            (data as any).entity = this;
-            component.map.set(this.passport & INDEX_MASK, data);
-            this.components.set(cid, data);
+            data = component.bind(this.index);
         }
-        return data as T;
+        return data;
     }
 
-    delete<T>(component: ComponentType<T>) {
-        component.map.delete(this.passport & INDEX_MASK);
-        this.components.delete(component.id);
+    delete<T>(component: Component<T>) {
+        component.unbind(this.index);
     }
 
     dispose() {
         if (!!DEBUG) {
             assert(!this._disposed);
+            assert(this.isValid);
         }
 
         // - Remove Entity from parent
@@ -119,23 +158,11 @@ export class Entity {
         this.removeFromParent();
         this.deleteChildren();
 
-        for (let i = 0, e = this.components.keys.length; i < e; ++i) {
-            const k = this.components.keys[i];
-            const v = this.components.values[i] as {
-                entity?: Entity;
-                dispose?(): void;
-            };
-            if (v.dispose !== undefined) {
-                v.dispose();
-            }
-            v.entity = undefined;
-            _componentTypes.get(k)!.map.delete(this.passport & INDEX_MASK);
-        }
-        // we are disposing, it could not need to clear local map?
-        this.components.clear();
+        const idx = this.index;
+        unbindAllComponents(idx);
 
-        objs.delete(this.passport & INDEX_MASK);
-        _deallocate(this.passport);
+        EntityMap.delete(idx);
+        _deallocate(idx);
         this._disposed = true;
     }
 
@@ -452,12 +479,12 @@ export class Entity {
         return this;
     }
 
-    searchRootComponent<T>(component: ComponentType<T>): T | undefined {
-        const cid = component.id;
+    searchRootComponent<T>(component: Component<T>): T | undefined {
+        const map = component.map;
         let it: Entity | undefined = this;
         let c: T | undefined;
         while (it !== undefined) {
-            c = it.components.get(cid) as (T | undefined);
+            c = map.get(it.index);
             if (c !== undefined) {
                 return c;
             }

@@ -4,7 +4,7 @@ import {Transform2DEditor} from "./Transform2DEditor";
 import {
     Button,
     Camera2D,
-    ComponentType,
+    Component,
     DisplayArc,
     ParticleRenderer,
     DisplayQuad,
@@ -34,8 +34,8 @@ export interface ComponentViewConfig {
     severity?: number;
 }
 
-export const COMPONENTS_CONFIG = new Map<ComponentType<any>, ComponentViewConfig>();
-export const COMPONENTS_SEVERITY: ComponentType<any>[] = [
+export const COMPONENTS_CONFIG = new Map<Component<any>, ComponentViewConfig>();
+export const COMPONENTS_SEVERITY: Component<any>[] = [
     Transform2D,
     Interactive,
     MovieClipTarget,
@@ -54,7 +54,7 @@ export const COMPONENTS_SEVERITY: ComponentType<any>[] = [
     Trail
 ];
 
-export function getComponentIcon(type: ComponentType<any>): string {
+export function getComponentIcon(type: Component<any>): string {
     const config = COMPONENTS_CONFIG.get(type);
     if (config && config.icon) {
         return config.icon;

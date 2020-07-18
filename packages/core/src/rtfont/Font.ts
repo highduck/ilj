@@ -3,7 +3,7 @@ import {BoundsBuilder, Rect} from "@highduck/math";
 import {TextFormat} from "../scene1/TextFormat";
 import {loadFontFace} from "./loadFontFace";
 import {FontAtlas} from "./FontAtlas";
-import {ResourceType} from "..";
+import {ResourceType} from "../util/Resources";
 
 const LF = '\n'.charCodeAt(0);
 const BOUNDS_BUILDER_TMP = new BoundsBuilder();

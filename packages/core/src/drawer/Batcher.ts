@@ -29,7 +29,11 @@ export class Batcher {
     private readonly vertexSize: number;
     baseVertex = 0;
 
+    uploadAsWebGL2: boolean;
+
     constructor(readonly graphics: Graphics) {
+        this.uploadAsWebGL2 = graphics.gl instanceof WebGL2RenderingContext;
+
         const vertexMaxSize = VERTEX_2D.size;
         const verticesLimit = MAX_VERTICES_LIMIT;
         const indicesLimit = MAX_INDICES_LIMIT;
@@ -68,8 +72,6 @@ export class Batcher {
     }
 
     draw() {
-        this.state.apply();
-
 //        glGenVertexArrays(1, &vao);
 //        glCheckError();
 //        glBindVertexArray(vao);
@@ -80,8 +82,13 @@ export class Batcher {
 
             const vb = this.vertexBuffer.request();
             const ib = this.indexBuffer.request();
-            vb.upload(new Uint8Array(this.vertexMemory.buffer, 0, this.nextVertexPointer << 2));
-            ib.upload(new Uint8Array(this.indexMemory.buffer, 0, this.nextIndexPointer << 1));
+            if (this.uploadAsWebGL2) {
+                vb.upload2(this.vertexMemory, 0, this.nextVertexPointer << 2);
+                ib.upload2(this.indexMemory, 0, this.nextIndexPointer << 1);
+            } else {
+                vb.upload(this.vertexMemory, 0, this.nextVertexPointer << 2);
+                ib.upload(this.indexMemory, 0, this.nextIndexPointer << 1);
+            }
 
             program.bindAttributes();
             program.bindImage();
@@ -120,6 +127,7 @@ export class Batcher {
     }
 
     flush() {
+        this.state.apply();
         if (this.verticesCount > 0) {
             this.draw();
         }

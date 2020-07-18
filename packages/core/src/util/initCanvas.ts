@@ -31,6 +31,9 @@ export function initCanvas(name = "gameview", parent?: HTMLElement | null): HTML
     canvas.style.imageRendering = 'crisp-edges';
     // canvas.style.imageRendering = 'pixelated';
 
+    canvas.style.webkitTransform = 'translate3d(0, 0, 0)';
+    canvas.style.transform = 'translate3d(0, 0, 0)';
+
     // deprecated
     // canvas.style.webkitUserModify = '';
     resetStyle(canvas);

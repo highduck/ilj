@@ -22,51 +22,6 @@ const args = yargs
             }
         }
     )
-    // .command('build', 'build project',
-    //     (yargs) => yargs.options({
-    //         mode: {type: 'string', alias: 'm', default: 'development'},
-    //         target: {type: 'string', alias: 't', default: 'none'},
-    //         analyze: {type: 'boolean', alias: 'a', default: false},
-    //         live: {type: 'boolean', alias: 'l', default: false},
-    //         old: {type: 'boolean', default: false}
-    //     }), async (args) => {
-    //         const target = NProjectTarget.load(process.cwd());
-    //         console.debug(target);
-    //         if (target) {
-    //             target.deleteWWW();
-    //             await build(
-    //                 target,
-    //                 args.mode as BuildMode,
-    //                 args.analyze as boolean,
-    //                 args.live as boolean
-    //             );
-    //         }
-    //         // await NProject.load(process.cwd()).run({
-    //         //     target: args.target as string,
-    //         //     mode: args.mode as BuildMode,
-    //         //     analyze: args.analyze as boolean,
-    //         //     live: args.live as boolean
-    //         // });
-    //     })
-    // .command('publish', 'publish target',
-    //     (yargs) => yargs.options({
-    //         target: {array: false, alias: 't', default: 'web'}
-    //     }), async (args) => {
-    //         const config = loadConfig(process.cwd());
-    //         if (config) {
-    //             console.debug(`PUBLISH`, config);
-    //             // clean target output folder
-    //             deleteFolderRecursive(config.appdir);
-    //             await build(config, 'production', false, false);
-    //             if (config.platform === 'web') {
-    //                 const firebaseHostingConfig = path.resolve(config.approot, 'firebase.json');
-    //                 if (isFile(firebaseHostingConfig)) {
-    //                     execute('firebase', ['deploy'], config.approot);
-    //                 }
-    //             }
-    //         }
-    //     })
-
     .command('icon', 'Update icon', (yargs) => yargs.options({
             input: {
                 type: 'string',
@@ -82,27 +37,37 @@ const args = yargs
             mode: {choices: ['development', 'production'], type: 'string', alias: 'm', default: 'development'},
             platform: {choices: ['web', 'android', 'ios'], type: 'string', alias: 'p', default: 'web'},
             verbose: {type: 'boolean', alias: 'v', default: false},
+            prod: {type: 'boolean', default: undefined, desc: 'shortcut for `--mode production` or `-m production`'},
             proj: {
                 desc: "only project generation",
                 type: 'boolean',
                 default: false
             },
             stats: {type: 'boolean', alias: 's', default: undefined},
-            debug: {type: 'boolean', alias: 'd', default: undefined}
+            debug: {type: 'boolean', alias: 'd', default: undefined},
+            profile: {type: 'boolean', default: undefined},
+            webgldebug: {type: 'boolean', default: undefined},
         }),
         async (args) => {
             const platform: PlatformType = args.platform as PlatformType;
             const target = platform;
             const verbose = args.verbose as boolean;
             const dest = `dist/www/${target}`;
-            const buildMode = args.mode as BuildMode;
-
+            const buildMode = !!args.prod ? 'production' : args.mode as BuildMode;
+            const flags = [];
+            if (args.profile === true) {
+                flags.push('ILJ_PROFILE');
+            }
+            if (args.webgldebug === true) {
+                flags.push('ILJ_WEBGL_DEBUG');
+            }
             if (args.proj === false) {
                 const opts: Partial<BuildOptions> = {
                     mode: buildMode,
                     target: target,
                     platform: platform,
                     dir: dest,
+                    flags,
                     verbose
                 };
                 if (args.stats !== undefined) {
@@ -122,12 +87,13 @@ const args = yargs
                     dest: dest,
                     pkg: pkg,
                     buildMode: buildMode,
+                    flags,
                     target: target,
                     platform: platform
                 });
             }
             if (platform === 'android') {
-                exportAndroid(undefined, target, args.mode as BuildMode, args.debug);
+                exportAndroid(undefined, target, buildMode, args.debug);
             }
         })
     .command('start', 'Watch mode', (yargs) => yargs.options({}),
@@ -136,22 +102,36 @@ const args = yargs
             const target = platform;
             const verbose = true;
             const buildRoot = `build/${target}`;
+            const buildMode = 'development';
+            const flags:string[] = []; // TODO:
 
             const watchTask = ccWatch({
                 modules: true,
-                mode: 'development',
+                mode: buildMode,
                 target: target,
                 platform: platform,
-                stats: true,
+                stats: false,
                 minify: false,
                 compat: false,
                 debug: true,
                 sourceMap: true,
+                flags,
                 dir: `${buildRoot}/scripts`,
                 verbose
             });
 
             const assetsTask = exportAssets("assets", `${buildRoot}/content/assets`);
+
+            const pkg = readPkg(process.cwd());
+            copyPublic({
+                src: 'public_' + target,
+                dest: `${buildRoot}/content`,
+                pkg: pkg,
+                buildMode: buildMode,
+                target: target,
+                platform: platform,
+                flags
+            });
 
             await Promise.all([watchTask, assetsTask]);
 
@@ -164,7 +144,6 @@ const args = yargs
             }
             const bs = browserSync.create('ll');
             const roots = [
-                'public_' + target,
                 `${buildRoot}/content`,
                 `${buildRoot}/scripts`
             ];

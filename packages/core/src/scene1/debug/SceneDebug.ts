@@ -7,7 +7,7 @@ import {DisplaySystem} from "../display/DisplaySystem";
 import {Color32_ARGB, Color4, Matrix2D, Rect, transformRectMatrix2D, Vec2} from "@highduck/math";
 import {Camera2DComponent} from "../display/Camera2D";
 import {Bounds2D} from "../display/Bounds2D";
-import {ComponentType} from "../..";
+import {Component} from "../..";
 
 const RECT_TMP = new Rect();
 const VEC2_TMPS = [new Vec2(), new Vec2(), new Vec2(), new Vec2()];
@@ -93,7 +93,7 @@ function debugDrawHitTarget(cameraRoot: Entity, drawer: Drawer) {
     drawBox(RECT_TMP, matrix, 0xFF000000, color);
 }
 
-function traverseSceneGraph<T extends object>(e: Entity, ctor: ComponentType<T>, parentTransform: Transform2D_Data, callback: (component: T, transform: Transform2D_Data) => void) {
+function traverseSceneGraph<T extends object>(e: Entity, ctor: Component<T>, parentTransform: Transform2D_Data, callback: (component: T, transform: Transform2D_Data) => void) {
     if (!e.visible) {
         return;
     }

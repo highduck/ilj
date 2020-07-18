@@ -4,7 +4,7 @@ import {AssetRef} from "../../util/Resources";
 import {Sprite} from "../Sprite";
 import {Display2D, Display2DComponent} from "./Display2D";
 import {SpriteFlag} from "@highduck/anijson";
-import {ComponentTypeA} from "../..";
+import {ComponentTypeA} from "../../ecs";
 
 const TMP_RC = new Rect();
 

@@ -1,5 +1,4 @@
-import {ComponentTypeA} from "../../ecs/Component";
-import {objs} from "../../ecs/World";
+import {EntityMap, ComponentTypeA} from "../../ecs";
 import {Time} from "../../app/Time";
 
 export const EntityAge = new ComponentTypeA(class {
@@ -21,6 +20,6 @@ export function processEntityAge() {
         }
     }
     for (let i = 0; i < toDispose.length; ++i) {
-        objs.get(toDispose[i])!.dispose();
+        EntityMap.get(toDispose[i])!.dispose();
     }
 }

@@ -1,15 +1,15 @@
 import {Vec2} from "@highduck/math";
-import {ComponentTypeA, createTagComponent} from "@highduck/core";
+import {ComponentTypeA, TagComponentType} from "@highduck/core";
 
-export const Animation = createTagComponent();
+export const Animation = new TagComponentType();
 // interface link
 // animate(float dt);
 
-export const Asteroid = createTagComponent();
+export const Asteroid = new TagComponentType();
 
-export const Bullet = createTagComponent();
+export const Bullet = new TagComponentType();
 
-export const Spaceship = createTagComponent();
+export const Spaceship = new TagComponentType();
 
 export class CollisionData {
     radius: number = 0.0;
@@ -49,7 +49,7 @@ export class GunData {
 export const Gun = new ComponentTypeA(GunData);
 
 export class GunControlsData {
-    trigger = "Space";
+    trigger: string = "Space";
 }
 
 export const GunControls = new ComponentTypeA(GunControlsData);

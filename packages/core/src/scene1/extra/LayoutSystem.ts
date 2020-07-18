@@ -1,12 +1,10 @@
 import {Layout, LayoutData} from "./Layout";
 import {Rect} from "@highduck/math";
-import {Entity} from "../../ecs/Entity";
 import {Transform2D} from "../display/Transform2D";
 import {Display2D} from "../display/Display2D";
-import {DisplayQuad, DisplayQuadComponent} from "../display/DisplayQuad";
-import {DisplaySprite, DisplaySpriteComponent} from "../display/DisplaySprite";
-import {getComponents} from "../../ecs/World";
-import {TypeOfComponentData} from "../../ecs/Component";
+import {DisplayQuadComponent} from "../display/DisplayQuad";
+import {DisplaySpriteComponent} from "../display/DisplaySprite";
+import {Entity, getComponents} from "../../ecs";
 
 const TEMP_RECT_0 = new Rect();
 const TEMP_RECT = new Rect();
@@ -28,8 +26,8 @@ export function findRootRect(e: Entity, out: Rect): boolean {
 function updateEntityLayout(layout: LayoutData) {
     const topRect = TEMP_RECT_0;
     const e = layout.entity;
-
-    if (!findRootRect(e, topRect) || topRect.empty) {
+    /*#__NOINLINE__*/ findRootRect(e, topRect);
+    if (topRect.empty) {
         return;
     }
 

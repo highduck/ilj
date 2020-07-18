@@ -1,5 +1,5 @@
 import {FunctionalComponent, h} from "preact";
-import {_componentTypes, Entity} from "@highduck/core";
+import {_componentTypes, _entityComponentList, Entity} from "@highduck/core";
 import {BoolField} from "../fields/BoolField";
 import {COMPONENTS_CONFIG, ComponentViewConfig} from "./ComponentsConfig";
 import {ObjectEditor} from "./ObjectEditor";
@@ -23,7 +23,7 @@ export const EntityInspector: FunctionalComponent<EntityInspectorProps> = (props
         return null;
     }
     const e = props.entity;
-    const info = `#${e.passport.toString(16)} (IDX: ${e.passport & 0xFFFFF}; VER: ${e.passport >>> 20})`;
+    const info = `#${e.index} *${e.version}`;
     let els = [
         <div>Name: {e.name ?? ""}</div>,
         <BoolField target={e} field="visible"/>,
@@ -32,11 +32,12 @@ export const EntityInspector: FunctionalComponent<EntityInspectorProps> = (props
         <div>Layer Mask: 0x{e.layerMask.toString(16).toUpperCase()}</div>,
         <hr/>
     ];
-    for (let i = 0; i < e.components.size; ++i) {
-        const compID = e.components.keys[i];
-        const compData = e.components.values[i];
-        const compType = _componentTypes.get(compID)!;
+    const list = _entityComponentList[e.index];
+    for (let i = 0; i < list.length; ++i) {
+        const compID = list[i];
+        const compType = _componentTypes[compID];
         const config = COMPONENTS_CONFIG.get(compType);
+        const compData = compType.map.get(e.index);
         let isOpen = openedSet.get(compID) ?? true;
         const openerIcon = isOpen ? '▼' : '►';
         const handleToggle = (ev: MouseEvent) => openedSet.set(compID, !isOpen);

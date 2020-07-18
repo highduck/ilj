@@ -1,3 +1,4 @@
+import {MinifyOptions} from 'terser';
 import {Options as TerserOptions, terser} from 'rollup-plugin-terser';
 import replace from '@rollup/plugin-replace';
 import strip from '@rollup/plugin-strip';
@@ -8,9 +9,10 @@ import commonjs from '@rollup/plugin-commonjs';
 import visualizer from 'rollup-plugin-visualizer';
 import {InputOptions, OutputOptions, Plugin, rollup, RollupWatcher, RollupWatchOptions, watch} from 'rollup';
 import postcss from 'rollup-plugin-postcss';
-import Babel from '@rollup/plugin-babel';
+import Babel, {RollupBabelInputPluginOptions} from '@rollup/plugin-babel';
 import nodeResolve from '@rollup/plugin-node-resolve';
 import path from "path";
+import sourcemaps from 'rollup-plugin-sourcemaps';
 
 const {babel} = Babel;
 
@@ -40,6 +42,7 @@ export interface CompileBundleOptions {
     platform: 'android' | 'web' | 'ios';
     target: string;
     mode: 'development' | 'production';
+    flags: string[];
     stats: boolean;
     minify: boolean;
     modules: boolean;
@@ -71,9 +74,10 @@ function fillDefaults(options?: Partial<CompileBundleOptions>): CompileBundleOpt
     const versionCode = options?.versionCode ?? 1;
     const debug = options?.debug ?? false;//!isProduction;
     const sourceMap = options?.sourceMap ?? (stats || debug || isDevelopment);
+    const flags = options?.flags ?? [];
     return {
         platform, target, mode, stats, minify, modules, compat, dir, verbose,
-        inputMain, version, versionCode, debug, sourceMap
+        inputMain, version, versionCode, debug, sourceMap, flags
     };
 }
 
@@ -82,13 +86,17 @@ function getTerserOptions(options: CompileBundleOptions): undefined | TerserOpti
         return undefined;
     }
 
-    const opts: TerserOptions = {
+    const opts: MinifyOptions = {
         ecma: 8,
         compress: {
             passes: 2,
-            // reduce_funcs: false,
+            hoist_funs: true,
+            // sequences: false,
+            reduce_funcs: false,
             // reduce_vars: false,
             keep_infinity: true,
+            negate_iife: false,
+            toplevel: true
         },
         mangle: {
             module: !options.compat,
@@ -115,24 +123,25 @@ function getTerserOptions(options: CompileBundleOptions): undefined | TerserOpti
         opts.safari10 = false; // no need for android
     }
 
-    return opts;
+    return opts as TerserOptions;
 }
 
-function getBabelConfig(options: CompileBundleOptions) {
+function getBabelConfig(options: CompileBundleOptions): RollupBabelInputPluginOptions {
     const compat = options.compat;
     const platform = options.platform;
     const verbose = options.verbose;
 
-    let config: any = {
+    let config: RollupBabelInputPluginOptions = {
         sourceMaps: options.sourceMap,
         // currently we always generate typescript js maps
-        inputSourceMap: true,
+        inputSourceMap: false as unknown as object,
         babelHelpers: 'bundled',
         babelrc: false,
         exclude: [/\/core-js\//], // for `useBuiltIns: "usage"`
         presets: [],
         plugins: []
     };
+    // config.plugins.push('external-helpers');
     // if (compat) {
     //     config.plugins.push(['@babel/plugin-transform-destructuring']);
     // }
@@ -141,7 +150,7 @@ function getBabelConfig(options: CompileBundleOptions) {
         // 5.0 (api level 21)
         const androidCompat = 37;
         const androidModern = 61;
-        config.presets.push([
+        config.presets!.push([
             "@babel/preset-env", {
                 debug: verbose,
                 targets: {
@@ -153,7 +162,7 @@ function getBabelConfig(options: CompileBundleOptions) {
         ]);
     } else {
         if (compat) {
-            config.presets.push([
+            config.presets!.push([
                 "@babel/preset-env", {
                     targets: "> 0.25%, not dead",
                     useBuiltIns: "usage",
@@ -165,7 +174,7 @@ function getBabelConfig(options: CompileBundleOptions) {
                 }
             ]);
         } else {
-            config.presets.push([
+            config.presets!.push([
                 "@babel/preset-env", {
                     bugfixes: true,
                     targets: {esmodules: true},
@@ -183,6 +192,9 @@ function getRollupInput(options: CompileBundleOptions): InputOptions {
 
     const plugins: Plugin[] = [];
 
+    if (options.sourceMap) {
+        plugins.push(sourcemaps());
+    }
     plugins.push(
         nodeResolve({
             preferBuiltins: true
@@ -201,21 +213,19 @@ function getRollupInput(options: CompileBundleOptions): InputOptions {
         }));
     }
 
-    const planckDev = false;
-
     plugins.push(
         replace({
             values: {
                 'process.env.NODE_ENV': JSON.stringify(options.mode),
+                'process.env.ILJ_PROFILE': JSON.stringify(false),
+                'process.env.ILJ_WEBGL_DEBUG': JSON.stringify(false),
                 'process.env.PRODUCTION': JSON.stringify(isProduction),
                 'process.env.PLATFORM': JSON.stringify(options.platform),
                 'process.env.TARGET': JSON.stringify(options.target),
                 'process.env.APP_VERSION': JSON.stringify(options.version),
                 'process.env.APP_VERSION_CODE': JSON.stringify(options.versionCode),
                 'DEBUG': JSON.stringify(options.debug),
-                'ASSERT': JSON.stringify(options.debug),
-                'PLANCK_DEBUG': JSON.stringify(planckDev),
-                'PLANCK_ASSERT': JSON.stringify(planckDev)
+                'ASSERT': JSON.stringify(options.debug)
             }
         }),
         babel(getBabelConfig(options)),
@@ -228,23 +238,6 @@ function getRollupInput(options: CompileBundleOptions): InputOptions {
         })
     );
 
-    if (options.minify) {
-        const terserOptions = getTerserOptions(options);
-        if (terserOptions !== undefined) {
-            plugins.push(terser(terserOptions));
-        }
-    }
-
-    if (options.stats) {
-        const postfix = options.compat ? '.all' : '';
-        plugins.push(
-            visualizer({
-                filename: `dist/stats${postfix}.html`,
-                sourcemap: options.minify
-            })
-        );
-    }
-
     const input: InputOptions = {
         input: options.inputMain,
         //preserveModules: options.modules,
@@ -252,19 +245,42 @@ function getRollupInput(options: CompileBundleOptions): InputOptions {
     };
 
     if (!options.compat && !options.modules) {
-        input.preserveEntrySignatures = false;
-        input.manualChunks = (id) => {
-            if (id.includes('node_modules')) {
-                // vendor
-                if (id.includes('planck-js')) {
-                    return 'planck';
-                }
-                return 'support';
-            }
-            return undefined;
-        }
+        input.preserveEntrySignatures = 'strict';
+        // input.manualChunks = (id) => {
+        //     if (id.includes('node_modules')) {
+        //         // vendor
+        //         if (id.includes('box2d')) {
+        //             return 'box2d';
+        //         }
+        //         return 'support';
+        //     }
+        //     return undefined;
+        // }
     }
     return input;
+}
+
+function createOutputPlugins(opts: CompileBundleOptions): Plugin[] {
+    const plugins: Plugin[] = [];
+
+    if (opts.minify) {
+        const terserOptions = getTerserOptions(opts);
+        if (terserOptions !== undefined) {
+            plugins.push(terser(terserOptions));
+        }
+    }
+
+    if (opts.stats) {
+        const postfix = opts.compat ? '.all' : '';
+        plugins.push(
+            visualizer({
+                filename: `dist/stats${postfix}.html`,
+                sourcemap: opts.sourceMap
+            })
+        );
+    }
+
+    return plugins;
 }
 
 async function rollupBuild(opts: CompileBundleOptions) {
@@ -273,7 +289,8 @@ async function rollupBuild(opts: CompileBundleOptions) {
 
     const output: OutputOptions = {
         sourcemap: opts.sourceMap,
-        compact: opts.minify
+        compact: opts.minify,
+        plugins: createOutputPlugins(opts)
     };
 
     if (opts.compat) {
@@ -283,6 +300,18 @@ async function rollupBuild(opts: CompileBundleOptions) {
     } else {
         output.dir = path.join(opts.dir, 'modules');
         output.format = 'es';
+    }
+
+    if (!opts.compat && !opts.modules) {
+        output.manualChunks = (id) => {
+            if (id.includes('node_modules')) {
+                // vendor
+                return 'support';
+            } else if (id.includes('box2d.ts')) {
+                return 'box2d';
+            }
+            return undefined;
+        }
     }
 
     await build.write(output);
@@ -297,7 +326,8 @@ export function rollupWatch(opts: CompileBundleOptions) {
             sourcemap: opts.sourceMap,
             compact: opts.minify,
             dir: path.join(opts.dir, 'modules'),
-            format: 'es'
+            format: 'es',
+            plugins: createOutputPlugins(opts)
         }],
         watch: {}
     };

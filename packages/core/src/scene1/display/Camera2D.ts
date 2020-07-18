@@ -1,11 +1,8 @@
 import {Color4, Matrix2D, Rect, Vec2} from "@highduck/math";
-import {Entity} from "../../ecs/Entity";
-import {Transform2D} from "./Transform2D";
-import {ComponentTypeA, createClassComponent, TypeOfComponentData} from "../..";
+import {Transform2D, Transform2D_Data} from "./Transform2D";
+import {ComponentTypeA, Entity} from "../../ecs";
 
 export class Camera2DComponent {
-    entity!: Entity;
-
     enabled = true;
     order = 0;
 
@@ -32,10 +29,10 @@ export class Camera2DComponent {
     interactive = false;
     occlusionEnabled = true;
 
-    calcMatrix(scale: number, out: Matrix2D) {
+    calcMatrix(root: Entity, scale: number, out: Matrix2D) {
         const screen = this.screenRect;
-        const transform = this.entity.searchRootComponent(Transform2D);
-        out.copyFrom(transform === undefined ? Matrix2D.IDENTITY : transform.worldMatrix);
+        const transform = root.searchRootComponent(Transform2D) ?? Transform2D_Data.IDENTITY;
+        out.copyFrom(transform.worldMatrix);
         scale *= this.contentScale;
         out.scale(1 / scale, 1 / scale);
         out.translate(

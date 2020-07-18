@@ -1,13 +1,16 @@
 import {Particle} from "./Particle";
 import {ArraySwap} from "../../ds/ArraySwap";
-import {ComponentTypeA, Entity, Time} from "../..";
+import {EntityComponentType, Entity} from "../../ecs";
+import {Time} from "../../app/Time";
 
 export class ParticleLayer_Data {
-    readonly entity!: Entity;
+    constructor(readonly entity: Entity) {
+    }
+
     readonly particles = new ArraySwap<Particle>();
     cycled = false;
     keepAlive = false;
     timer = Time.ROOT;
 }
 
-export const ParticleLayer = new ComponentTypeA(ParticleLayer_Data);
+export const ParticleLayer = new EntityComponentType(ParticleLayer_Data);

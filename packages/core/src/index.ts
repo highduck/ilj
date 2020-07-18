@@ -1,6 +1,4 @@
-export * from './ecs/Component';
-export * from './ecs/Entity';
-export * from './ecs/World';
+export * from './ecs';
 
 export * from './util/Resources';
 export * from './util/Services';

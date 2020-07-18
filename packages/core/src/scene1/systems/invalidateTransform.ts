@@ -1,39 +1,29 @@
 import {Transform2D, Transform2D_Data} from "../display/Transform2D";
 import {Entity} from "../../ecs/Entity";
-import {Matrix2D} from "@highduck/math";
+import {Color4, Matrix2D} from "@highduck/math";
 
-export function invalidateTransform3() {
-    invalidateTransformSimple3(Entity.root, Transform2D_Data.IDENTITY);
+const transformsMap = Transform2D.map;
+
+export function invalidateTransform() {
+    invalidateTransformNode(Entity.root, Transform2D_Data.IDENTITY);
 }
 
-function invalidateTransformSimple3(e: Entity, parent: Transform2D_Data) {
-    let tr = e.components.get(Transform2D.id) as (Transform2D_Data | undefined);
-    // let tr = Transform2D.map.get(e.passport & 0xf);
+function invalidateTransformNode(e: Entity, parent: Transform2D_Data) {
+    let tr = transformsMap.get(e.index);
     if (tr !== undefined) {
         tr.buildLocalMatrix();
         Matrix2D.multiply(parent.worldMatrix, tr.matrix, tr.worldMatrix);
-
-        const off = tr.colorOffset;
-        const mul = tr.colorMultiplier;
-        const woff = tr.worldColorOffset;
-        const wmul = tr.worldColorMultiplier;
-        const pwcm = parent.worldColorMultiplier;
-        const pwco = parent.worldColorOffset;
-        woff.r = off.r * pwcm.r + pwco.r;
-        woff.g = off.g * pwcm.g + pwco.g;
-        woff.b = off.b * pwcm.b + pwco.b;
-        woff.a = off.a + pwco.a;
-        wmul.r = pwcm.r * mul.r;
-        wmul.g = pwcm.g * mul.g;
-        wmul.b = pwcm.b * mul.b;
-        wmul.a = pwcm.a * mul.a;
-
+        Color4._combine(
+            parent.worldColorMultiplier, parent.worldColorOffset,
+            tr.colorMultiplier, tr.colorOffset,
+            tr.worldColorMultiplier, tr.worldColorOffset
+        );
         parent = tr;
     }
 
     let it = e.childFirst;
     while (it !== undefined) {
-        invalidateTransformSimple3(it, parent);
+        invalidateTransformNode(it, parent);
         it = it.siblingNext;
     }
 }

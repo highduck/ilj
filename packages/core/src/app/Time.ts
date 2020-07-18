@@ -63,10 +63,6 @@ export class Time {
         this.total += this.delta;
         this.ts = timestamp;
 
-        if (process.env.NODE_ENV === 'development') {
-            this.fps.calcFPS(this.raw);
-        }
-
         Time.ROOT.update(this.delta);
         Time.GAME.update(Time.ROOT.dt);
         Time.HUD.update(Time.ROOT.dt);

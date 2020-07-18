@@ -14,7 +14,7 @@
       "@highduck/anijson": [
         "../anijson/src"
       ]
-    },
+    }
   },
   "include": [
     "./src/**/*.ts"

@@ -1,6 +1,6 @@
-import {ComponentTypeA, Engine, Entity, Interactive, Time, Transform2D, Transform2D_Data} from "..";
+import {Engine, Interactive, Time, Transform2D, Transform2D_Data} from "..";
 import {cubicOut, integrateExp, lerp, Rect, Vec2} from "@highduck/math";
-import {getComponents} from "../ecs/World";
+import {Entity, EntityComponentType} from "../ecs";
 
 function calcAverage(values: number[]) {
     let sum = 0;
@@ -67,7 +67,9 @@ class VelocityTracker {
 
 
 export class ScrollArea_Data {
-    readonly entity!: Entity;
+    constructor(readonly entity: Entity) {
+
+    }
 
     readonly area = new Rect();
     readonly content = new Rect();
@@ -123,7 +125,7 @@ export class ScrollArea_Data {
     }
 }
 
-export const ScrollArea = new ComponentTypeA(ScrollArea_Data);
+export const ScrollArea = new EntityComponentType(ScrollArea_Data);
 
 const TEMP_RECT = new Rect();
 const TEMP_VEC2 = new Vec2();
@@ -150,7 +152,7 @@ export function updateScrollArea() {
     const engine = Engine.current;
     const input = engine.interactiveManager;
     const dt = Time.UI.dt;
-    const components = getComponents(ScrollArea);
+    const components = ScrollArea.components();
     for (let i = 0; i < components.length; ++i) {
         const scroll = components[i];
         const transform = scroll.entity.getOrCreate(Transform2D);
