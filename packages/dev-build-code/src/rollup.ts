@@ -82,13 +82,22 @@ function fillDefaults(options?: Partial<CompileBundleOptions>): CompileBundleOpt
 }
 
 function getTerserOptions(options: CompileBundleOptions): undefined | TerserOptions {
-    // if (!options.minify) {
+    if (!options.minify) {
         return undefined;
-    // }
+    }
 
     const opts: MinifyOptions = {
         ecma: 2020,
-        compress: false,
+        compress: {
+            passes: 2,
+            hoist_funs: true,
+            // sequences: false,
+            reduce_funcs: false,
+            // reduce_vars: false,
+            keep_infinity: true,
+            negate_iife: false,
+            toplevel: true
+        },
         mangle: {
             toplevel: true,
             module: !options.compat,
@@ -107,8 +116,8 @@ function getTerserOptions(options: CompileBundleOptions): undefined | TerserOpti
         toplevel: true,
         safari10: true,
         output: { // format in terser 5
-            // beautify: options.debug
-            beautify: true
+            beautify: options.debug
+            // beautify: true
         }
     };
 
