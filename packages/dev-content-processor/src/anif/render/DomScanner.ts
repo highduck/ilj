@@ -1,4 +1,4 @@
-import {Rect} from "@highduck/math";
+import {Recta} from "@highduck/math";
 import {TransformModel} from "./TransformModel";
 import {ShapeProcessor} from "./ShapeProcessor";
 import {ElementType, LayerType, AnimateDoc, Element} from "@highduck/xfl";
@@ -134,7 +134,7 @@ export class DomScanner {
     }
 }
 
-export function estimateBounds(doc: AnimateDoc, elements: Element[]): Rect {
+export function estimateBounds(doc: AnimateDoc, elements: Element[]): Recta {
     const scanner = new DomScanner(doc);
     for (const el of elements) {
         scanner.scan(el);

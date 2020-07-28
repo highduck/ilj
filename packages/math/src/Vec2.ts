@@ -13,15 +13,19 @@ export class Vec2 {
         return this.x * this.x + this.y * this.y;
     }
 
-    static readonly ONE: Readonly<Vec2> = new Vec2(1, 1);
-    static readonly ZERO: Readonly<Vec2> = new Vec2(0, 0);
+    static readonly ONE: Readonly<Vec2> = new Vec2(1.0, 1.0);
+    static readonly ZERO: Readonly<Vec2> = new Vec2(0.0, 0.0);
 
     // static direction(angle: number, out?: Vec2): Vec2 {
     //     return (out ?? new Vec2()).set(Math.cos(angle), Math.sin(angle));
     // }
 
-    constructor(public x: number = 0, public y: number = 0) {
+    x = NaN;
+    y = NaN;
 
+    constructor(x = 0.0, y = 0.0) {
+        this.x = x;
+        this.y = y;
     }
 
     add(v: Readonly<Vec2>): this {
@@ -168,7 +172,7 @@ export class Vec2 {
     }
 
     lerp(end: Vec2, t: number): this {
-        const inv = 1 - t;
+        const inv = 1.0 - t;
         this.x = inv * this.x + t * end.x;
         this.y = inv * this.y + t * end.y;
         return this;
@@ -181,7 +185,7 @@ export class Vec2 {
         return this;
     }
 
-    direction(angle: number, length: number = 1): this {
+    direction(angle: number, length: number = 1.0): this {
         this.x = Math.cos(angle) * length;
         this.y = Math.sin(angle) * length;
         return this;

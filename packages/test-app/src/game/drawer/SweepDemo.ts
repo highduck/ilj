@@ -1,15 +1,15 @@
-import {Color32_ARGB, lerp, Rect, sweepCircles, SweepTestResult, Vec2, Vec3} from "@highduck/math";
+import {Color32_ARGB, lerp, Recta, sweepCircles, SweepTestResult, Vec2, Vec3} from "@highduck/math";
 import {Engine} from "@highduck/core";
 
 const SWEEP_RES = new SweepTestResult();
 
 export class SweepDemo {
 
-    readonly a0 = new Rect(100, 100, 100, 20);
-    readonly a1 = new Rect(100, 300, 100, 20);
+    readonly a0 = new Recta(100, 100, 100, 20);
+    readonly a1 = new Recta(100, 300, 100, 20);
 
-    readonly b0 = new Rect(50, 200, 100, 100);
-    readonly b1 = new Rect(50, 200, 100, 100);
+    readonly b0 = new Recta(50, 200, 100, 100);
+    readonly b1 = new Recta(50, 200, 100, 100);
 
     readonly ray0 = new Vec2(400, 400);
     readonly rayDir = new Vec2(-50, -50);

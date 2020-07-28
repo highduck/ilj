@@ -1,21 +1,23 @@
 import {Display2D, Display2DComponent} from "./Display2D";
 import {TextFormat} from "../TextFormat";
-import {Rect} from "@highduck/math";
+import {Recta} from "@highduck/math";
 import {Drawer} from "../../drawer/Drawer";
-import {getStringRepoVersion, parseString, renderString, StringToken} from "../../util/Texts";
-import {FontResource} from "../../rtfont/Font";
+import {getStringRepoVersion, parseString, renderString, StringTokenArray, StringTokenKind} from "../../util/Texts";
+import {Font} from "../../rtfont/Font";
 import {ComponentTypeA} from "../../ecs";
+import {AssetRef} from "../../util/Resources";
 
 export class DisplayTextComponent extends Display2DComponent {
-    _tokens: StringToken[] = [];
+    _tokens = StringTokenArray.EMPTY;
     _rendered: string = '';
     _pollCounter: number = 0;
     _pollVersion: number = -1;
 
     pollFrequency = 10;
 
-    readonly format = new TextFormat("mini", 16);
-    readonly rect = new Rect();
+    readonly format = new TextFormat();
+    readonly rect = new Recta();
+    font: AssetRef<Font> = AssetRef.NONE;
 
     constructor() {
         super();
@@ -32,28 +34,25 @@ export class DisplayTextComponent extends Display2DComponent {
 
     draw(drawer: Drawer) {
         this.invalidateText();
-        if (this._rendered.length > 0) {
-            const font = FontResource.data(this.format.font);
-            if (font !== undefined) {
-                font.drawText(this._rendered, this.format, this.rect);
-            }
+        const font = this.font.data;
+        if (this._rendered.length > 0 && font !== null) {
+            font.drawText(this._rendered, this.format, this.rect);
         }
     }
 
-    getBounds(out: Rect): Rect {
-        out.set(0, 0, 0, 0);
+    getBounds(out: Recta): void {
         this.invalidateText();
-        if (this._rendered.length > 0) {
-            const font = FontResource.data(this.format.font);
-            if (font !== undefined) {
-                font.textBounds(this._rendered, this.format, this.rect, out);
-            }
+        const font = this.font.data;
+        if (this._rendered.length > 0 && font !== null) {
+            font.textBounds(this._rendered, this.format, this.rect, out);
+        } else {
+            out.set(0, 0, 0, 0);
         }
-        return out;
     }
 
     set text(value: string) {
-        this._tokens = parseString(value);
+        this._tokens = new StringTokenArray();
+        parseString(value, this._tokens);
 
         this._pollCounter = 0;
         this.invalidateText();
@@ -72,11 +71,14 @@ export class DisplayTextComponent extends Display2DComponent {
     }
 
     setKey(key: string | undefined): this {
-        this._tokens =
-            key !== undefined ? [{
-                kind: 1,
-                value: key
-            }] : [];
+        if (key !== undefined) {
+            this._tokens = new StringTokenArray();
+            this._tokens.kinds[0] = StringTokenKind.Key;
+            this._tokens.values[0] = key;
+            this._tokens.count = 1;
+        } else {
+            this._tokens = StringTokenArray.EMPTY;
+        }
         return this;
     }
 }

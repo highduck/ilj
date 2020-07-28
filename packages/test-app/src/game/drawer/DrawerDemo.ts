@@ -1,4 +1,4 @@
-import {AssetRef, Engine, BitmapFont, BitmapFontResource, Texture} from "@highduck/core";
+import {AssetRef, BitmapFont, BitmapFontResource, Engine, Texture} from "@highduck/core";
 import {Poly2Tri} from "@highduck/polykit";
 
 class ExampleMesh2D {
@@ -46,8 +46,8 @@ export class DrawerDemo {
     draw(testQuadsCount: number) {
         const engine = Engine.current;
         const drawer = engine.drawer;
-        const w = engine.graphics.viewportRect.width;
-        const h = engine.graphics.viewportRect.height;
+        const w = engine.graphics.framebufferWidth;
+        const h = engine.graphics.framebufferHeight;
         this.drawRandomQuads(w, h, testQuadsCount);
         this.drawSimpleQuads();
         this.drawMesh2D();

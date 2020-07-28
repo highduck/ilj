@@ -2,8 +2,9 @@ import {Graphics} from "./Graphics";
 import {ProgramAttribute} from "./ProgramAttribute";
 import {ProgramUniform} from "./ProgramUniform";
 import {VERTEX_2D, VertexDecl} from "./VertexDecl";
-import {Color4, Matrix4, Rect, Vec2, Vec3, Vec4} from "@highduck/math";
+import {Color4, Matrix4, Recta, Vec2, Vec3, Vec4} from "@highduck/math";
 import {ResourceType} from "../util/Resources";
+import {IntMap} from "../ds/IntMap";
 
 function checkShader(GL: WebGLRenderingContext, shader: WebGLShader, source: string): boolean {
     if (!GL.getShaderParameter(shader, GL.COMPILE_STATUS)) {
@@ -69,9 +70,16 @@ function compile(GL: WebGLRenderingContext, vs: string, fs: string): WebGLProgra
     return null;
 }
 
-function enableVertexAttrib(GL: WebGLRenderingContext, loc: GLint, comps: number, compsize: number, type: GLenum, normalized: boolean, stride: number, offset: number): number {
+const VertexAttribMap = new IntMap<number>();
+
+function enableVertexAttrib(GL: WebGLRenderingContext, loc: GLint): void {
     if (loc >= 0) {
         GL.enableVertexAttribArray(loc);
+    }
+}
+
+function bindVertexAttrib(GL: WebGLRenderingContext, loc: GLint, comps: number, compsize: number, type: GLenum, normalized: boolean, stride: number, offset: number): number {
+    if (loc >= 0) {
         GL.vertexAttribPointer(loc, comps, type, normalized, stride, offset);
     }
     return compsize * comps;
@@ -83,7 +91,7 @@ function disableVertexAttrib(GL: WebGLRenderingContext, loc: GLint): void {
     }
 }
 
-type UniformDataType = number | Matrix4 | Rect | Vec2 | Vec3 | Vec4 | Color4;
+type UniformDataType = number | Matrix4 | Recta | Vec2 | Vec3 | Vec4 | Color4;
 
 export class Program {
     static current: Program | undefined;
@@ -107,7 +115,29 @@ export class Program {
         }
     }
 
-    bindAttributes() {
+    enableVertexAttributes() {
+        const GL = this.graphics.gl;
+
+        // ??
+        // if (this.program) {
+        //     GL.bindAttribLocation(this.program, 0, '');
+        //     GL.enableVertexAttribArray(0);
+        // }
+
+        const v = this.vertex;
+
+        enableVertexAttrib(GL, this.getAttrib(ProgramAttribute.Position));
+
+        if (v.normals) {
+            enableVertexAttrib(GL, this.getAttrib(ProgramAttribute.Normal));
+        }
+
+        enableVertexAttrib(GL, this.getAttrib(ProgramAttribute.TexCoord));
+        enableVertexAttrib(GL, this.getAttrib(ProgramAttribute.ColorMultiplier));
+        enableVertexAttrib(GL, this.getAttrib(ProgramAttribute.ColorOffset));
+    }
+
+    bindVertexAttrib() {
         const GL = this.graphics.gl;
 
         // ??
@@ -119,25 +149,25 @@ export class Program {
         const v = this.vertex;
         let off = 0;
 
-        off += enableVertexAttrib(GL, this.getAttrib(ProgramAttribute.Position),
+        off += bindVertexAttrib(GL, this.getAttrib(ProgramAttribute.Position),
             v.positionComps, 4, GL.FLOAT, false, v.size, off);
 
         if (v.normals) {
-            off += enableVertexAttrib(GL, this.getAttrib(ProgramAttribute.Normal),
+            off += bindVertexAttrib(GL, this.getAttrib(ProgramAttribute.Normal),
                 3, 4, GL.FLOAT, false, v.size, off);
         }
 
-        off += enableVertexAttrib(GL, this.getAttrib(ProgramAttribute.TexCoord),
+        off += bindVertexAttrib(GL, this.getAttrib(ProgramAttribute.TexCoord),
             2, 4, GL.FLOAT, false, v.size, off);
 
-        off += enableVertexAttrib(GL, this.getAttrib(ProgramAttribute.ColorMultiplier),
+        off += bindVertexAttrib(GL, this.getAttrib(ProgramAttribute.ColorMultiplier),
             4, 1, GL.UNSIGNED_BYTE, true, v.size, off);
 
-        off += enableVertexAttrib(GL, this.getAttrib(ProgramAttribute.ColorOffset),
+        off += bindVertexAttrib(GL, this.getAttrib(ProgramAttribute.ColorOffset),
             4, 1, GL.UNSIGNED_BYTE, true, v.size, off);
     }
 
-    unbindAttributes() {
+    disableVertexAttributes() {
         const GL = this.graphics.gl;
         disableVertexAttrib(GL, this.getAttrib(ProgramAttribute.Position));
         disableVertexAttrib(GL, this.getAttrib(ProgramAttribute.Normal));
@@ -146,7 +176,7 @@ export class Program {
         disableVertexAttrib(GL, this.getAttrib(ProgramAttribute.ColorOffset));
     }
 
-    bindImage() {
+    enableImageUnits() {
         this.setUniform1i(ProgramUniform.Image0, this.uImage0Unit);
     }
 
@@ -201,7 +231,7 @@ export class Program {
                 GL.uniform3f(uniform, value.x, value.y, value.z);
             } else if (value instanceof Vec4) {
                 GL.uniform4f(uniform, value.x, value.y, value.z, value.w);
-            } else if (value instanceof Rect) {
+            } else if (value instanceof Recta) {
                 GL.uniform4f(uniform, value.x, value.y, value.width, value.height);
             } else if (value instanceof Color4) {
                 GL.uniform4f(uniform, value.r, value.g, value.b, value.a);

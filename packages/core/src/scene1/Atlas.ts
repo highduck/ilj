@@ -4,7 +4,7 @@ import {Disposable} from "../util/Disposable";
 import {AssetRef, ResourceType} from "../util/Resources";
 import {Sprite, SpriteResource} from "./Sprite";
 import {loadJSON} from "../util/load";
-import {Rect} from "@highduck/math";
+import {Recta} from "@highduck/math";
 import {AtlasJson, SpriteFlag} from "@highduck/anijson";
 import {destroyCanvas, destroyImage, loadImage, loadSplitAlpha} from "../util/loadImage";
 
@@ -63,11 +63,11 @@ export class Atlas implements Disposable {
 
     dispose() {
         for (const page of this.pages) {
-            page.reset();
+            page.reset(null);
         }
 
         for (const sprite of this.sprites.values()) {
-            sprite.reset();
+            sprite.reset(null);
         }
     }
 
@@ -95,7 +95,7 @@ export class Atlas implements Disposable {
             texture.generateMipMaps = page.mipmap ?? true;
             if (page.spot !== undefined) {
                 const rc = page.spot;
-                texture.spot = new Rect(rc[0], rc[1], rc[2], rc[3]);
+                texture.spot = new Recta(rc[0], rc[1], rc[2], rc[3]);
                 texture.spot.set(texture.spot.centerX, texture.spot.centerY, 0, 0);
             }
             if (page.mask === undefined) {

@@ -7,7 +7,7 @@ export * from './Easing';
 export * from './Matrix2D';
 export * from './Matrix4';
 export * from './Random';
-export * from './Rect';
+export * from './Recta';
 export * from './scalar';
 export * from './Vec2';
 export * from './Vec3';

@@ -1,25 +1,25 @@
 import {Layout, LayoutData} from "./Layout";
-import {Rect} from "@highduck/math";
+import {Recta} from "@highduck/math";
 import {Transform2D} from "../display/Transform2D";
 import {Display2D} from "../display/Display2D";
 import {DisplayQuadComponent} from "../display/DisplayQuad";
 import {DisplaySpriteComponent} from "../display/DisplaySprite";
 import {Entity, getComponents} from "../../ecs";
 
-const TEMP_RECT_0 = new Rect();
-const TEMP_RECT = new Rect();
+const TEMP_RECT_0 = new Recta();
+const TEMP_RECT = new Recta();
 
-export function findRootRect(e: Entity, out: Rect): boolean {
-    let it: Entity | undefined = e;
-    while (it !== undefined) {
+export function findRootRect(e: Entity, out: Recta): boolean {
+    let it: Entity | null = e;
+    while (it !== null) {
         const transform = it.tryGet(Transform2D);
-        if (transform !== undefined && !transform.rect.empty) {
+        if (transform !== undefined && transform.flagRect) {
             out.copyFrom(transform.rect);
             return true;
         }
         it = it.parent;
     }
-    out.set(0, 0, 0, 0);
+    out.set(0.0, 0.0, 0.0, 0.0);
     return false;
 }
 
@@ -44,7 +44,8 @@ function updateEntityLayout(layout: LayoutData) {
                 display.rect.height = topRect.height;
             }
         } else if (display instanceof DisplaySpriteComponent && transform !== undefined) {
-            const bounds = display.getBounds(TEMP_RECT);
+            const bounds = TEMP_RECT;
+            display.getBounds(bounds);
             if (!bounds.empty) {
                 if (layout.fillX) {
                     transform.position.x = topRect.x + layout.fillExtra.x;

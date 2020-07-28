@@ -41,7 +41,7 @@ export class HierarchyItem extends Component<HierarchyItemProps, {}> {
         if (!e || !e.isValid) {
             return;
         }
-        const hasChildren = e.childFirst !== undefined;
+        const hasChildren = e.childFirst !== null;
         const onUpdate = (ev: Event) => {
             e.visible = (ev.target as HTMLInputElement).checked;
         };
@@ -99,7 +99,7 @@ export class HierarchyItem extends Component<HierarchyItemProps, {}> {
         ];
         if (hasChildren && isOpen) {
             let it = e.childFirst;
-            while (it !== undefined) {
+            while (it !== null) {
                 els.push(<HierarchyItem entity={it}
                                         depth={depth + 1}
                                         parentActive={worldActive}

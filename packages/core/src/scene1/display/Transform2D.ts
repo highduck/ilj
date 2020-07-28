@@ -1,5 +1,5 @@
-import {Color4, Matrix2D, Rect, Vec2} from "@highduck/math";
-import {ComponentTypeA, Entity} from "../../ecs";
+import {Color4, Matrix2D, Recta, Vec2} from "@highduck/math";
+import {Entity, PoolComponentType} from "../../ecs";
 
 const TEMP_VEC2_0 = new Vec2();
 const TEMP_VEC2_1 = new Vec2();
@@ -7,39 +7,55 @@ const TEMP_VEC2_1 = new Vec2();
 export class Transform2D_Data {
     static IDENTITY: Readonly<Transform2D_Data> = new Transform2D_Data();
 
-    readonly position = new Vec2(0, 0);
-    readonly scale = new Vec2(1, 1);
-    readonly skew = new Vec2(0, 0);
-    readonly origin = new Vec2(0, 0);
-    readonly pivot = new Vec2(0, 0);
-    readonly rect = new Rect();
+    readonly position = new Vec2(0.0, 0.0);
+    readonly scale = new Vec2(1.0, 1.0);
+    readonly skew = new Vec2(0.0, 0.0);
+    readonly origin = new Vec2(0.0, 0.0);
+    readonly pivot = new Vec2(0.0, 0.0);
 
     readonly matrix = new Matrix2D();
     readonly worldMatrix = new Matrix2D();
 
-    readonly colorMultiplier = new Color4(1, 1, 1, 1);
-    readonly colorOffset = new Color4(0, 0, 0, 0);
-    readonly worldColorMultiplier = new Color4(1, 1, 1, 1);
-    readonly worldColorOffset = new Color4(0, 0, 0, 0);
+    readonly colorMultiplier = new Color4(1.0, 1.0, 1.0, 1.0);
+    readonly colorOffset = new Color4(0.0, 0.0, 0.0, 0.0);
+    readonly worldColorMultiplier = new Color4(1.0, 1.0, 1.0, 1.0);
+    readonly worldColorOffset = new Color4(0.0, 0.0, 0.0, 0.0);
 
-    scissors: Rect | undefined = undefined;
-    hitArea: Rect | undefined = undefined;
+    readonly rect = new Recta();
+    readonly scissors = new Recta();
+    readonly hitArea = new Recta();
 
-    getScreenScissors(viewMatrix: Matrix2D, worldMatrix: Matrix2D, out: Rect) {
-        if (this.scissors !== undefined) {
-            const lt = worldMatrix.transform(this.scissors.x, this.scissors.y, TEMP_VEC2_0);
-            const rb = worldMatrix.transform(this.scissors.right, this.scissors.bottom, TEMP_VEC2_1);
+    flagRect = false;
+    flagScissors = false;
+    flagHitArea = false;
 
-            viewMatrix.transform(lt.x, lt.y, lt);
-            viewMatrix.transform(rb.x, rb.y, rb);
+    reset() {
+        this.colorMultiplier.set(1.0, 1.0, 1.0, 1.0);
+        this.colorOffset.set(0.0, 0.0, 0.0, 0.0);
+        this.position.set(0.0, 0.0);
+        this.skew.set(0.0, 0.0);
+        this.scale.set(1.0, 1.0);
+        this.origin.set(0.0, 0.0);
+        this.pivot.set(0.0, 0.0);
 
-            out.x = Math.min(lt.x, rb.x);
-            out.y = Math.min(lt.y, rb.y);
-            const mx = Math.max(lt.x, rb.x);
-            const my = Math.max(lt.y, rb.y);
-            out.width = mx - out.x;
-            out.height = my - out.y;
-        }
+        this.flagRect = false;
+        this.flagScissors = false;
+        this.flagHitArea = false;
+    }
+
+    getScreenScissors(viewMatrix: Matrix2D, worldMatrix: Matrix2D, out: Recta) {
+        const lt = worldMatrix.transform(this.scissors.x, this.scissors.y, TEMP_VEC2_0);
+        const rb = worldMatrix.transform(this.scissors.right, this.scissors.bottom, TEMP_VEC2_1);
+
+        viewMatrix.transform(lt.x, lt.y, lt);
+        viewMatrix.transform(rb.x, rb.y, rb);
+
+        out.x = Math.min(lt.x, rb.x);
+        out.y = Math.min(lt.y, rb.y);
+        const mx = Math.max(lt.x, rb.x);
+        const my = Math.max(lt.y, rb.y);
+        out.width = mx - out.x;
+        out.height = my - out.y;
     }
 
     set x(value: number) {
@@ -64,7 +80,7 @@ export class Transform2D_Data {
     }
 
     get rotation(): number {
-        return this.skew.x === this.skew.y ? this.skew.x : 0;
+        return this.skew.x === this.skew.y ? this.skew.x : 0.0;
     }
 
     rotate(value: number) {
@@ -126,24 +142,16 @@ export class Transform2D_Data {
 
     static globalToLocal(e: Entity, pos: Vec2, out: Vec2) {
         out.copyFrom(pos);
-        Transform2D_Data.transformDown(undefined, e, out);
+        Transform2D_Data.transformDown(null, e, out);
     }
 
     static globalToParent(e: Entity, pos: Vec2, out: Vec2) {
         out.copyFrom(pos);
-        Transform2D_Data.transformDown(undefined, e.parent, out);
+        Transform2D_Data.transformDown(null, e.parent, out);
     }
 
-    static updateLocalMatrixInTree(e: Entity) {
-        let it: Entity | undefined = e;
-        while (it !== undefined) {
-            it.tryGet(Transform2D)?.buildLocalMatrix();
-            it = it.parent;
-        }
-    }
-
-    static transformUp(it: Entity | undefined, top: Entity | undefined, out: Vec2) {
-        while (it !== top && it !== undefined) {
+    static transformUp(it: Entity | null, top: Entity | null, out: Vec2) {
+        while (it !== top && it !== null) {
             const transform = it.tryGet(Transform2D);
             if (transform !== undefined) {
                 transform.matrix.transformWith(out);
@@ -152,8 +160,8 @@ export class Transform2D_Data {
         }
     }
 
-    static transformDown(top: Entity | undefined, it: Entity | undefined, out: Vec2) {
-        while (it !== top && it !== undefined) {
+    static transformDown(top: Entity | null, it: Entity | null, out: Vec2) {
+        while (it !== top && it !== null) {
             const transform = it.tryGet(Transform2D);
             if (transform !== undefined) {
                 transform.matrix.transformInverseWith(out);
@@ -164,48 +172,74 @@ export class Transform2D_Data {
 
     static localToGlobal(e: Entity, pos: Vec2, out: Vec2) {
         out.copyFrom(pos);
-        Transform2D_Data.transformUp(e, undefined, out);
+        Transform2D_Data.transformUp(e, null, out);
     }
 
     static parentToGlobal(e: Entity, pos: Vec2, out: Vec2) {
         out.copyFrom(pos);
-        Transform2D_Data.transformUp(e.parent, undefined, out);
+        Transform2D_Data.transformUp(e.parent, null, out);
     }
 
     static findDepth(e: Entity): number {
         let depth = 0;
-        let it: Entity | undefined = e.parent;
-        while (it !== undefined) {
+        let it = e.parent;
+        while (it !== null) {
             ++depth;
             it = it.parent;
         }
         return depth;
     }
 
-    static findLowerCommonAncestor(e1: Entity, e2: Entity): Entity | undefined {
+    static findLowerCommonAncestor(e1: Entity, e2: Entity): Entity | null {
         let depth1 = Transform2D_Data.findDepth(e1);
         let depth2 = Transform2D_Data.findDepth(e2);
-        let it1: Entity | undefined = e1;
-        let it2: Entity | undefined = e2;
+        let it1: Entity | null = e1;
+        let it2: Entity | null = e2;
         while (depth1 > depth2) {
-            it1 = it1?.parent;
+            it1 = it1!.parent;
             --depth1;
         }
         while (depth2 < depth1) {
-            it2 = it2?.parent;
+            it2 = it2!.parent;
             --depth2;
         }
         while (it1 !== it2) {
-            it1 = it1?.parent;
-            it2 = it2?.parent;
+            it1 = it1!.parent;
+            it2 = it2!.parent;
+            if (it1 === null || it2 === null) {
+                return null;
+            }
         }
         return it1;
+    }
+
+    static updateLocalMatricesForLink(src: Entity, dest: Entity) {
+        const lca = Transform2D_Data.findLowerCommonAncestor(src, dest);
+        if (lca !== null) {
+            let it: Entity | null = src;
+            while (it !== lca && it !== null) {
+                const transform = Transform2D.map.get(it.index);
+                if (transform !== undefined) {
+                    transform.buildLocalMatrix();
+                }
+                it = it.parent;
+            }
+
+            it = dest;
+            while (it !== lca && it !== null) {
+                const transform = Transform2D.map.get(it.index);
+                if (transform !== undefined) {
+                    transform.buildLocalMatrix();
+                }
+                it = it.parent;
+            }
+        }
     }
 
     static localToLocal(src: Entity, dest: Entity, pos: Readonly<Vec2>, out: Vec2) {
         out.copyFrom(pos);
         const lca = Transform2D_Data.findLowerCommonAncestor(src, dest);
-        if (lca !== undefined) {
+        if (lca !== null) {
             Transform2D_Data.transformUp(src, lca, out);
             Transform2D_Data.transformDown(lca, dest, out);
         }
@@ -214,9 +248,9 @@ export class Transform2D_Data {
     static getTransformationMatrix(src: Entity, dest: Entity, out: Matrix2D) {
         out.copyFrom(Matrix2D.IDENTITY);
         const common = Transform2D_Data.findLowerCommonAncestor(src, dest);
-        if (common !== undefined) {
-            let it: Entity | undefined = dest;
-            while (it !== common && it !== undefined) {
+        if (common !== null) {
+            let it: Entity | null = dest;
+            while (it !== common && it !== null) {
                 const transform = it.tryGet(Transform2D);
                 if (transform !== undefined) {
                     Matrix2D.multiply(out, transform.matrix, out);
@@ -225,7 +259,7 @@ export class Transform2D_Data {
             }
             Matrix2D.inverse(out);
             it = src;
-            while (it !== common && it !== undefined) {
+            while (it !== common && it !== null) {
                 const transform = it.tryGet(Transform2D);
                 if (transform !== undefined) {
                     Matrix2D.multiply(out, transform.matrix, out);
@@ -236,9 +270,9 @@ export class Transform2D_Data {
     }
 
     static calcWorldMatrix(entity: Entity, out: Matrix2D) {
-        let it: Entity | undefined = entity;
+        let it: Entity | null = entity;
         const transformMap = Transform2D.map;
-        while (it !== undefined) {
+        while (it !== null) {
             const transform = transformMap.get(it.index);
             if (transform !== undefined) {
                 Matrix2D.multiply(out, transform.matrix, out);
@@ -251,4 +285,4 @@ export class Transform2D_Data {
     }
 }
 
-export const Transform2D = new ComponentTypeA(Transform2D_Data);
+export const Transform2D = new PoolComponentType(Transform2D_Data, 1000);

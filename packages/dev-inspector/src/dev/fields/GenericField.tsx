@@ -1,6 +1,6 @@
 import {BoolField} from "./BoolField";
 import {NumberField} from "./NumberField";
-import {Color4, Rect, Vec2} from "@highduck/math";
+import {Color4, Recta, Vec2} from "@highduck/math";
 import {Vec2Field} from "./Vec2Field";
 import {RectField} from "./RectField";
 import {Color4Field} from "./Color4Field";
@@ -28,7 +28,7 @@ export const GenericField = ({data, field}: GenericFieldProps) => {
         case "object":
             if (val instanceof Vec2) {
                 return <Vec2Field target={data} field={field}/>;
-            } else if (val instanceof Rect) {
+            } else if (val instanceof Recta) {
                 return <RectField target={data} field={field}/>;
             } else if (val instanceof Color4) {
                 return <Color4Field target={data} field={field}/>;

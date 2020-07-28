@@ -1,5 +1,5 @@
 import {RenderBatch} from "../render/RenderBatch";
-import {Rect} from "@highduck/math";
+import {Recta} from "@highduck/math";
 import {BlendMode} from "@highduck/xfl";
 import {destroyPMASurface, CanvasKit, makePMASurface} from "./SkiaHelpers";
 import {SkiaRenderer} from "./SkiaRenderer";
@@ -18,7 +18,7 @@ export interface RenderOptions {
     trim?: boolean,// = false;
 }
 
-function createSprite(name: string, scale: number, rc: Rect, image: EImage) {
+function createSprite(name: string, scale: number, rc: Recta, image: EImage) {
     const data = new ESprite();
     data.scale = scale;
     data.padding = Math.max(1, Math.ceil(scale));
@@ -39,7 +39,7 @@ function findMultiSampleScale(width: number, height: number, ss: number = 8): nu
     return ss;
 }
 
-function renderGeneralBatches(bounds: Rect,
+function renderGeneralBatches(bounds: Recta,
                               batches: RenderBatch[],
                               options: RenderOptions): ESprite | undefined {
 
@@ -54,7 +54,7 @@ function renderGeneralBatches(bounds: Rect,
     const scale = opts.scale;
     const fixed = opts.width > 0 && opts.height > 0;
 
-    const rc = new Rect();
+    const rc = new Recta();
     rc.copyFrom(bounds);
     if (!opts.trim) {
         rc.x -= 1;
@@ -120,7 +120,7 @@ function renderGeneralBatches(bounds: Rect,
     }
 }
 
-function renderLowQuality(bounds: Rect,
+function renderLowQuality(bounds: Recta,
                           batches: RenderBatch[],
                           options: RenderOptions): ESprite | undefined {
 
@@ -135,7 +135,7 @@ function renderLowQuality(bounds: Rect,
     const scale = opts.scale;
     const fixed = opts.width > 0 && opts.height > 0;
 
-    const rc = new Rect();
+    const rc = new Recta();
     rc.copyFrom(bounds);
     if (!opts.trim) {
         rc.x -= 1;

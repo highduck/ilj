@@ -1,5 +1,5 @@
 import {Particle} from "./Particle";
-import {Color32_ARGB, Color4, Rect, RndDefault, Vec2} from "@highduck/math";
+import {Color32_ARGB, Color4, Recta, RndDefault, Vec2} from "@highduck/math";
 import {AssetRef, ResourceType} from "../../util/Resources";
 import {Sprite} from "../Sprite";
 import {Font} from "../../rtfont/Font";
@@ -117,8 +117,7 @@ class RandomFloatRange {
 
 export class ParticleDecl {
     sprite: AssetRef<Sprite> = AssetRef.NONE;
-
-    font?: AssetRef<Font>;
+    font: AssetRef<Font> = AssetRef.NONE;
     fontSize = 0;
 
     scaleMode = ParticleScaleMode.None;
@@ -181,15 +180,15 @@ export const ParticleDeclResource = new ResourceType(ParticleDecl);
 export class EmitterData {
     interval = 0.5;
     burst = 1;
-    readonly rect = new Rect();
+    readonly rect = new Recta();
     readonly offset = new Vec2();
 
     burstRotationDelta = new RandomFloatRange(1, 1.5);
     speed = new RandomFloatRange(10, 100);
     acc = new RandomFloatRange(0, 0);
     dir = new RandomFloatRange(0, 2 * Math.PI);
-    particle?: AssetRef<ParticleDecl>;
-    velocity?: Vec2;
+    particle: AssetRef<ParticleDecl> = AssetRef.NONE;
+    velocity: Vec2 | null = null;
 
-    onSpawn?: (p: Particle) => void;
+    onSpawn: null | ((p: Particle) => void) = null;
 }

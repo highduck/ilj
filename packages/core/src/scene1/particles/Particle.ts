@@ -1,74 +1,95 @@
 import {ParticleAlphaMode, ParticleScaleMode} from "./ParticleDecl";
-import {Color4, lerp, Matrix2D, quadOut, Rect, saturate} from "@highduck/math";
+import {Color4, lerp, Matrix2D, quadOut, Recta, saturate} from "@highduck/math";
 import {AssetRef} from "../../util/Resources";
 import {Sprite} from "../Sprite";
 import {Drawer} from "../../drawer/Drawer";
 import {Font} from "../../rtfont/Font";
 
-const RECT_TEMP = new Rect();
+const RECT_TEMP = new Recta();
 const s_matrix = new Matrix2D();
 
 export class Particle {
     sprite: AssetRef<Sprite> = AssetRef.NONE;
-    text?: string;
-    font?: AssetRef<Font>;
+    text = '';
+    font: AssetRef<Font> = AssetRef.NONE;
     fontSize = 0;
     // pivot
-    px = 0.0;
-    py = 0.0;
+    px = NaN;
+    py = NaN;
 
-    time = 0.0;
-    timeTotal = 0.0;
+    time = NaN;
+    timeTotal = NaN;
     // position
-    x = 0.0;
-    y = 0.0;
+    x = NaN;
+    y = NaN;
 
     // velocity
-    vx = 0.0;
-    vy = 0.0;
+    vx = NaN;
+    vy = NaN;
 
     // acceleration
-    ax = 0.0;
-    ay = 0.0;
+    ax = NaN;
+    ay = NaN;
 
-    accPhaseX = Math.PI / 2;
-    accSpeedX = 0;
+    accPhaseX = NaN;
+    accSpeedX = NaN;
 
 // angle state
-    angleBase = 0.0;
+    angleBase = NaN;
 
 // rotating and rotation speed
-    rotation = 0.0;
-    rotationSpeed = 0.0;
-    angleVelocityFactor = 0.0;
+    rotation = NaN;
+    rotationSpeed = NaN;
+    angleVelocityFactor = NaN;
 
 // initial alpha
     alphaMode = ParticleAlphaMode.None;
-    alpha = 1.0;
+    alpha = NaN;
 
     readonly color = new Color4(1, 1, 1, 1);
     readonly offset = new Color4(0, 0, 0, 0);
 
     scaleMode = ParticleScaleMode.None;
-    scaleOffTime = 0.0;
-    scaleStart = 1.0;
-    scaleEnd = 0.0;
+    scaleOffTime = NaN;
+    scaleStart = NaN;
+    scaleEnd = NaN;
 
     // current state
 
     // scale
-    sx = 1.0;
-    sy = 1.0;
+    sx = NaN;
+    sy = NaN;
 
-    angle = 0.0;
+    angle = NaN;
 
-    readonly bounds = new Rect(0, 0, 1, 1);
+    readonly bounds = new Recta(0, 0, 1, 1);
 
-    //onUpdate?: (particle: Particle) => void = undefined;
-
-    init() {
-        this.updateCurrentValues();
+    constructor() {
+        this.px = 0.0;
+        this.py = 0.0;
+        this.time = 0.0;
+        this.timeTotal = 1.0;
+        this.x = 0.0;
+        this.y = 0.0;
+        this.vx = 0.0;
+        this.vy = 0.0;
+        this.ax = 0.0;
+        this.ay = 0.0;
+        this.accPhaseX = 0.0;
+        this.accSpeedX = 0.0;
+        this.angleBase = 0.0;
+        this.rotation = 0.0;
+        this.rotationSpeed = 0.0;
+        this.angleVelocityFactor = 0.0;
+        this.alpha = 0.0;
+        this.scaleOffTime = 0.0;
+        this.scaleStart = 0.0;
+        this.scaleEnd = 1.0;
+        this.sx = 1.0;
+        this.sy = 1.0;
+        this.angle = 0.0;
     }
+    //onUpdate?: (particle: Particle) => void = undefined;
 
     isAlive(): boolean {
         return this.time > 0;
@@ -147,17 +168,17 @@ export class Particle {
         }
     }
 
-    updateBounds(): Rect {
-        if (this.sprite.data !== undefined) {
+    updateBounds(): Recta {
+        if (this.sprite.data !== null) {
             this.bounds.copyFrom(this.sprite.data.rect);
-        } else if (this.fontSize > 0 && this.text && this.font && this.font.data) {
+        } else if (this.fontSize > 0 && this.font.data) {
             const width = this.font.data.getTextSegmentWidth(this.text, this.fontSize, 0, this.text.length);
             this.bounds.set(-0.5 * width, -0.5 * this.fontSize, width, this.fontSize);
         }
         return this.bounds;
     }
 
-    drawCycled(matrix: Matrix2D, colorMultiplier:Color4, colorOffset:Color4, drawer: Drawer) {
+    drawCycled(matrix: Matrix2D, colorMultiplier: Color4, colorOffset: Color4, drawer: Drawer) {
         const camera = drawer.state.canvas;
         const width = camera.width;
         const box = RECT_TEMP.copyFrom(this.updateBounds()).scale(this.sx, this.sy);
@@ -174,7 +195,8 @@ export class Particle {
         }
     }
 
-    draw(matrix: Matrix2D, colorMultiplier:Color4, colorOffset:Color4, drawer: Drawer, offsetX: number) {
+    draw(matrix: Matrix2D, colorMultiplier: Color4, colorOffset: Color4, drawer: Drawer, offsetX: number) {
+        /*#__NOINLINE__*/
         buildMatrix(this.x + offsetX, this.y, this.sx, this.sy, this.angle, this.px, this.py, s_matrix);
         Matrix2D.multiply(matrix, s_matrix, drawer.state.matrix);
         Color4._combine(
@@ -190,13 +212,13 @@ export class Particle {
         //     .translate(-this.px, -this.py)
         //     .combineColor(this.color, this.offset);
         // {
-            const size = this.fontSize;
-            if (this.sprite.data !== undefined) {
-                this.sprite.data.draw(drawer);
-            } else if (size > 0 && this.text && this.text.length > 0 && this.font && this.font.data) {
-                const width = this.font.data.getTextSegmentWidth(this.text, size, 0, this.text.length);
-                this.font.data.draw(this.text, size, -0.5 * width, 0.5 * size, size, 0);
-            }
+        const size = this.fontSize;
+        if (this.sprite.data !== null) {
+            this.sprite.data.draw(drawer);
+        } else if (size > 0 && this.text && this.text.length > 0 && this.font.data) {
+            const width = this.font.data.getTextSegmentWidth(this.text, size, 0, this.text.length);
+            this.font.data.draw(this.text, size, -0.5 * width, 0.5 * size, size, 0);
+        }
         // }
         // drawer.state.restoreTransform();
     }

@@ -1,10 +1,8 @@
 import {BlendMode} from "../graphics/BlendMode";
 import {Buffer} from "../graphics/Buffer";
-import {Rect} from "@highduck/math";
+import {Color32_ABGR, Color32_ABGR_PMA, Color32_ARGB, color32_pack_floats, Recta} from "@highduck/math";
 import {Batcher} from "./Batcher";
 import {CheckFlag, DrawingState} from "./DrawingState";
-
-import {Color32_ABGR, Color32_ABGR_PMA, Color32_ARGB, color32_pack_floats,} from "@highduck/math";
 import {assert} from "../util/assert";
 
 const packFloats = color32_pack_floats;
@@ -21,7 +19,7 @@ export class Drawer {
     ii = 0;
 
     vertexColorMultiplier: Color32_ABGR_PMA = 0xFFFFFFFF;
-    vertexColorOffset: Color32_ABGR = 0x0;
+    vertexColorOffset: Color32_ABGR = 0xFFFFFFFF;
 
     constructor(readonly batcher: Batcher) {
         this.state = new DrawingState();
@@ -30,7 +28,7 @@ export class Drawer {
         this.u32 = new Uint32Array(batcher.vertexMemory.buffer, 0);
     }
 
-    begin(dest: Rect) {
+    begin(dest: Recta) {
         const GL = this.batcher.graphics.gl;
         GL.depthMask(false);
         GL.enable(GL.BLEND);
@@ -43,7 +41,7 @@ export class Drawer {
         this.state.program = this.state.defaultProgram;
         this.state.blending = BlendMode.Premultiplied;
         this.state.mvp.ortho2D(dest.x, dest.y, dest.width, dest.height);
-        this.state.scissorsEnabled = false;
+        this.state.scissors.copyFrom(dest);
         this.state.checkFlags = 0;
         this.state.canvas.copyFrom(dest);
 
@@ -53,6 +51,7 @@ export class Drawer {
         batchingState.setTexture(this.state.texture);
         batchingState.setMVP(this.state.mvp);
         batchingState.setBlendMode(this.state.blending);
+        batchingState.setScissors(dest);
     }
 
     end() {
@@ -69,22 +68,25 @@ export class Drawer {
     }
 
     commitState() {
-        if ((this.state.checkFlags & CheckFlag.Blending) !== 0) {
-            this.batcher.state.setBlendMode(this.state.blending);
+        const checkFlags = this.state.checkFlags;
+        const drawingState = this.state;
+        const batcherState = this.batcher.state;
+        if ((checkFlags & CheckFlag.Blending) !== 0) {
+            batcherState.setBlendMode(drawingState.blending);
         }
-        if ((this.state.checkFlags & CheckFlag.Texture) !== 0) {
-            this.batcher.state.setTexture(this.state.texture);
+        if ((checkFlags & CheckFlag.Texture) !== 0) {
+            batcherState.setTexture(drawingState.texture);
         }
-        if ((this.state.checkFlags & CheckFlag.Program) !== 0) {
-            this.batcher.state.setProgram(this.state.program);
+        if ((checkFlags & CheckFlag.Program) !== 0) {
+            batcherState.setProgram(drawingState.program);
         }
-        if ((this.state.checkFlags & CheckFlag.MVP) !== 0) {
-            this.batcher.state.setMVP(this.state.mvp);
+        if ((checkFlags & CheckFlag.MVP) !== 0) {
+            batcherState.setMVP(drawingState.mvp);
         }
-        if ((this.state.checkFlags & CheckFlag.Scissors) !== 0) {
-            this.batcher.state.setScissors(this.state.scissorsEnabled ? this.state.scissors : undefined);
+        if ((checkFlags & CheckFlag.Scissors) !== 0) {
+            batcherState.setScissors(drawingState.scissors);
         }
-        this.state.checkFlags = 0;
+        drawingState.checkFlags = 0;
     }
 
     invalidateForce() {
@@ -104,9 +106,9 @@ export class Drawer {
         const mul = this.state.colorMultiplier;
         const off = this.state.colorOffset;
         const a = mul.a;
-        this.vertexColorMultiplier = packFloats(a * (1 - off.a), a * mul.b, a * mul.g, a * mul.r);
+        this.vertexColorMultiplier = packFloats(a * (1.0 - off.a), a * mul.b, a * mul.g, a * mul.r);
         // for offset: delete alpha, flip R vs B channels
-        this.vertexColorOffset = packFloats(0, off.b, off.g, off.r);
+        this.vertexColorOffset = packFloats(0.0, off.b, off.g, off.r);
     }
 
     triangles(verticesCount: number, indicesCount: number) {
@@ -124,6 +126,7 @@ export class Drawer {
         } else {
             this.writeQuad_rotated_opt(x, y, x + w, y + h);
         }
+        this.writeQuadIndices_default();
     }
 
     writeQuad_opt(l: number, t: number, r: number, b: number) {
@@ -157,16 +160,6 @@ export class Drawer {
         const u32 = this.u32;
         u32[i + 4] = u32[i + 10] = u32[i + 16] = u32[i + 22] = this.vertexColorMultiplier | 0;
         u32[i + 5] = u32[i + 11] = u32[i + 17] = u32[i + 23] = this.vertexColorOffset | 0;
-
-        this.vi = i + 24;
-        const index = this.batcher.baseVertex | 0;
-        const indices = this.indexData;
-        i = this.ii | 0;
-        indices[i] = indices[i + 5] = index;
-        indices[i + 1] = index + 1;
-        indices[i + 2] = indices[i + 3] = index + 2;
-        indices[i + 4] = index + 3;
-        this.ii = i + 6;
     }
 
     writeQuad_rotated_opt(l: number, t: number, r: number, b: number) {
@@ -202,15 +195,7 @@ export class Drawer {
         u32[i + 4] = u32[i + 10] = u32[i + 16] = u32[i + 22] = this.vertexColorMultiplier | 0;
         u32[i + 5] = u32[i + 11] = u32[i + 17] = u32[i + 23] = this.vertexColorOffset | 0;
 
-        this.vi = i + 24;
-        const index = this.batcher.baseVertex | 0;
-        const indices = this.indexData;
-        i = this.ii | 0;
-        indices[i] = indices[i + 5] = index;
-        indices[i + 1] = index + 1;
-        indices[i + 2] = indices[i + 3] = index + 2;
-        indices[i + 4] = index + 3;
-        this.ii = i + 6;
+
     }
 
     // writeQuad(l: number, t: number, r: number, b: number) {
@@ -294,6 +279,20 @@ export class Drawer {
         this.ii = ii;
     }
 
+
+    writeQuadIndices_default() {
+        const index = this.batcher.baseVertex
+        const indices = this.indexData;
+        let ii = this.ii;
+        indices[ii++] = index;
+        indices[ii++] = index + 1;
+        indices[ii++] = index + 2;
+        indices[ii++] = index + 2;
+        indices[ii++] = index + 3;
+        indices[ii++] = index;
+        this.ii = ii;
+    }
+
     quadColor(x: number, y: number, w: number, h: number, color: Color32_ARGB) {
         this.prepare();
 
@@ -335,7 +334,7 @@ export class Drawer {
 
         const da = 2 * Math.PI / segments;
         for (let a = 0.0; a < 2 * Math.PI; a += da) {
-            this.writeVertex(x + r * Math.cos(a), y + r * Math.sin(a), 1, 1, outerColor, this.vertexColorOffset);
+            this.writeVertex(x + r * Math.cos(a), y + r * Math.sin(a), 1.0, 1.0, outerColor, this.vertexColorOffset);
         }
 
         const end = segments - 1;
@@ -400,7 +399,7 @@ export class Drawer {
         this.writeVertex(x2 - t2sina2, y2 + t2cosa2, 1, 1, m2, co);
         this.writeVertex(x1 - t2sina1, y1 + t2cosa1, 0, 1, m1, co);
 
-        this.writeQuadIndices(0, 1, 2, 3, 0);
+        this.writeQuadIndices_default();
     }
 
     lineArc(x: number, y: number, r: number,

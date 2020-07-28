@@ -1,4 +1,4 @@
-import {Rect} from "@highduck/math";
+import {Recta} from "@highduck/math";
 
 export class EImage {
 
@@ -48,7 +48,7 @@ export class EImage {
     }
 
     // search fully transparent border:  channel=  3, threshold= 0
-    findTrimZone(channel: number, threshold: number, out: Rect): boolean {
+    findTrimZone(channel: number, threshold: number, out: Recta): boolean {
         let t = 0;
         let b = 0;
         let l = 0;
@@ -108,7 +108,7 @@ export class EImage {
         return false;
     }
 
-    crop(rc: Rect): EImage {
+    crop(rc: Recta): EImage {
         if (rc.x < 0 || rc.y < 0 || rc.width > this.width || rc.height > this.height) {
             throw "out of bounds";
         }
@@ -127,9 +127,9 @@ export class EImage {
         return result;
     }
 
-    copyPixels(x: number, y: number, src: EImage, srcRect: Rect) {
-        const rcDst = new Rect(x, y, src.width, src.height);
-        const rcSrc = new Rect().copyFrom(srcRect);
+    copyPixels(x: number, y: number, src: EImage, srcRect: Recta) {
+        const rcDst = new Recta(x, y, src.width, src.height);
+        const rcSrc = new Recta().copyFrom(srcRect);
         clampRect(rcSrc, 0, 0, src.width, src.height);
         clampRect(rcDst, 0, 0, this.width, this.height);
 
@@ -171,9 +171,9 @@ export class EImage {
      * @param srcRect
      */
 
-    copyPixels90CCW(x: number, y: number, src: EImage, srcRect: Rect) {
-        const rcDst = new Rect(x, y, src.height, src.width);
-        const rcSrc = new Rect().copyFrom(srcRect);
+    copyPixels90CCW(x: number, y: number, src: EImage, srcRect: Recta) {
+        const rcDst = new Recta(x, y, src.height, src.width);
+        const rcSrc = new Recta().copyFrom(srcRect);
         clampRect(rcSrc, 0, 0, src.width, src.height);
         clampRect(rcDst, 0, 0, this.width, this.height);
 
@@ -202,7 +202,7 @@ export class EImage {
     }
 }
 
-function clampRect(rc: Rect, l: number, t: number, r: number, b: number) {
+function clampRect(rc: Recta, l: number, t: number, r: number, b: number) {
     if (rc.x < l) {
         rc.width -= l - rc.x;
         rc.x = l;

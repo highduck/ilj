@@ -1,9 +1,8 @@
 import {
     assert,
-    Button,
+    Button, destroyEntity,
     DisplayQuad,
-    EntityAge,
-    EventReceiver,
+    EventReceiver, getComponents,
     Interactive,
     InteractiveManagerEvent,
     Layout,
@@ -15,28 +14,37 @@ import {ComponentTypeA, Entity, EntityComponentType} from "../ecs";
 import {resetTween} from "./Tween";
 import {backOut, cubicOut, reach, saturate} from "@highduck/math";
 
-export const PopupCloseTimeout = new ComponentTypeA(class {
-    time = 0;
-});
+class PopupCloseTimeoutData {
+    time = 0.0;
+}
 
-export const PopupManager = new EntityComponentType(class {
+export const PopupCloseTimeout = new ComponentTypeA(PopupCloseTimeoutData);
+
+class PopupManagerData {
     constructor(readonly entity: Entity) {
+        this.back = entity.create("back");
+        this.layer = entity.create("layer");
     }
 
     active: Entity[] = [];
 
-    fadeProgress = 0;
+    fadeProgress = 0.0;
     fadeDuration = 0.4;
     fadeAlpha = 0.5;
 
-    back!: Entity;
-    layer!: Entity;
-});
+    back: Entity;
+    layer: Entity;
 
-let popups: undefined | Entity = undefined;
+    dispose() {
+    }
+}
+
+export const PopupManager = new EntityComponentType(PopupManagerData);
+
+let popups: null | Entity = null;
 
 function getPopupManager() {
-    assert(popups !== undefined);
+    assert(popups !== null);
     const manager = popups!.tryGet(PopupManager);
     assert(manager !== undefined);
     return manager!;
@@ -89,7 +97,7 @@ function onPopupClosed(e: Entity) {
         onPopupResume(manager.active[manager.active.length - 1]);
     }
     e.visible = false;
-    e.getOrCreate(EntityAge).lifeRemaining = 0;
+    destroyEntity(e.index);
 }
 
 function onPopupCloseAnimation(t: number, e: Entity) {
@@ -162,7 +170,7 @@ export function closePopup(e: Entity) {
 }
 
 export function updatePopupManagers() {
-    const managers = PopupManager.components();
+    const managers = getComponents(PopupManager);
     const dt = Time.UI.dt;
     for (let i = 0; i < managers.length; ++i) {
         const manager = managers[i];
@@ -191,7 +199,6 @@ export function createPopupManager(layer: Entity) {
     const e = layer.create("popups");
     e.set(Transform2D);
     const manager = e.set(PopupManager);
-    manager.back = e.create("back");
     const backQuad = manager.back.set(DisplayQuad);
     backQuad.color = 0xFF000000;
     manager.back.set(Layout).fill();
@@ -206,7 +213,6 @@ export function createPopupManager(layer: Entity) {
         ev.processed = true;
     });
 
-    manager.layer = e.create("layer");
     manager.layer.set(Transform2D);
     manager.layer.set(Layout).aligned(0.5, 0, 0.5, 0);
 
@@ -222,8 +228,8 @@ function clearPopups() {
     const e = manager.entity;
     manager.layer.deleteChildren();
     manager.active.length = 0;
-    manager.fadeProgress = 0;
-    e.get(Transform2D).alpha = 0;
+    manager.fadeProgress = 0.0;
+    e.get(Transform2D).alpha = 0.0;
     e.visible = false;
     e.touchable = false;
 }

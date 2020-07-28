@@ -1,17 +1,17 @@
-import {Rect, Vec2} from "@highduck/math";
+import {Recta, Vec2} from "@highduck/math";
 import {Transform2D} from "../display/Transform2D";
 import {ComponentTypeA, EntityComponentType, Entity} from "../..";
 
 
 export class LayoutData {
-    static readonly space = new Rect(0, 0, 1, 1);
+    static readonly space = new Recta(0, 0, 1, 1);
 
     constructor(readonly entity: Entity) {
     }
 
     readonly x = new Vec2();
     readonly y = new Vec2();
-    readonly fillExtra = new Rect();
+    readonly fillExtra = new Recta();
     fillX = false;
     fillY = false;
     alignX = false;
@@ -56,10 +56,12 @@ export class LayoutData {
         return this;
     }
 
-    setFillExtra(rc: Rect): this {
+    setFillExtra(rc: Recta): this {
         this.fillExtra.copyFrom(rc);
         return this;
     }
+
+    dispose() {}
 }
 
 export const Layout = new EntityComponentType(LayoutData);

@@ -10,10 +10,6 @@ export interface Component<T> {
     bind(entityIndex: number): T;
 
     unbind(entityIndex: number): void;
-
-    components(): T[];
-
-    entities(): number[];
 }
 
 export type TypeOfComponent<P> = P extends Component<infer T> ? T : never;

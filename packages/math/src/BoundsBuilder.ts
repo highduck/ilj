@@ -1,4 +1,4 @@
-import {Rect} from "./Rect";
+import {Recta} from "./Recta";
 import {Vec2} from "./Vec2";
 
 const LIMIT = 1e10;
@@ -54,9 +54,9 @@ export class BoundsBuilder {
         return (this.x1 - this.x0) < EPSILON || (this.y1 - this.y0) < EPSILON;
     }
 
-    getResultRect(out?: Rect): Rect {
+    getResultRect(out?: Recta): Recta {
         if (out === undefined) {
-            out = new Rect();
+            out = new Recta();
         }
         return out.set(this.x0, this.y0, this.width, this.height);
     }

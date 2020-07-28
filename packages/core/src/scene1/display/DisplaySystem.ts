@@ -1,7 +1,7 @@
 import {Entity} from "../../ecs/Entity";
 import {Transform2D, Transform2D_Data} from "./Transform2D";
 import {Display2D} from "./Display2D";
-import {Color4, Matrix2D, Matrix4, Rect, transformRectMatrix2D} from "@highduck/math";
+import {Color4, Matrix2D, Matrix4, Recta, transformRectMatrix2D} from "@highduck/math";
 import {CheckFlag} from "../../drawer/DrawingState";
 import {Engine} from "../../Engine";
 import {drawCameraDebugGizmos} from "../debug/SceneDebug";
@@ -9,7 +9,7 @@ import {Camera2D} from "./Camera2D";
 import {Bounds2D} from "./Bounds2D";
 import {TypeOfComponent} from "../../ecs/Component";
 
-const TEMP_RECT = new Rect();
+const TEMP_RECT = new Recta();
 
 const transformMap = Transform2D.map;
 const cullingMap = Bounds2D.map;
@@ -17,7 +17,7 @@ const displayMap = Display2D.map;
 
 export class DisplaySystem {
 
-    activeLayers = 0x1;
+    activeLayers = 0xFF00;
     drawer = this.engine.drawer;
     state = this.engine.drawer.state;
     readonly _tmpProj = new Matrix4();
@@ -110,7 +110,7 @@ export class DisplaySystem {
             }
         }
 
-        const scissors = transform !== undefined && transform.scissors !== undefined;
+        const scissors = transform !== undefined && transform.flagScissors;
         if (scissors) {
             transform!.getScreenScissors(DisplaySystem._currentCamera.inverseMatrix, transform!.worldMatrix, TEMP_RECT);
             this.state.pushScissors(TEMP_RECT);
@@ -126,7 +126,7 @@ export class DisplaySystem {
         }
 
         let child = e.childFirst;
-        while (child !== undefined) {
+        while (child !== null) {
             this.draw(child, parentTransform);
             child = child.siblingNext;
         }

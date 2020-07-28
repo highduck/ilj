@@ -1,5 +1,5 @@
-import {Engine, Interactive, Time, Transform2D, Transform2D_Data} from "..";
-import {cubicOut, integrateExp, lerp, Rect, Vec2} from "@highduck/math";
+import {Engine, getComponents, Interactive, Time, Transform2D, Transform2D_Data} from "..";
+import {cubicOut, integrateExp, lerp, Recta, Vec2} from "@highduck/math";
 import {Entity, EntityComponentType} from "../ecs";
 
 function calcAverage(values: number[]) {
@@ -71,8 +71,8 @@ export class ScrollArea_Data {
 
     }
 
-    readonly area = new Rect();
-    readonly content = new Rect();
+    readonly area = new Recta();
+    readonly content = new Recta();
 
     readonly threshold = 10;
 
@@ -89,7 +89,7 @@ export class ScrollArea_Data {
         if (this.down) {
             if (this.captured) {
                 this.captured = false;
-                Engine.current.interactiveManager.dragEntity = undefined;
+                Engine.current.interactiveManager.dragEntity = null;
                 this.velocityTracker.calcVelocity(this.velocity).scale(this.velocityScaleFactor);
             } else {
 
@@ -123,14 +123,16 @@ export class ScrollArea_Data {
             this.initialized = true;
         }
     }
+
+    dispose() {}
 }
 
 export const ScrollArea = new EntityComponentType(ScrollArea_Data);
 
-const TEMP_RECT = new Rect();
+const TEMP_RECT = new Recta();
 const TEMP_VEC2 = new Vec2();
 
-function limitRect(offset: Vec2, area: Rect, bounds: Rect, out: Vec2) {
+function limitRect(offset: Vec2, area: Recta, bounds: Recta, out: Vec2) {
     const rc = TEMP_RECT;
     rc.set(area.x + offset.x, area.y + offset.y, area.width, area.height);
     if (rc.x < bounds.x) {
@@ -152,7 +154,7 @@ export function updateScrollArea() {
     const engine = Engine.current;
     const input = engine.interactiveManager;
     const dt = Time.UI.dt;
-    const components = ScrollArea.components();
+    const components = getComponents(ScrollArea);
     for (let i = 0; i < components.length; ++i) {
         const scroll = components[i];
         const transform = scroll.entity.getOrCreate(Transform2D);

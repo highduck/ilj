@@ -1,21 +1,19 @@
 import {Graphics} from "./Graphics";
 
-const GL = WebGLRenderingContext;
-
 export enum BufferUsage {
-    Static = GL.STATIC_DRAW,
+    Static = 35044, // GL.STATIC_DRAW
     // dynamic instead of stream (emscripten guide)
-    Dynamic = GL.DYNAMIC_DRAW
+    Dynamic = 35048, //GL.DYNAMIC_DRAW
 }
 
 export enum BufferType {
-    Vertex = GL.ARRAY_BUFFER,
-    Index = GL.ELEMENT_ARRAY_BUFFER
+    Vertex = 34962, //GL.ARRAY_BUFFER
+    Index = 34963 //GL.ELEMENT_ARRAY_BUFFER
 }
 
 export class Buffer {
     buffer: WebGLBuffer;
-    size = 0;
+    size: number;
 
     constructor(private graphics: Graphics, public type: BufferType, public usage: BufferUsage) {
         const buffer = graphics.gl.createBuffer();
@@ -23,6 +21,7 @@ export class Buffer {
             throw new Error("gl.createBuffer");
         }
         this.buffer = buffer;
+        this.size = 0;
     }
 
     dispose() {
@@ -36,7 +35,9 @@ export class Buffer {
         if (length !== data.byteLength) {
             data = new Uint8Array(data.buffer, start, length);
         }
-        if (length > this.size) {
+        if (length > this.size
+            //    || (this.type === BufferType.Index && length < this.size)
+        ) {
             GL.bufferData(this.type, data, this.usage);
             this.size = length;
         } else {
@@ -48,7 +49,9 @@ export class Buffer {
     upload2(data: ArrayBufferView, start: number, length: number) {
         const GL = this.graphics.gl as WebGL2RenderingContext;
         GL.bindBuffer(this.type, this.buffer);
-        if (length > this.size) {
+        if (length > this.size
+            //    || (this.type === BufferType.Index && length < this.size)
+        ) {
             GL.bufferData(this.type, data, this.usage, start, length);
             this.size = length;
         } else {

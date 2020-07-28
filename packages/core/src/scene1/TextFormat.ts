@@ -1,4 +1,5 @@
 import {Color32_ARGB, Vec2} from "@highduck/math";
+import {AssetRef, Font, FontResource} from "..";
 
 export const enum Alignment {
     Left = 1,
@@ -31,7 +32,7 @@ export class TextFormat {
     shadowColor: Color32_ARGB = 0xFF000000;
     readonly shadowOffset = new Vec2(1, 1);
 
-    constructor(public font: string = "mini", public size: number = 16, alignment: Alignment = Alignment.TopLeft) {
+    constructor(public size: number = 16, alignment: Alignment = Alignment.TopLeft) {
         this.lineHeight = this.size;
         alignmentVector(alignment, this.alignment);
     }

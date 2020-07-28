@@ -1,15 +1,15 @@
 import {Engine} from "../Engine";
-import {BoundsBuilder, Rect} from "@highduck/math";
+import {BoundsBuilder, Recta} from "@highduck/math";
 import {TextFormat} from "../scene1/TextFormat";
 import {loadFontFace} from "./loadFontFace";
 import {FontAtlas} from "./FontAtlas";
 import {ResourceType} from "../util/Resources";
 
-const LF = '\n'.charCodeAt(0);
+const LF = '\n'.charCodeAt(0) | 0;
 const BOUNDS_BUILDER_TMP = new BoundsBuilder();
-const BOUNDS_RC_TMP = new Rect();
+const BOUNDS_RC_TMP = new Recta();
 // const PT_2_PX = 1.33333333;
-const PT_2_PX = 1;
+const PT_2_PX = 1.0;
 
 export class Font {
 
@@ -37,7 +37,7 @@ export class Font {
 
         const drawer = this.engine.drawer;
 
-        if (this.atlas.texture === undefined) {
+        if (this.atlas.texture === null) {
             return;
         }
 
@@ -45,8 +45,8 @@ export class Font {
         drawer.prepare();
 
         for (let i = 0; i < text.length; ++i) {
-            const code = text.charCodeAt(i);
-            if (code == LF) {
+            const code = text.charCodeAt(i) | 0;
+            if (code === LF) {
                 cx = startX;
                 cy += lineHeight + lineSpacing;
                 continue;
@@ -59,6 +59,7 @@ export class Font {
                 const l = cx + sc * gdata.x;
                 const t = cy + sc * gdata.y;
                 drawer.writeQuad_opt(l, t, l + sc * gdata.w, t + sc * gdata.h);
+                drawer.writeQuadIndices_default();
             }
             cx += sc * gdata.a; // advance
         }
@@ -71,7 +72,7 @@ export class Font {
     getLineBoundingBox(text: string, size: number,
                        begin: number, end: number,
                        lineHeight: number, lineSpacing: number,
-                       out: Rect) {
+                       out: Recta) {
 
         const sc = (size * PT_2_PX) / this.atlas.size;
         const boundsBuilder = BOUNDS_BUILDER_TMP.reset();
@@ -81,8 +82,8 @@ export class Font {
             end = text.length;
         }
         for (let i = begin; i < end; ++i) {
-            const code = text.charCodeAt(i);
-            if (code == LF) {
+            const code = text.charCodeAt(i) | 0;
+            if (code === LF) {
                 x = 0;
                 y += lineHeight + lineSpacing;
             }
@@ -101,7 +102,7 @@ export class Font {
     estimateTextDrawZone(text: string, size: number,
                          begin: number, end: number,
                          lineHeight: number, lineSpacing: number,
-                         out: Rect): Rect {
+                         out: Recta): Recta {
 
         const sc = (size * PT_2_PX) / this.atlas.size;
         const boundsBuilder = BOUNDS_BUILDER_TMP.reset();
@@ -111,8 +112,8 @@ export class Font {
             end = text.length;
         }
         for (let i = begin; i < end; ++i) {
-            const code = text.charCodeAt(i);
-            if (code == LF) {
+            const code = text.charCodeAt(i) | 0;
+            if (code === LF) {
                 cx = 0;
                 cy += lineHeight + lineSpacing;
                 continue;
@@ -126,7 +127,7 @@ export class Font {
         return boundsBuilder.getResultRect(out);
     }
 
-    textBounds(text: string, format: TextFormat, rc: Rect, out: Rect) {
+    textBounds(text: string, format: TextFormat, rc: Recta, out: Recta) {
         const begin = 0;
         const end = text.length;
 
@@ -145,10 +146,10 @@ export class Font {
         out.y -= lineSizeY * format.alignment.y;
     }
 
-    drawText(text: string, format: TextFormat, rc: Rect) {
+    drawText(text: string, format: TextFormat, rc: Recta) {
         const begin = 0;
         const end = text.length;
-        const drawZone: Rect = this.estimateTextDrawZone(
+        const drawZone: Recta = this.estimateTextDrawZone(
             text, format.size,
             begin, end,
             format.lineHeight,

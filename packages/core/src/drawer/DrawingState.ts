@@ -9,7 +9,7 @@ import {
     Color4,
     Matrix2D,
     Matrix4,
-    Rect,
+    Recta,
     Vec2
 } from "@highduck/math";
 import {assert} from "../util/assert";
@@ -38,47 +38,46 @@ export class DrawingState {
     readonly defaultTexture = TextureResource.require("empty");
 
     // transform states
-    readonly canvas = new Rect();
-    readonly canvasStack: number[] = [];
+    readonly canvas = Recta.EMPTY.clone();
+    readonly canvasStack: number[] = [0.0];
     canvasHead = 0;
 
-    readonly matrix = new Matrix2D();
-    readonly matrixStack: number[] = [];
+    readonly matrix = Matrix2D.IDENTITY.clone();
+    readonly matrixStack: number[] = [0.0];
     matrixHead = 0;
 
-    readonly colorMultiplier = new Color4(1, 1, 1, 1);
-    readonly colorMultiplierStack: number[] = [];
+    readonly colorMultiplier = Color4.ONE.clone();
+    readonly colorMultiplierStack: number[] = [0.0];
     colorMultiplierHead = 0;
 
-    readonly colorOffset = new Color4(0, 0, 0, 0);
-    readonly colorOffsetStack: number[] = [];
+    readonly colorOffset = Color4.ZERO.clone();
+    readonly colorOffsetStack: number[] = [0.0];
     colorOffsetHead = 0;
 
-    readonly uv = new Rect(0, 0, 1, 1);
-    readonly uvStack: number[] = [];
+    readonly uv = Recta.UNIT.clone();
+    readonly uvStack: number[] = [0.0];
     uvHead = 0;
 
     // device states
 
     texture: Texture = this.defaultTexture;
-    readonly textureStack: Texture[] = [];
+    readonly textureStack: Texture[] = [this.defaultTexture];
     textureHead = 0;
 
     program: Program = this.defaultProgram;
-    readonly programStack: Program[] = [];
+    readonly programStack: Program[] = [this.defaultProgram];
     programHead = 0;
 
     readonly mvp = new Matrix4();
-    readonly mvpStack: number[] = [];
+    readonly mvpStack: number[] = [0.0];
     mvpHead = 0;
 
-    readonly scissors = new Rect();
-    scissorsEnabled = false;
-    readonly scissorsStack: number[] = [];
+    readonly scissors = Recta.EMPTY.clone();
+    readonly scissorsStack: number[] = [0.0];
     scissorsHead = 0;
 
     blending = BlendMode.Premultiplied;
-    readonly blendingStack: BlendMode[] = [];
+    readonly blendingStack: BlendMode[] = [BlendMode.Premultiplied];
     blendingHead = 0;
 
     checkFlags: CheckFlag = 0;
@@ -135,33 +134,20 @@ export class DrawingState {
         );
     }
 
-    pushScissors(rc: Rect): this {
+    pushScissors(rc: Recta): this {
         this.saveScissors();
-        if (this.scissorsEnabled) {
-            this.scissors.intersect(rc);
-        } else {
-            this.scissorsEnabled = true;
-            this.scissors.copyFrom(rc);
-        }
+        this.scissors.intersect(rc);
         this.checkFlags |= CheckFlag.Scissors;
         return this;
     }
 
-    setScissors(rc?: Rect): this {
-        if (rc !== undefined) {
-            this.scissorsEnabled = true;
-            this.scissors.copyFrom(rc);
-        } else {
-            this.scissorsEnabled = false;
-        }
+    setScissors(rc: Recta): this {
+        this.scissors.copyFrom(rc);
         this.checkFlags |= CheckFlag.Scissors;
         return this;
     }
 
     saveScissors(): this {
-        if (!this.scissorsEnabled) {
-            this.scissors.width = -1;
-        }
         this.scissors.writeToArray(this.scissorsStack, this.scissorsHead);
         this.scissorsHead += 4;
         return this;
@@ -170,7 +156,6 @@ export class DrawingState {
     restoreScissors(): this {
         this.scissorsHead -= 4;
         this.scissors.readFromArray(this.scissorsStack, this.scissorsHead);
-        this.scissorsEnabled = this.scissors.width >= 0;
         this.checkFlags |= CheckFlag.Scissors;
         return this;
     }
@@ -340,7 +325,7 @@ export class DrawingState {
         return this;
     }
 
-    setTextureCoordsRect(uv: Rect): this {
+    setTextureCoordsRect(uv: Recta): this {
         this.uv.copyFrom(uv);
         return this;
     }
@@ -357,13 +342,13 @@ export class DrawingState {
     }
 
     setEmptyTexture(): this {
-        const spot = this.texture?.spot;
-        if (spot !== undefined) {
+        const spot = this.texture.spot;
+        if (spot !== null) {
             this.uv.copyFrom(spot);
         } else {
             this.texture = this.defaultTexture;
             this.checkFlags |= CheckFlag.Texture;
-            this.setTextureCoords();
+            this.uv.set(0.0, 0.0, 1.0, 1.0);
         }
         return this;
     }
@@ -374,13 +359,13 @@ export class DrawingState {
         return this;
     }
 
-    setTextureRegion(texture?: Texture, rc?: Rect): this {
+    setTextureRegion(texture?: Texture, rc?: Recta): this {
         this.texture = texture ? texture : this.defaultTexture;
         this.checkFlags |= CheckFlag.Texture;
         if (rc) {
             this.uv.copyFrom(rc);
         } else {
-            this.uv.set(0, 0, 1, 1);
+            this.uv.set(0.0, 0.0, 1.0, 1.0);
         }
         return this;
     }
@@ -391,8 +376,8 @@ export class DrawingState {
         return this;
     }
 
-    setProgram(program?: Program): this {
-        this.program = program ? program : this.defaultProgram;
+    setProgram(program: Program | null): this {
+        this.program = program !== null ? program : this.defaultProgram;
         this.checkFlags |= CheckFlag.Program;
         return this;
     }

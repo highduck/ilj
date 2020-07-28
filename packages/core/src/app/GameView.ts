@@ -1,20 +1,30 @@
-import {Rect, Vec2} from "@highduck/math";
+import {Recta, Vec2} from "@highduck/math";
 import {Signal} from "../util/Signal";
 
 export const enum Cursor {
-    Arrow = "default",
-    Button = "pointer",
+    Bypass = 0,
+    Arrow = 1,
+    Button = 2,
 }
+
+const CursorDefs = ["default", "default", "pointer"];
 
 /* GameView: creates graphics context, handle view resize, provide input events */
 export class GameView {
 
+    _cursor = Cursor.Arrow;
+
     set cursor(v: Cursor) {
-        this.canvas.style.cursor = v;
+        if (process.env.PLATFORM === 'web' && this._cursor !== Cursor.Bypass) {
+            if (this._cursor !== v) {
+                this.canvas.style.cursor = CursorDefs[v];
+                this._cursor = v;
+            }
+        }
     }
 
     get cursor(): Cursor {
-        return this.canvas.style.cursor as Cursor;
+        return this._cursor;
     }
 
     readonly canvas: HTMLCanvasElement;
@@ -24,11 +34,11 @@ export class GameView {
     // size properties
 
     // reference-designed size
-    readonly reference = new Rect();
+    readonly reference = new Recta();
     // drawing back-buffer size
-    readonly drawable = new Rect(0, 0, 1, 1);
+    readonly drawable = new Recta(0, 0, 1, 1);
     // virtual point size
-    readonly client = new Rect(0, 0, 1, 1);
+    readonly client = new Recta(0, 0, 1, 1);
 
     // limit for x3, x4 displays
     dprLimit = 2;

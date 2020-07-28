@@ -1,13 +1,30 @@
-import {IVec2, Vec2} from "./Vec2";
+import {Vec2} from "./Vec2";
 
 export class Matrix2D {
 
     static readonly IDENTITY: Readonly<Matrix2D> = new Matrix2D();
 
-    constructor(public a: number = 1, public b: number = 0,
-                public c: number = 0, public d: number = 1,
-                public x: number = 0, public y: number = 0) {
+    x = NaN;
+    y = NaN;
 
+    a = NaN;
+    b = NaN;
+    c = NaN;
+    d = NaN;
+
+    constructor(a = 1, b = 0,
+                c = 0, d = 1,
+                x = 0, y = 0) {
+        this.x = x;
+        this.y = y;
+        this.a = a;
+        this.b = b;
+        this.c = c;
+        this.d = d;
+    }
+
+    clone(): Matrix2D {
+        return new Matrix2D(this.a, this.b, this.c, this.d, this.x, this.y);
     }
 
     copyFrom(m: Readonly<Matrix2D>) {
@@ -200,10 +217,10 @@ export class Matrix2D {
         let c = m.c;
         let d = m.d;
         let det = /** this.determinant **/ m.a * m.d - m.c * m.b;
-        if (det === 0) {
+        if (det === 0.0) {
             return false;
         }
-        det = 1 / det;
+        det = 1.0 / det;
         a *= det;
         b *= det;
         c *= det;

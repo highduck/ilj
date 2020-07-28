@@ -15,17 +15,19 @@ export type Color32_ABGR_PMA = number;
 export type Color32_ABGR = number;
 export type Color32_ARGB = number;
 
-export const color32_pack_floats = (b0: number, b1: number, b2: number, b3: number): Color32 =>
-    (((b0 * 0xFF) & 0xFF) << 24) |
-    (((b1 * 0xFF) & 0xFF) << 16) |
-    (((b2 * 0xFF) & 0xFF) << 8) |
-    ((b3 * 0xFF) & 0xFF);
+export function color32_pack_floats(b0: number, b1: number, b2: number, b3: number): Color32 {
+    return (((b0 * 0xFF) & 0xFF) << 24) |
+        (((b1 * 0xFF) & 0xFF) << 16) |
+        (((b2 * 0xFF) & 0xFF) << 8) |
+        ((b3 * 0xFF) & 0xFF);
+}
 
-export const color32_pack_bytes = (b0: number, b1: number, b2: number, b3: number): Color32 =>
-    ((b0 & 0xFF) << 24) |
-    ((b1 & 0xFF) << 16) |
-    ((b2 & 0xFF) << 8) |
-    (b3 & 0xFF);
+export function color32_pack_bytes(b0: number, b1: number, b2: number, b3: number): Color32 {
+    return ((b0 & 0xFF) << 24) |
+        ((b1 & 0xFF) << 16) |
+        ((b2 & 0xFF) << 8) |
+        (b3 & 0xFF);
+}
 
 //
 // export function color32_set_af(color: Color32_ARGB, alpha: number): Color32_ARGB {

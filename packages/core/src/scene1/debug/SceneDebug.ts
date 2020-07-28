@@ -4,12 +4,12 @@ import {Engine} from "../../Engine";
 import {Transform2D, Transform2D_Data} from "../display/Transform2D";
 import {Display2D} from "../display/Display2D";
 import {DisplaySystem} from "../display/DisplaySystem";
-import {Color32_ARGB, Color4, Matrix2D, Rect, transformRectMatrix2D, Vec2} from "@highduck/math";
+import {Color32_ARGB, Color4, Matrix2D, Recta, transformRectMatrix2D, Vec2} from "@highduck/math";
 import {Camera2DComponent} from "../display/Camera2D";
 import {Bounds2D} from "../display/Bounds2D";
 import {Component} from "../..";
 
-const RECT_TMP = new Rect();
+const RECT_TMP = new Recta();
 const VEC2_TMPS = [new Vec2(), new Vec2(), new Vec2(), new Vec2()];
 
 export function drawCameraDebugGizmos(camera: Camera2DComponent) {
@@ -50,7 +50,7 @@ function debugDrawPointer(camera: Camera2DComponent) {
     }
 }
 
-function drawBox(rc: Rect, m: Matrix2D, color1: Color32_ARGB, color2: Color32_ARGB, cross: boolean = true) {
+function drawBox(rc: Recta, m: Matrix2D, color1: Color32_ARGB, color2: Color32_ARGB, cross: boolean = true) {
     const drawer = Engine.current.drawer;
     drawer.state.setEmptyTexture();
     VEC2_TMPS[0].set(rc.x, rc.y);
@@ -73,12 +73,12 @@ function drawBox(rc: Rect, m: Matrix2D, color1: Color32_ARGB, color2: Color32_AR
 
 function debugDrawHitTarget(cameraRoot: Entity, drawer: Drawer) {
     const target = Engine.current.interactiveManager.hitTarget;
-    if (target === undefined) {
+    if (target === null) {
         return;
     }
     let color = 0xFFFFFFFF;
     const transform = target.tryGet(Transform2D);
-    if (transform !== undefined && transform.hitArea !== undefined) {
+    if (transform !== undefined && transform.flagHitArea) {
         RECT_TMP.copyFrom(transform.hitArea);
         color = 0xFF99FF00;
     } else {
@@ -112,7 +112,7 @@ function traverseSceneGraph<T extends object>(e: Entity, ctor: Component<T>, par
     }
 
     let child = e.childFirst;
-    while (child !== undefined) {
+    while (child !== null) {
         traverseSceneGraph(child, ctor, parentTransform, callback);
         child = child.siblingNext;
     }
@@ -125,7 +125,8 @@ function drawFills(e: Entity) {
     drawer.state.colorMultiplier.set(1, 1, 1, 0.25);
     drawer.state.colorOffset.set(0, 0, 0, 0);
     traverseSceneGraph(e, Display2D, Transform2D_Data.IDENTITY, (display, transform) => {
-        const bounds = display.getBounds(RECT_TMP);
+        const bounds = RECT_TMP;
+        display.getBounds(bounds);
         if (!bounds.empty) {
             drawer.state.matrix.copyFrom(transform.worldMatrix);
             drawer.quadFast(bounds.x, bounds.y, bounds.width, bounds.height, true);

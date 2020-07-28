@@ -1,5 +1,5 @@
 import {Engine} from "../Engine";
-import {BoundsBuilder, Rect} from "@highduck/math";
+import {BoundsBuilder, Recta} from "@highduck/math";
 import {Sprite, SpriteResource} from "./Sprite";
 import {loadJSON} from "../util/load";
 import {TextFormat} from "./TextFormat";
@@ -9,7 +9,7 @@ import {FontJson, GlyphJson, SpriteFlag} from "@highduck/anijson";
 const LF = '\n'.charCodeAt(0);
 
 const BOUNDS_BUILDER_TMP = new BoundsBuilder();
-const BOUNDS_RC_TMP = new Rect();
+const BOUNDS_RC_TMP = new Recta();
 
 type GlyphData = {
     json: GlyphJson,
@@ -88,7 +88,7 @@ export class BitmapFont {
             }
 
             const spr = gdata.lod[bitmapSizeIndex].data;
-            if (spr !== undefined && spr.texture.data !== undefined) {
+            if (spr !== null && spr.texture.data !== null) {
                 drawer.state.setTextureRegion(spr.texture.data, spr.tex);
                 drawer.quadFast(bitmapScale * spr.rect.x + cx,
                     bitmapScale * spr.rect.y + cy,
@@ -124,7 +124,7 @@ export class BitmapFont {
     getLineBoundingBox(text: string, size: number,
                        begin: number, end: number,
                        lineHeight: number, lineSpacing: number,
-                       out: Rect): Rect {
+                       out: Recta): Recta {
 
         const sc = size / this.unitsPerEM;
         const boundsBuilder = BOUNDS_BUILDER_TMP.reset();
@@ -166,7 +166,7 @@ export class BitmapFont {
     estimateTextDrawZone(text: string, size: number,
                          begin: number, end: number,
                          lineHeight: number, lineSpacing: number,
-                         out: Rect): Rect {
+                         out: Recta): Recta {
 
         const sc = size / this.unitsPerEM;
         const boundsBuilder = BOUNDS_BUILDER_TMP.reset();
@@ -195,7 +195,7 @@ export class BitmapFont {
         return boundsBuilder.getResultRect(out);
     }
 
-    textBounds(text: string, format: TextFormat, rc: Rect, out: Rect): Rect {
+    textBounds(text: string, format: TextFormat, rc: Recta, out: Recta): Recta {
         const begin = 0;
         const end = text.length;
 
@@ -216,10 +216,10 @@ export class BitmapFont {
         return out;
     }
 
-    drawText(text: string, format: TextFormat, rc: Rect) {
+    drawText(text: string, format: TextFormat, rc: Recta) {
         const begin = 0;
         const end = text.length;
-        const drawZone: Rect = this.estimateTextDrawZone(
+        const drawZone: Recta = this.estimateTextDrawZone(
             text, format.size,
             begin, end,
             format.lineHeight,

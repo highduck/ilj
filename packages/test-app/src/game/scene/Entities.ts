@@ -1,4 +1,4 @@
-import {DisplayQuad, DisplayText, Engine, Entity, Filters2D, Transform2D} from "@highduck/core";
+import {DisplayQuad, DisplayText, Engine, Entity, Filters2D, FontResource, Transform2D} from "@highduck/core";
 import {FilterType} from "@highduck/anijson";
 
 export class Entities {
@@ -28,8 +28,8 @@ export class Entities {
         this.text = this.cont.create();
         this.text.set(Transform2D);
         const txt = this.text.set(DisplayText);
+        txt.font = FontResource.get("Comfortaa-Regular");
         txt.format.alignment.set(0.5, 0.5);
-        txt.format.font = "Comfortaa-Regular";
         txt.format.size = 64;
         txt.format.lineHeight = 64;
         txt.text = "Hello, ECS!";

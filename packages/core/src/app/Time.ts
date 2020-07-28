@@ -1,40 +1,23 @@
 export class TimeLayer {
-    dt = 0;
-    total = 0;
-    scale = 1;
+    dt = NaN;
+    total = NaN;
+    scale = NaN;
 
-    update(dt: number) {
-        dt *= this.scale;
-        this.dt = dt;
-        this.total += dt;
+    constructor() {
+        this.dt = 0.0;
+        this.total = 0.0;
+        this.scale = 1.0;
+    }
+
+    update(dt: number): number {
+        const dt1 = dt * this.scale;
+        this.dt = dt1;
+        this.total += dt1;
+        return dt1;
     }
 }
 
-class FrameRateMeter {
-    // fps
-    avg = 0;
-    frame = 0;
-    counter = 0;
-    accum = 0;
-
-    // fps constants
-    avgPeriod = 1.0;
-    maxFrames = 1000;
-
-    calcFPS(deltaTime: number) {
-        // estimate average FPS for some period
-        this.counter += 1.0;
-        this.accum += deltaTime;
-        if (this.accum >= this.avgPeriod) {
-            this.avg = this.counter / this.avgPeriod;
-            this.accum -= this.avgPeriod;
-            this.counter = 0;
-        }
-
-        // update immediate frame FPS count
-        this.frame = deltaTime > (1.0 / this.maxFrames) ? (1.0 / deltaTime) : this.maxFrames;
-    }
-}
+const MAX_DELTA_TIME = 0.3;
 
 export class Time {
     static readonly ROOT = new TimeLayer();
@@ -43,29 +26,33 @@ export class Time {
     static readonly UI = new TimeLayer();
 
     // system frame timestamp in seconds
-    ts = 0;
+    ts = NaN;
+    raw = NaN; // better name..
+    total = NaN;
+    delta = NaN; // elapsed?
+
+    // incremental frame index
     index = 0;
-    raw = 0; // better name..
 
-    total = 0;
-    delta = 0; // elapsed?
-
-    // user settings
-    scale = 1;
-    maxDelta = 0.3;
-
-    readonly fps = new FrameRateMeter();
+    constructor() {
+        this.ts = 0.0;
+        this.raw = 0.0;
+        this.total = 0.0;
+        this.delta = 0.0;
+    }
 
     updateTime(timestamp: number) {
-        ++this.index;
         this.raw = timestamp - this.ts;
-        this.delta = Math.min(this.raw, this.maxDelta) * this.scale;
+        this.delta = Math.min(this.raw, MAX_DELTA_TIME);
         this.total += this.delta;
         this.ts = timestamp;
-
-        Time.ROOT.update(this.delta);
-        Time.GAME.update(Time.ROOT.dt);
-        Time.HUD.update(Time.ROOT.dt);
-        Time.UI.update(Time.ROOT.dt);
+        ++this.index;
     }
 }
+
+export const updateTimers = (deltaTime: number) => {
+    const root = Time.ROOT.update(deltaTime);
+    Time.GAME.update(root);
+    Time.HUD.update(root);
+    Time.UI.update(root);
+};

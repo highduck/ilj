@@ -209,7 +209,8 @@ export class QueryPool2<T1, T2> {
         const check1 = this.types[1].map;
         for (let i = 0; i < keys.length; ++i) {
             const index = keys[i];
-            if (check1[index] !== undefined) {
+            // if (check1[index] !== undefined) {
+            if (check1.has(index)) {
                 r1[count] = this.map1.get(index) as T1;
                 r2[count] = this.map2.get(index) as T2;
                 ++count;
@@ -221,9 +222,12 @@ export class QueryPool2<T1, T2> {
     }
 }
 
-
 export function getComponents<T>(type: Component<T>): T[] {
     return type.map.values;
+}
+
+export function getComponentEntities<T>(type: Component<T>): number[] {
+    return type.map.keys;
 }
 
 export function ECS_query2<T1, T2>(type1: Component<T1>, type2: Component<T2>): Query2<T1, T2> {

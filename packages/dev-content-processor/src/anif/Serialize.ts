@@ -1,4 +1,4 @@
-import {Color4, Rect, Vec2} from "@highduck/math";
+import {Color4, Recta, Vec2} from "@highduck/math";
 
 /*** serialization utils **/
 export function fixPrecision(x: number, precision: number): number {
@@ -11,7 +11,7 @@ export function fixPrecision(x: number, precision: number): number {
 //     return [m.a, m.b, m.c, m.d, m.x, m.y];
 // }
 
-export function tupleRect(rc: Rect): [number, number, number, number] {
+export function tupleRect(rc: Recta): [number, number, number, number] {
     return [rc.x, rc.y, rc.width, rc.height];
 }
 

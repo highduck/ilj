@@ -1,11 +1,11 @@
 import {saturate} from "@highduck/math";
-import {ComponentTypeA, Signal, Time} from "..";
+import {ComponentTypeA, getComponentEntities, getComponents, Signal, Time} from "..";
 import {Entity} from "../ecs";
 
 export class TweenData {
-    delay = 0;
-    time = 0;
-    duration = 1;
+    delay = 0.0;
+    time = 0.0;
+    duration = 1.0;
     autoDestroy = true;
     readonly advanced = new Signal<number>();
 
@@ -39,8 +39,8 @@ function updateFrame(tween: TweenData) {
 }
 
 export function updateTweens() {
-    const tweens = Tween.components();
-    const entities = Tween.entities();
+    const tweens = getComponents(Tween);
+    const entities = getComponentEntities(Tween);
     for (let i = 0; i < tweens.length; ++i) {
         const tween = tweens[i];
         const dt = tween.timer.dt;

@@ -11,7 +11,7 @@ export class InteractiveComponent {
     readonly onUp = new Signal<Entity>();
     readonly onClicked = new Signal<Entity>();
 
-    cursor?: Cursor;
+    cursor = Cursor.Bypass;
 
     //enabled = true;
 

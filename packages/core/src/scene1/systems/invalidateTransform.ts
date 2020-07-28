@@ -5,10 +5,14 @@ import {Color4, Matrix2D} from "@highduck/math";
 const transformsMap = Transform2D.map;
 
 export function invalidateTransform() {
-    invalidateTransformNode(Entity.root, Transform2D_Data.IDENTITY);
+    /*#__NOINLINE__*/ invalidateTransformNode(Entity.root, Transform2D_Data.IDENTITY);
 }
 
 function invalidateTransformNode(e: Entity, parent: Transform2D_Data) {
+    if (!e.visible) {
+        return;
+    }
+
     let tr = transformsMap.get(e.index);
     if (tr !== undefined) {
         tr.buildLocalMatrix();
@@ -22,8 +26,8 @@ function invalidateTransformNode(e: Entity, parent: Transform2D_Data) {
     }
 
     let it = e.childFirst;
-    while (it !== undefined) {
-        invalidateTransformNode(it, parent);
+    while (it !== null) {
+        /*#__NOINLINE__*/ invalidateTransformNode(it, parent);
         it = it.siblingNext;
     }
 }

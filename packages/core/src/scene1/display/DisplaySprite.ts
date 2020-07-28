@@ -1,12 +1,12 @@
 import {Drawer} from "../../drawer/Drawer";
-import {Rect, Vec2} from "@highduck/math";
+import {Recta, Vec2} from "@highduck/math";
 import {AssetRef} from "../../util/Resources";
 import {Sprite} from "../Sprite";
 import {Display2D, Display2DComponent} from "./Display2D";
 import {SpriteFlag} from "@highduck/anijson";
 import {ComponentTypeA} from "../../ecs";
 
-const TMP_RC = new Rect();
+const TMP_RC = new Recta();
 
 const nine_patch_indices = new Uint16Array([
     0, 1, 5, 5, 4, 0,
@@ -20,7 +20,7 @@ const nine_patch_indices = new Uint16Array([
     10, 10 + 1, 10 + 5, 10 + 5, 10 + 4, 10
 ]);
 
-function drawGrid(drawer: Drawer, rect: Rect, grid: Rect, target: Rect, inNormalUV: boolean) {
+function drawGrid(drawer: Drawer, rect: Recta, grid: Recta, target: Recta, inNormalUV: boolean) {
     const x = rect.x;
     const y = rect.y;
     const width = rect.width;
@@ -114,10 +114,9 @@ function drawGrid(drawer: Drawer, rect: Rect, grid: Rect, target: Rect, inNormal
 
 export class DisplaySpriteComponent extends Display2DComponent {
     sprite: AssetRef<Sprite> = AssetRef.NONE;
-    hitPixels = true;
-    scaleGrid: Rect | undefined = undefined;
-    readonly scale = new Vec2(1, 1);
-    manualTarget: Rect | undefined = undefined;
+    scaleGrid: Recta | null = null;
+    readonly scale = new Vec2(1.0, 1.0);
+    manualTarget: Recta | null = null;
 
     constructor() {
         super();
@@ -125,15 +124,13 @@ export class DisplaySpriteComponent extends Display2DComponent {
 
     draw(drawer: Drawer) {
         const spr = this.sprite.data;
-        if (spr === undefined) {
-            return;
-        }
-        const texture = spr.texture.data;
-        if (texture === undefined) {
+        if (spr === null || spr.texture.data === null) {
             return;
         }
 
-        drawer.state.setTextureRegion(texture, spr.tex);
+        drawer.state
+            .setTexture(spr.texture.data)
+            .setTextureCoordsRect(spr.tex);
 
         if (this.scaleGrid) {
             drawer.state.saveMatrix().scale(1.0 / this.scale.x, 1.0 / this.scale.y);
@@ -144,6 +141,7 @@ export class DisplaySpriteComponent extends Display2DComponent {
                     .scale(this.scale.x, this.scale.y);
             }
 
+            /*#__NOINLINE__*/
             drawGrid(drawer, spr.rect, this.scaleGrid, target, (spr.flags & SpriteFlag.Rotated) === 0);
             drawer.state.restoreMatrix();
         } else {
@@ -152,28 +150,16 @@ export class DisplaySpriteComponent extends Display2DComponent {
         }
     }
 
-    getBounds(out: Rect): Rect {
+    getBounds(out: Recta): void {
         const spr = this.sprite.data;
-        if (spr !== undefined) {
-            // todo: never done
-            if (this.scaleGrid !== undefined) {
-                return out.set(spr.rect.x + 1, spr.rect.y + 1, spr.rect.width - 2, spr.rect.height - 2);
-                // .scale(this.scale.x, this.scale.y);
+        if (spr !== null) {
+            out.copyFrom(spr.rect);
+            if (this.scaleGrid !== null) {
+                out.expand(1.0, 1.0);
             }
-            return out.copyFrom(spr.rect);
+        } else {
+            out.set(0.0, 0.0, 0.0, 0.0);
         }
-        return out.set(0, 0, 0, 0);
-    }
-
-    hitTest(x: number, y: number): boolean {
-        if (!this.getBounds(TMP_RC).contains(x, y)) {
-            return false;
-        }
-        if (this.hitPixels && this.sprite.data !== undefined) {
-            // TODO: offset back -TMP_RC.pos  ?
-            return this.sprite.data.hitTest(x, y);
-        }
-        return true;
     }
 }
 

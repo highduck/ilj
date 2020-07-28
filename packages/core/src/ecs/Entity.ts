@@ -68,13 +68,39 @@ function checkHierarchyValidity(a: Entity, b: Entity) {
     assert(b.isValid);
 }
 
-export class Entity {
-    name: string | undefined = undefined;
-    visible = true;
-    touchable = true;
-    layerMask = 0xFF;
+const enum EntityFlags {
+    Visible = 1,
+    Touchable = 2,
+    Alive = 4
+}
 
-    private _disposed = false;
+export class Entity {
+    name = "";
+    flags = 0xFFFF;
+
+    get visible() {
+        return (this.flags & EntityFlags.Visible) !== 0;
+    }
+
+    set visible(v: boolean) {
+        this.flags = v ? (this.flags | EntityFlags.Visible) : (this.flags & ~EntityFlags.Visible);
+    }
+
+    get touchable() {
+        return (this.flags & EntityFlags.Touchable) !== 0;
+    }
+
+    set touchable(v: boolean) {
+        this.flags = v ? (this.flags | EntityFlags.Touchable) : (this.flags & ~EntityFlags.Touchable);
+    }
+
+    get layerMask() {
+        return this.flags & 0xFF00;
+    }
+
+    set layerMask(v: number) {
+        this.flags = (this.flags & 0xFF) | v;
+    }
 
     private constructor(readonly index: number,
                         readonly version: number) {
@@ -95,11 +121,13 @@ export class Entity {
 
     create(name?: string, index?: number): Entity {
         const child = Entity.create();
-        child.name = name;
-        if (index === 0) {
-            this.prependStrict(child);
-        } else {
+        if (name !== undefined) {
+            child.name = name;
+        }
+        if (index !== 0) {
             this.appendStrict(child);
+        } else {
+            this.prependStrict(child);
         }
         return child;
     }
@@ -136,11 +164,11 @@ export class Entity {
     }
 
     getOrCreate<T>(component: Component<T>): T {
-        let data = component.map.get(this.index);
-        if (data === undefined) {
-            data = component.bind(this.index);
+        const idx = this.index | 0;
+        if (component.map.has(idx)) {
+            return component.map.unsafe_get(idx)
         }
-        return data;
+        return component.bind(idx);
     }
 
     delete<T>(component: Component<T>) {
@@ -148,46 +176,50 @@ export class Entity {
     }
 
     dispose() {
-        if (!!DEBUG) {
-            assert(!this._disposed);
-            assert(this.isValid);
-        }
-
         // - Remove Entity from parent
         // - destroy all children
         this.removeFromParent();
         this.deleteChildren();
+
+        this._dispose();
+    }
+
+    private _dispose() {
+        if (!!DEBUG) {
+            assert(this.flags & EntityFlags.Alive);
+            assert(this.isValid);
+        }
 
         const idx = this.index;
         unbindAllComponents(idx);
 
         EntityMap.delete(idx);
         _deallocate(idx);
-        this._disposed = true;
+        this.flags = 0;
     }
 
     /**** Hierarchy component (built-in) ****/
-    parent: Entity | undefined = undefined;
-    siblingNext: Entity | undefined = undefined;
-    siblingPrev: Entity | undefined = undefined;
-    childFirst: Entity | undefined = undefined;
-    childLast: Entity | undefined = undefined;
+    parent: Entity | null = null;
+    siblingNext: Entity | null = null;
+    siblingPrev: Entity | null = null;
+    childFirst: Entity | null = null;
+    childLast: Entity | null = null;
 
-    getChildAt(index: number): Entity | undefined {
+    getChildAt(index: number): Entity | null {
         let i = 0;
         let it = this.childFirst;
-        while (it !== undefined) {
+        while (it !== null) {
             if (index === i++) {
                 return it;
             }
             it = it.siblingNext;
         }
-        return undefined;
+        return null;
     }
 
     forEachChild(func: (ch: Entity) => void) {
         let it = this.childFirst;
-        while (it !== undefined) {
+        while (it !== null) {
             const child = it;
             it = it.siblingNext;
             func(child);
@@ -196,7 +228,7 @@ export class Entity {
 
     forEachChildBackward(func: (ch: Entity) => void) {
         let it = this.childLast;
-        while (it !== undefined) {
+        while (it !== null) {
             const child = it;
             it = it.siblingPrev;
             func(child);
@@ -207,7 +239,7 @@ export class Entity {
     get root(): Entity {
         // eslint-disable-next-line @typescript-eslint/no-this-alias
         let r: Entity = this;
-        while (r.parent !== undefined) {
+        while (r.parent !== null) {
             r = r.parent;
         }
         return r;
@@ -224,12 +256,11 @@ export class Entity {
             child = child.siblingNext;
             temp.deleteChildren();
 
-            temp.parent = undefined;
-            // world_disable_node(temp);
-            temp.dispose();
+            temp.parent = null;
+            temp._dispose();
         }
-        this.childFirst = undefined;
-        this.childLast = undefined;
+        this.childFirst = null;
+        this.childLast = null;
     }
 
     /**
@@ -237,8 +268,8 @@ export class Entity {
      **/
     isDescendant(ancestor: Entity): boolean {
         // eslint-disable-next-line @typescript-eslint/no-this-alias
-        let n: Entity | undefined = this;
-        while (n !== undefined) {
+        let n: Entity | null = this;
+        while (n !== null) {
             n = n.parent;
             if (n == ancestor) {
                 return true;
@@ -253,28 +284,28 @@ export class Entity {
      **/
     removeFromParent() {
         const par = this.parent;
-        if (par === undefined) {
+        if (par === null) {
             return;
         }
 
         const prev = this.siblingPrev;
         const next = this.siblingNext;
 
-        if (prev !== undefined) {
+        if (prev !== null) {
             prev.siblingNext = next;
         } else {
             par.childFirst = next;
         }
 
-        if (next !== undefined) {
+        if (next !== null) {
             next.siblingPrev = prev;
         } else {
             par.childLast = prev;
         }
 
-        this.parent = undefined;
-        this.siblingNext = undefined;
-        this.siblingPrev = undefined;
+        this.parent = null;
+        this.siblingNext = null;
+        this.siblingPrev = null;
     }
 
     appendStrict(child: Entity) {
@@ -284,7 +315,7 @@ export class Entity {
         }
 
         const tail = this.childLast;
-        if (tail !== undefined) {
+        if (tail !== null) {
             tail.siblingNext = child;
             child.siblingPrev = tail;
             this.childLast = child;
@@ -305,7 +336,7 @@ export class Entity {
             checkHierarchyValidity(this, child);
         }
 
-        if (child.parent !== undefined) {
+        if (child.parent !== null) {
             child.removeFromParent();
         }
 
@@ -349,15 +380,15 @@ export class Entity {
      **/
     removeChildren() {
         let child = this.childFirst;
-        while (child) {
+        while (child !== null) {
             const temp = child;
             child = child.siblingNext;
-            temp.parent = undefined;
-            temp.siblingNext = undefined;
-            temp.siblingPrev = undefined;
+            temp.parent = null;
+            temp.siblingNext = null;
+            temp.siblingPrev = null;
         }
-        this.childFirst = undefined;
-        this.childLast = undefined;
+        this.childFirst = null;
+        this.childLast = null;
     }
 
     /**
@@ -376,10 +407,10 @@ export class Entity {
         const next = this.siblingNext;
         this.siblingNext = childAfter;
         childAfter.siblingPrev = this;
-        if (next !== undefined) {
+        if (next !== null) {
             next.siblingPrev = childAfter;
             childAfter.siblingNext = next;
-        } else if (this.parent !== undefined) {
+        } else if (this.parent !== null) {
             this.parent.childLast = childAfter;
         }
         childAfter.parent = this.parent;
@@ -395,10 +426,10 @@ export class Entity {
         const prev = this.siblingPrev;
         this.siblingPrev = childBefore;
         childBefore.siblingNext = this;
-        if (prev !== undefined) {
+        if (prev !== null) {
             prev.siblingNext = childBefore;
             childBefore.siblingPrev = prev;
-        } else if (this.parent !== undefined) {
+        } else if (this.parent !== null) {
             this.parent.childFirst = childBefore;
         }
         childBefore.parent = this.parent;
@@ -415,7 +446,7 @@ export class Entity {
             assert(this.parent);
         }
 
-        if (childBefore.parent !== undefined) {
+        if (childBefore.parent !== null) {
             childBefore.removeFromParent();
         }
 
@@ -432,7 +463,7 @@ export class Entity {
     countChildren(): number {
         let num = 0;
         let child = this.childFirst;
-        while (child !== undefined) {
+        while (child !== null) {
             ++num;
             child = child.siblingNext;
         }
@@ -440,34 +471,34 @@ export class Entity {
         return num;
     }
 
-    find(name: string): Entity | undefined {
+    find(name: string): Entity | null {
         let child = this.childFirst;
-        while (child !== undefined) {
+        while (child !== null) {
             if (child.name === name) {
                 return child;
             }
             child = child.siblingNext;
         }
-        return undefined;
+        return null;
     }
 
-    findN(name1: string, name2?: string, name3?: string): Entity | undefined {
-        let node: Entity | undefined = this.find(name1);
-        if (node !== undefined && name2 !== undefined) {
+    findN(name1: string, name2?: string, name3?: string): Entity | null {
+        let node = this.find(name1);
+        if (node !== null && name2 !== undefined) {
             node = node.find(name2);
-            if (node !== undefined && name3 !== undefined) {
+            if (node !== null && name3 !== undefined) {
                 node = node.find(name3);
             }
         }
         return node;
     }
 
-    findPath(path: string[]): Entity | undefined {
-        let node: Entity | undefined = this;
+    findPath(path: string[]): Entity | null {
+        let node: Entity | null = this;
         for (let i = 0; i < path.length; ++i) {
             const name = path[i];
             node = node!.find(name);
-            if (node === undefined) {
+            if (node === null) {
                 break;
             }
         }
@@ -481,9 +512,9 @@ export class Entity {
 
     searchRootComponent<T>(component: Component<T>): T | undefined {
         const map = component.map;
-        let it: Entity | undefined = this;
+        let it: Entity | null = this;
         let c: T | undefined;
-        while (it !== undefined) {
+        while (it !== null) {
             c = map.get(it.index);
             if (c !== undefined) {
                 return c;

@@ -1,4 +1,4 @@
-import {Rect} from "@highduck/math";
+import {Recta} from "@highduck/math";
 import {SpriteFlag, SpriteJson} from "@highduck/anijson";
 import {EImage} from "./EImage";
 import {logDebug} from "../env";
@@ -8,16 +8,16 @@ export class ESprite {
     name: string = "";
 
     // physical rect
-    readonly rc = new Rect();
+    readonly rc = new Recta();
 
     // coords in atlas image
-    readonly uv = new Rect();
+    readonly uv = new Recta();
 
     // flags in atlas image
     flags = SpriteFlag.None;
 
     // rect in source image
-    readonly source = new Rect(); // integers
+    readonly source = new Recta(); // integers
 
     scale = 1;
     trim = true;
@@ -81,7 +81,7 @@ export class ESprite {
 
         const rc0 = this.source;
         const scale = this.scale;
-        const rc = new Rect().copyFrom(rc0);
+        const rc = new Recta().copyFrom(rc0);
 
         if (this.image.findTrimZone(3, 0, rc)) {
             // logSavedArea(rc0, rc);
@@ -100,7 +100,7 @@ export class ESprite {
     }
 }
 
-function logSavedArea(rc0: Rect, rc1: Rect) {
+function logSavedArea(rc0: Recta, rc1: Recta) {
     const area = Math.trunc(Math.sqrt(rc0.width * rc0.height - rc1.width * rc1.height));
     if (rc1.empty) {
         logDebug(`[TRIM] Removed ${area} px^2`);

@@ -48,8 +48,6 @@ export class Batcher {
         this.vertexMaxSize = vertexMaxSize;
         this.vertexIndexMax = verticesLimit - 1;
 
-        this.nextIndexPointer = 0;
-
         this.vertexMemory = new Uint8Array(verticesLimit * vertexMaxSize);
         this.indexMemory = new Uint16Array(indicesLimit);
 
@@ -57,7 +55,7 @@ export class Batcher {
         this.indexBuffer = new BufferedBuffer(this.graphics, BufferType.Index);
     }
 
-    getVertexIndex(baseVertex = 0): number {
+    getVertexIndex(baseVertex:number): number {
         return this.baseVertex + baseVertex;
     }
 
@@ -90,17 +88,13 @@ export class Batcher {
                 ib.upload(this.indexMemory, 0, this.nextIndexPointer << 1);
             }
 
-            program.bindAttributes();
-            program.bindImage();
+            // program.bindAttributes();
+            // program.bindImage();
+            program.bindVertexAttrib();
 
             this.graphics.drawTriangles(this.indicesCount);
 
-            program.unbindAttributes();
-
-//        glBindVertexArray(0);
-//        glCheckError();
-//        glDeleteVertexArrays(1, &vao);
-//        glCheckError();
+            // program.unbindAttributes();
         }
 
         // reset stream pointers
@@ -149,10 +143,10 @@ export class Batcher {
             const program = this.state.curr.program;
             this.graphics.gl.bindBuffer(vb.type, vb);
             this.graphics.gl.bindBuffer(ib.type, ib);
-            program.bindAttributes();
-            program.bindImage();
+            program.enableVertexAttributes();
+            program.enableImageUnits();
             this.graphics.drawTriangles(indicesCount);
-            program.unbindAttributes();
+            program.disableVertexAttributes();
         }
     }
 

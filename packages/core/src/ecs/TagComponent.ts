@@ -20,12 +20,4 @@ export class TagComponentType implements Component<null> {
     unbind(entityIndex: number) {
         this.map.delete(entityIndex);
     }
-
-    components(): null[] {
-        return this.map.values;
-    }
-
-    entities(): number[] {
-        return this.map.keys;
-    }
 }

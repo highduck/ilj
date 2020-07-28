@@ -2,7 +2,7 @@ import {Asteroid, Bullet, Collision, Spaceship} from "../components";
 import {GameFactory} from "../factory";
 import {RndDefault, Vec2} from "@highduck/math";
 import {Fsm} from "../fsm";
-import {ECS_query3, EntityAge, Transform2D} from "@highduck/core";
+import {destroyEntity, ECS_query3, Transform2D} from "@highduck/core";
 
 export class CollisionSystem {
     constructor(readonly factory: GameFactory) {
@@ -21,7 +21,7 @@ export class CollisionSystem {
                 const asteroidCollision = asteroid.get(Collision);
 
                 if (asteroidTransform.position.distance(bulletTransform.position) <= asteroidCollision.radius) {
-                    bullet.set(EntityAge);//dispose();
+                    destroyEntity(bullet.index);
                     if (asteroidCollision.radius > 10) {
                         for (let an = 0; an < 2; ++an) {
                             const p = new Vec2(RndDefault.range(-5, 5), RndDefault.range(-5, 5)).add(asteroidTransform.position);
@@ -29,7 +29,7 @@ export class CollisionSystem {
                             this.factory.spawnAsteroid(r, p);
                         }
                     }
-                    asteroid.set(EntityAge);
+                    destroyEntity(asteroid.index);
                     break;
                 }
             }

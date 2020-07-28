@@ -1,9 +1,9 @@
 import {FunctionalComponent, h} from 'preact';
 import {fieldLabel, FieldProps, fieldValue} from "./FieldProps";
-import {Rect} from "@highduck/math";
+import {Recta} from "@highduck/math";
 import {NumberBox} from "./NumberBox";
 
-type RectFieldProps = FieldProps<Rect>;
+type RectFieldProps = FieldProps<Recta>;
 
 export const RectField: FunctionalComponent<RectFieldProps> = (props: RectFieldProps) => {
     const v = fieldValue(props);

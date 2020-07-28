@@ -1,11 +1,18 @@
 export class Vec3 {
+
     static readonly ONE: Readonly<Vec3> = new Vec3(1, 1, 1);
     static readonly ZERO: Readonly<Vec3> = new Vec3(0, 0, 0);
 
-    constructor(public x: number = 0,
-                public y: number = 0,
-                public z: number = 0) {
+    x = NaN;
+    y = NaN;
+    z = NaN;
 
+    constructor(x = 0,
+                y = 0,
+                z = 0) {
+        this.x = x;
+        this.y = y;
+        this.z = z;
     }
 
     add(v: Readonly<Vec3>): this {

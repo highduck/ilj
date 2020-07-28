@@ -5,6 +5,7 @@ import {EmitterData, ParticleDecl, ParticleDeclResource} from "./ParticleDecl";
 import {Transform2D_Data} from "../display/Transform2D";
 import {Matrix2D, RndDefault, Vec2} from "@highduck/math";
 import {Entity, getComponents} from "../../ecs";
+import {ObjectPool} from "../../ds/ObjectPool";
 
 const TEMP_MATRIX_2D = new Matrix2D();
 const TEMP_VEC2_POS = new Vec2();
@@ -17,15 +18,15 @@ export function findParticleLayer(e: Entity): ParticleLayer_Data {
     return e.getOrCreate(ParticleLayer);
 }
 
-function addParticle(layer: ParticleLayer_Data, particle?: Particle) {
-    if (particle) {
-        layer.particles.primary.push(particle);
-        particle.init();
-    }
+function addParticle(layer: ParticleLayer_Data, particle: Particle) {
+    layer.particles.pushPrimary(particle);
+    particle.updateCurrentValues();
 }
 
+const s_particlesPool = new ObjectPool<Particle>(Particle, 500);
+
 function produceParticle(decl: ParticleDecl): Particle {
-    const p = new Particle();
+    const p = s_particlesPool.get();
     p.sprite = decl.sprite;
     p.ax = decl.acceleration.x;
     p.ay = decl.acceleration.y;
@@ -54,8 +55,9 @@ export function spawnFromEmitter(src: Entity, layer: ParticleLayer_Data, particl
         return;
     }
     let a = data.dir.random();
-    Transform2D_Data.updateLocalMatrixInTree(layer.entity);
-    Transform2D_Data.updateLocalMatrixInTree(src);
+    // TODO:!! manual emission
+    // Transform2D_Data.updateLocalMatrixInTree(layer.entity);
+    // Transform2D_Data.updateLocalMatrixInTree(src);
     Transform2D_Data.getTransformationMatrix(src, layer.entity, TEMP_MATRIX_2D);
     while (count > 0) {
         const p = produceParticle(particle);
@@ -77,7 +79,7 @@ export function spawnFromEmitter(src: Entity, layer: ParticleLayer_Data, particl
         }
         p.ax += dx * acc;
         p.ay += dy * acc;
-        if (data.onSpawn !== undefined) {
+        if (data.onSpawn !== null) {
             data.onSpawn(p);
         }
 
@@ -99,9 +101,9 @@ export function spawnParticle(e: Entity, particleID: string): Particle | undefin
 
 export function particlesBurst(e: Entity, count: number, velocity?: Vec2) {
     const emitter = e.tryGet(ParticleEmitter);
-    if (emitter && emitter.data !== undefined) {
+    if (emitter !== undefined) {
         const decl = emitter.particleData;
-        if (decl !== undefined) {
+        if (decl !== null) {
             const layer = findParticleLayer(e);
             spawnFromEmitter(e, layer, decl, emitter.data, count);
         }
@@ -118,11 +120,11 @@ export function updateParticleEmitters() {
         }
         emitter.time += dt;
         const data = emitter.data;
-        if (data !== undefined && emitter.time >= data.interval) {
+        if (emitter.time >= data.interval) {
             let count = data.burst;
             if (count > 0) {
                 const particle = emitter.particleData;
-                if (particle !== undefined) {
+                if (particle !== null) {
                     const layer = findParticleLayer(emitter.entity);
                     spawnFromEmitter(emitter.entity, layer, particle, data, count);
                 }
@@ -138,12 +140,14 @@ export function updateParticleSystems() {
         const layer = layers[i];
         const dt = layer.timer.dt;
         const particles = layer.particles.primary;
-        const alive = layer.particles.secondary;
-        for (let i = 0, e = particles.length; i < e; ++i) {
+        const len = layer.particles.length;
+        for (let i = 0; i < len; ++i) {
             const p = particles[i];
             p.update(dt);
             if (p.time > 0) {
-                alive.push(p);
+                layer.particles.pushSecondary(p);
+            } else {
+                s_particlesPool.retain(p);
             }
         }
         layer.particles.commit();

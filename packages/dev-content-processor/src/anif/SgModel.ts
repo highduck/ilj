@@ -1,4 +1,4 @@
-import {Color32_ARGB, Color4, Matrix2D, Rect, Vec2} from "@highduck/math";
+import {Color32_ARGB, Color4, Matrix2D, Recta, Vec2} from "@highduck/math";
 import {
     AniJson,
     DynamicTextJson,
@@ -32,7 +32,7 @@ export class SgFilterData {
 }
 
 export class SgDynamicText {
-    readonly rect = new Rect();
+    readonly rect = new Recta();
     text: string = "";
     face: string = "";
     readonly alignment = new Vec2();
@@ -226,9 +226,9 @@ export class SgNode {
 
     button = false;
     touchable = true;
-    readonly scaleGrid = new Rect();
-    readonly hitRect = new Rect();
-    readonly clipRect = new Rect();
+    readonly scaleGrid = new Recta();
+    readonly hitRect = new Recta();
+    readonly clipRect = new Recta();
     readonly children: SgNode[] = [];
     readonly filters: SgFilterData[] = [];
     script: undefined | string = undefined;

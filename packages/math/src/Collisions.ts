@@ -1,10 +1,10 @@
-import {Rect} from "./Rect";
+import {Recta} from "./Recta";
 import {Vec2} from "./Vec2";
 import {Vec3} from "./Vec3";
 
 const EPSILON = 1e-6;
 
-const RC_TMP_0 = new Rect();
+const RC_TMP_0 = new Recta();
 
 const V2_TMP_0 = new Vec2();
 const V2_TMP_1 = new Vec2();
@@ -44,7 +44,7 @@ export class SweepTestResult {
     }
 }
 
-export function distanceToRect(rc: Readonly<Rect>, p: Readonly<Vec2>): number {
+export function distanceToRect(rc: Readonly<Recta>, p: Readonly<Vec2>): number {
     let s = 0.0;
     let d = 0.0;
 
@@ -67,7 +67,7 @@ export function distanceToRect(rc: Readonly<Rect>, p: Readonly<Vec2>): number {
     return Math.sqrt(d);
 }
 
-export function intersectRayRect(rc: Rect, origin: Vec2, dir: Vec2, result: SweepTestResult): SweepTestResult {
+export function intersectRayRect(rc: Recta, origin: Vec2, dir: Vec2, result: SweepTestResult): SweepTestResult {
     // reset
     result.reset();
     result.u1 = 1000000.0;
@@ -148,10 +148,10 @@ export function sweepCircles(c0: Readonly<Vec3>, c1: Readonly<Vec3>, delta: Read
     return result;
 }
 
-export function sweepRects(a0: Readonly<Rect>,
-                           a1: Readonly<Rect>,
-                           b0: Readonly<Rect>,
-                           b1: Readonly<Rect>,
+export function sweepRects(a0: Readonly<Recta>,
+                           a1: Readonly<Recta>,
+                           b0: Readonly<Recta>,
+                           b1: Readonly<Recta>,
                            result: SweepTestResult): SweepTestResult {
     result.reset();
 
@@ -211,7 +211,7 @@ export function sweepRects(a0: Readonly<Rect>,
 
 export function sweepCircleRect(circle: Vec3,
                                 circleDelta: Vec2,
-                                rect: Rect,
+                                rect: Recta,
                                 rectDelta: Vec2,
                                 result: SweepTestResult): SweepTestResult {
 // TODO: optimize allocation
@@ -312,7 +312,7 @@ export function sweepCircleRect(circle: Vec3,
 
 /*** Tests ***/
 
-export function testRectLine(rect: Readonly<Rect>, p0: Readonly<Vec2>, p1: Readonly<Vec2>): boolean {
+export function testRectLine(rect: Readonly<Recta>, p0: Readonly<Vec2>, p1: Readonly<Vec2>): boolean {
     // Calculate m and c for the equation for the line (y = mx+c)
     const m = (p1.y - p0.y) / (p1.x - p0.x);
     const c = p0.y - (m * p0.x);
@@ -347,7 +347,7 @@ export function testRectLine(rect: Readonly<Rect>, p0: Readonly<Vec2>, p1: Reado
         && overlapTop <= rect.bottom;
 }
 
-export function testRectTriangle(rect: Rect, v0: Vec2, v1: Vec2, v2: Vec2): boolean {
+export function testRectTriangle(rect: Recta, v0: Vec2, v1: Vec2, v2: Vec2): boolean {
     return testRectLine(rect, v0, v1)
         || testRectLine(rect, v1, v2)
         || testRectLine(rect, v2, v0);

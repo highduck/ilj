@@ -5,8 +5,7 @@ export function updateTrails() {
     const trails = getComponents(Trail);
     for (let i = 0; i < trails.length; ++i) {
         const trail = trails[i];
-        if (trail.enabled) {
-            trail.updateTrail();
-        }
+        trail.updateTrail();
+        trail.updateMesh();
     }
 }

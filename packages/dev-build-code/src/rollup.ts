@@ -82,23 +82,15 @@ function fillDefaults(options?: Partial<CompileBundleOptions>): CompileBundleOpt
 }
 
 function getTerserOptions(options: CompileBundleOptions): undefined | TerserOptions {
-    if (!options.minify) {
+    // if (!options.minify) {
         return undefined;
-    }
+    // }
 
     const opts: MinifyOptions = {
-        ecma: 8,
-        compress: {
-            passes: 2,
-            hoist_funs: true,
-            // sequences: false,
-            reduce_funcs: false,
-            // reduce_vars: false,
-            keep_infinity: true,
-            negate_iife: false,
-            toplevel: true
-        },
+        ecma: 2020,
+        compress: false,
         mangle: {
+            toplevel: true,
             module: !options.compat,
             // properties: {
             //     keep_quoted: true,
@@ -114,8 +106,9 @@ function getTerserOptions(options: CompileBundleOptions): undefined | TerserOpti
         },
         toplevel: true,
         safari10: true,
-        output: {
-            beautify: options.debug
+        output: { // format in terser 5
+            // beautify: options.debug
+            beautify: true
         }
     };
 
@@ -141,10 +134,6 @@ function getBabelConfig(options: CompileBundleOptions): RollupBabelInputPluginOp
         presets: [],
         plugins: []
     };
-    // config.plugins.push('external-helpers');
-    // if (compat) {
-    //     config.plugins.push(['@babel/plugin-transform-destructuring']);
-    // }
 
     if (platform === 'android') {
         // 5.0 (api level 21)
@@ -238,6 +227,28 @@ function getRollupInput(options: CompileBundleOptions): InputOptions {
         })
     );
 
+    if (options.minify) {
+        const terserOptions = getTerserOptions(options);
+        if (terserOptions) {
+            plugins.push(terser(terserOptions));
+        }
+        // plugins.push(closureCompiler({
+        //     charset: 'UTF-8',
+        //     // Uncomment to se more information.
+        //     // warning_level: 'VERBOSE',
+        //     // language_out: 'ECMASCRIPT_2015',
+        //     // Angular code contains a lot of non-standard JSDoc tags, like @publicApi.
+        //     // These warnings won't appear anyway unless you set warning_level to verbose.
+        //     jscomp_off: ['nonStandardJsDocs'],
+        //
+        //     // Uncomment to attempt advanced optimizations.
+        //     // compilation_level: 'ADVANCED',
+        //     // Angular uses 'System', which needs an extern in advanced mode.
+        //     // externs: ['./externs.js']
+        //
+        // }));
+    }
+
     const input: InputOptions = {
         input: options.inputMain,
         //preserveModules: options.modules,
@@ -263,13 +274,6 @@ function getRollupInput(options: CompileBundleOptions): InputOptions {
 function createOutputPlugins(opts: CompileBundleOptions): Plugin[] {
     const plugins: Plugin[] = [];
 
-    if (opts.minify) {
-        const terserOptions = getTerserOptions(opts);
-        if (terserOptions !== undefined) {
-            plugins.push(terser(terserOptions));
-        }
-    }
-
     if (opts.stats) {
         const postfix = opts.compat ? '.all' : '';
         plugins.push(
@@ -290,7 +294,8 @@ async function rollupBuild(opts: CompileBundleOptions) {
     const output: OutputOptions = {
         sourcemap: opts.sourceMap,
         compact: opts.minify,
-        plugins: createOutputPlugins(opts)
+        plugins: createOutputPlugins(opts),
+        strict: true
     };
 
     if (opts.compat) {
@@ -309,6 +314,8 @@ async function rollupBuild(opts: CompileBundleOptions) {
                 return 'support';
             } else if (id.includes('box2d.ts')) {
                 return 'box2d';
+            }else if (id.includes('packages/core')||id.includes('packages/math')||id.includes('packages/anijson')) {
+                return 'engine';
             }
             return undefined;
         }

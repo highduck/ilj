@@ -12,7 +12,7 @@ export function updateMovieClips() {
         }
         if (mov.dirty) {
             const data = mov.getMovieClipData();
-            if (data !== undefined) {
+            if (data !== null) {
                 const entity = EntityMap.get(entities[i])!;
                 mov.truncTime(data);
                 mov.applyFrameData(entity, data);

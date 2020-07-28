@@ -25,7 +25,7 @@ function dispatchInteractiveEvent<T>(e: Entity, data: EventData<T>): boolean {
             }
         }
         let it = e.childLast;
-        while (it !== undefined) {
+        while (it !== null) {
             const prev = it.siblingPrev;
             if (dispatchInteractiveEvent(it, data)) {
                 return true;
@@ -42,8 +42,8 @@ export class InteractiveManager {
     readonly pointerScreenSpace = new Vec2();
     pointerDown = false;
 
-    dragEntity?: Entity = undefined;
-    private _hitTarget?: Entity = undefined;
+    dragEntity: Entity | null = null;
+    private _hitTarget: Entity | null = null;
 
     private targetsPrev: Entity[] = [];
     private targetsCurr: Entity[] = [];
@@ -59,14 +59,14 @@ export class InteractiveManager {
         engine.input.onKeyboard.on(this.handleKeyboardEvent.bind(this));
     }
 
-    get hitTarget(): Entity | undefined {
+    get hitTarget(): Entity | null {
         return this._hitTarget;
     }
 
     process() {
         this.targetsCurr.length = 0;
         //this.pointerGlobalSpace.set(0, 0);
-        let cursor: Cursor | undefined = undefined;
+        let cursor = Cursor.Arrow;
         let changed = false;
         if (this.mouseActive) {
             this.pointerScreenSpace.copyFrom(this.primaryMouse);
@@ -114,11 +114,14 @@ export class InteractiveManager {
             }
         }
 
-        this.targetsPrev = this.targetsCurr.concat();
-        this.engine.view.cursor = cursor !== undefined ? cursor : Cursor.Arrow;
+        const tmp = this.targetsCurr;
+        this.targetsCurr = this.targetsPrev;
+        this.targetsPrev = tmp;
+
+        this.engine.view.cursor = cursor;
     }
 
-    searchInteractiveTargets(pointer: Vec2, node: Entity, outEntityList: Entity[]): Cursor | undefined {
+    searchInteractiveTargets(pointer: Vec2, node: Entity, outEntityList: Entity[]): Cursor {
         let target = hitTest(node, pointer.x, pointer.y);
         if (this.dragEntity && this.dragEntity.isValid) {
             target = this.dragEntity;
@@ -126,13 +129,13 @@ export class InteractiveManager {
 
         this._hitTarget = target;
 
-        let cursor: Cursor | undefined = undefined;
+        let cursor = Cursor.Bypass;
 
-        while (target !== undefined) {
+        while (target !== null) {
             const data = target.tryGet(Interactive);
             if (data) {
                 data.pointer.copyFrom(pointer);
-                if (cursor === undefined) {
+                if (cursor === Cursor.Bypass) {
                     cursor = data.cursor;
                 }
                 outEntityList.push(target);
@@ -146,7 +149,7 @@ export class InteractiveManager {
     }
 
     handleMouseEvent(ev: AppMouseEvent) {
-        if (ev.type == "mousedown") {
+        if (ev.type === "mousedown") {
             this.primaryMouse.set(ev.x, ev.y);
             this.pointerDown = true;
             for (let i = 0; i < this.targetsPrev.length; ++i) {
@@ -155,7 +158,7 @@ export class InteractiveManager {
                     target.tryGet(Interactive)?.firePointerDown(target);
                 }
             }
-        } else if (ev.type == "mouseup") {
+        } else if (ev.type === "mouseup") {
             this.primaryMouse.set(ev.x, ev.y);
             this.pointerDown = false;
             for (let i = 0; i < this.targetsPrev.length; ++i) {
@@ -164,7 +167,7 @@ export class InteractiveManager {
                     target.tryGet(Interactive)?.firePointerUp(target);
                 }
             }
-        } else if (ev.type == "mousemove") {
+        } else if (ev.type === "mousemove") {
             this.primaryMouse.set(ev.x, ev.y);
             this.mouseActive = true;
             this.process();
@@ -176,7 +179,7 @@ export class InteractiveManager {
     }
 
     handleTouchEvent(ev: AppTouchEvent) {
-        if (ev.type == "touchstart") {
+        if (ev.type === "touchstart") {
             if (this.primaryTouchID === -1) {
                 this.primaryTouchID = ev.id;
                 this.primaryTouch.set(ev.x, ev.y);

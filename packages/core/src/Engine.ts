@@ -4,43 +4,52 @@ import {Drawer} from "./drawer/Drawer";
 import {Batcher} from "./drawer/Batcher";
 import {Signal} from "./util/Signal";
 import {InputState} from "./app/InputState";
-import {Rect, Vec2} from "@highduck/math";
+import {Recta, Vec2} from "@highduck/math";
 import {InteractiveManager} from "./scene1/ani/InteractiveManager";
 import {DisplaySystem} from "./scene1/display/DisplaySystem";
 import {Transform2D} from "./scene1/display/Transform2D";
-import {updateButtons} from "./scene1/ani/ButtonSystem";
-import {ECS_getUsedCount, Entity} from "./ecs/Entity";
-import {updateMovieClips} from "./scene1/display/MovieClipSystem";
-import {updateParticleEmitters, updateParticleSystems} from "./scene1/particles/ParticleSystem";
+import {Entity} from "./ecs/Entity";
 import {AniFactory} from "./scene1/ani/AniFactory";
-import {updateTrails} from "./scene1/particles/TrailUpdateSystem";
-import {updateTargetFollow} from "./scene1/extra/TargetFollow";
 import {initCanvas} from "./util/initCanvas";
 import {TextureResource} from "./graphics/Texture";
 import {ProgramResource} from "./graphics/Program";
 import {createEmptyTexture} from "./graphics/util/createEmptyTexture";
 import {createProgram2D} from "./graphics/util/createProgram2D";
 import {AudioMan} from "./scene1/AudioMan";
-import {processEntityAge} from "./scene1/extra/EntityAge";
-import {updateFastScripts} from "./scene1/extra/FastScript";
 import {updateFonts} from "./rtfont/FontAtlas";
 import {LayoutData} from "./scene1/extra/Layout";
-import {updateLayout} from "./scene1/extra/LayoutSystem";
 import {awaitDocument} from "./util/awaitDocument";
-import {invalidateTransform} from "./scene1/systems/invalidateTransform";
 import {CameraManager} from "./scene1/display/CameraManager";
-import {Time} from "./app/Time";
+import {Time, updateTimers} from "./app/Time";
+import {Profiler} from "./profiler/Profiler";
+import {updateLayout} from "./scene1/extra/LayoutSystem";
+import {updateFastScripts} from "./scene1/extra/FastScript";
+import {updateTargetFollow} from "./scene1/extra/TargetFollow";
+import {updateButtons} from "./scene1/ani/ButtonSystem";
 import {updateSlowMotion} from "./gcf/SlowMotion";
 import {updateCameraShakers} from "./gcf/CameraShaker";
 import {updateTweens} from "./gcf/Tween";
 import {updateScrollArea} from "./gcf/ScrollArea";
 import {updatePopupManagers} from "./gcf/PopupManager";
-import {Profiler} from "./profiler/Profiler";
+import {updateMovieClips} from "./scene1/display/MovieClipSystem";
+import {processEntityAge} from "./scene1/extra/EntityAge";
+import {invalidateTransform} from "./scene1/systems/invalidateTransform";
+import {updateTrails} from "./scene1/particles/TrailUpdateSystem";
+import {updateParticleEmitters, updateParticleSystems} from "./scene1/particles/ParticleSystem";
+import {destroyEntities} from "./scene1/extra/EntityDestroyer";
 
 export interface InitConfig {
     canvas?: HTMLCanvasElement;
     width: number;
     height: number;
+}
+
+function _raf(millis: number) {
+    const engine = Engine.current;
+    engine.profiler.beginGroup("Frame");
+    requestAnimationFrame(_raf);
+    engine.handleFrame(millis);
+    engine.profiler.endGroup("Frame");
 }
 
 export class Engine {
@@ -54,13 +63,11 @@ export class Engine {
     readonly assetsPath: string = "assets";
     readonly variables: object[] = [];
 
-    _running = false;
-
     readonly time = new Time();
 
-    readonly onUpdate = new Signal<number>();
-    readonly onRender = new Signal<Readonly<Rect>>();
-    readonly onRenderFinish = new Signal<Readonly<Rect>>();
+    readonly onUpdate = new Signal<void>();
+    readonly onRender = new Signal<Readonly<Recta>>();
+    readonly onRenderFinish = new Signal<Readonly<Recta>>();
     readonly frameCompleted = new Signal<void>();
 
     // readonly root: Entity;
@@ -71,14 +78,14 @@ export class Engine {
     readonly audio: AudioMan;
 
     // DEBUG
-    readonly profiler = new Profiler();
+    readonly profiler: Profiler;
+
+    running = false;
 
     constructor(config: InitConfig) {
         Engine.current = this;
 
-        this.handleFrame = this.handleFrame.bind(this);
-
-        if (config.canvas === undefined) {
+        if (!config.canvas) {
             config.canvas = initCanvas();
         }
 
@@ -97,15 +104,20 @@ export class Engine {
         this.batcher = new Batcher(this.graphics);
         this.drawer = new Drawer(this.batcher);
         this.audio = new AudioMan(this);
+        this.profiler = new Profiler(this.drawer);
 
         Entity.root.name = "Root";
-        Entity.root.getOrCreate(Transform2D);
+        const tr = Entity.root.getOrCreate(Transform2D);
+        tr.flagRect = true;
+
         this.interactiveManager = new InteractiveManager(this);
         this.displaySystem = new DisplaySystem(this);
         this.aniFactory = new AniFactory();
         this.cameraManager = new CameraManager();
 
         LayoutData.space.copyFrom(this.view.reference);
+
+        requestAnimationFrame(_raf);
     }
 
     private renderFrame() {
@@ -120,11 +132,11 @@ export class Engine {
         this.profiler.beginGroup("Render");
 
         const rc = this.view.drawable;
-        this.graphics.currentFramebufferRect.copyFrom(rc);
+        this.graphics.framebufferWidth = rc.width | 0;
+        this.graphics.framebufferHeight = rc.height | 0;
         this.graphics.begin();
         this.graphics.viewport();
 
-        Entity.root.get(Transform2D).rect.copyFrom(rc);
         this.drawer.begin(rc);
         {
             this.onRender.emit(rc);
@@ -139,82 +151,79 @@ export class Engine {
         this.profiler.beginGroup("Profiler");
 
         if (this.profiler.enabled) {
-            this.profiler.getGraph('FPS').threshold = 30;
-            this.profiler.getGraph('Frame').threshold = (1.0 / 60.0) * 1000 * 1000;
-            // this.profiler.getGraph('entities').threshold = 1000;
-            // this.profiler.getGraph('tris').threshold = 2000;
-            // this.profiler.getGraph('dc').threshold = 25;
-
-            this.profiler.setFrameGraphValue('FPS', this.time.fps.frame);
-            // this.profiler.setFrameGraphValue('elapsed', this.time.raw);
-            // this.profiler.setFrameGraphValue('tris', this.graphics.triangles);
-            // this.profiler.setFrameGraphValue('dc', this.graphics.drawCalls);
-            this.profiler.setFrameGraphValue('entities', ECS_getUsedCount());
-            // this.profiler.setFrameGraphValue('RAF skipped', this.RAFSkipped);
-            this.profiler.draw(this.drawer);
+            this.profiler.updateProfiler(this.time.raw);
+            this.profiler.draw();
         }
         // ~~~ force draw
         this.batcher.flush();
 
         this.profiler.endGroup("Profiler");
 
+        this.profiler.beginGroup("Post Render");
         this.drawer.end();
-
-        this.profiler.beginGroup("updateFonts");
+        /*#__NOINLINE__*/
         updateFonts();
-        this.profiler.endGroup("updateFonts");
-
-        //this.graphics.end();
+        this.profiler.endGroup("Post Render");
     }
 
     handleFrame(millis: number) {
-        this.profiler.beginGroup("Frame");
-
-        if (this._running) {
-            requestAnimationFrame(this.handleFrame);
-        }
-
         this.profiler.beginGroup("Pre Update");
 
         this.time.updateTime(millis / 1000.0);
-        if (process.env.NODE_ENV === 'development' || this.profiler.enabled) {
-            this.time.fps.calcFPS(this.time.raw);
-        }
+        updateTimers(this.time.delta);
 
-        Entity.root.getOrCreate(Transform2D).rect.copyFrom(this.view.drawable);
+        Entity.root.get(Transform2D).rect.copyFrom(this.view.drawable);
 
+        this.input.dispatchInputEvents();
         this.interactiveManager.process();
 
         this.profiler.endGroup("Pre Update");
 
         this.profiler.beginGroup("Game Update");
-        this.onUpdate.emit(this.time.delta);
+        this.onUpdate.emit();
         this.profiler.endGroup("Game Update");
 
         this.profiler.beginGroup("Update");
 
+        /*#__NOINLINE__*/
         updateTargetFollow();
+        /*#__NOINLINE__*/
         updateButtons();
+        /*#__NOINLINE__*/
         updateFastScripts();
+        /*#__NOINLINE__*/
         updateSlowMotion();
+        /*#__NOINLINE__*/
         updateCameraShakers();
+        /*#__NOINLINE__*/
         updateTweens();
+        /*#__NOINLINE__*/
         updateScrollArea();
+        /*#__NOINLINE__*/
         updatePopupManagers();
 
+        /*#__NOINLINE__*/
         updateMovieClips();
+        /*#__NOINLINE__*/
         updateLayout();
         this.profiler.endGroup("Update");
 
         this.profiler.beginGroup("Late Update");
 
         // remove any entities
+        /*#__NOINLINE__*/
         processEntityAge();
+        /*#__NOINLINE__*/
+        destroyEntities();
 
+        /*#__NOINLINE__*/
         invalidateTransform();
 
+        /*#__NOINLINE__*/
         updateTrails();
+        /*#__NOINLINE__*/
         updateParticleEmitters();
+        /*#__NOINLINE__*/
         updateParticleSystems();
 
         this.cameraManager.updateCameraStack();
@@ -226,13 +235,6 @@ export class Engine {
         // Render
         this.renderFrame();
         this.frameCompleted.emit();
-
-        // Late Update
-        // this.profiler.beginGroup("Late Update");
-
-        // this.profiler.endGroup("Late Update");
-
-        this.profiler.endGroup("Frame");
     }
 
     start() {
@@ -241,27 +243,6 @@ export class Engine {
 
     stop() {
         this.running = false;
-    }
-
-    set running(v: boolean) {
-        if (this._running !== v) {
-            this._running = v;
-            if (v) {
-                requestAnimationFrame(this.handleFrame);
-            }
-        }
-    }
-
-    get running(): boolean {
-        return this._running;
-    }
-
-    // used for editor
-    _step() {
-        if (this.running) {
-            this.stop();
-        }
-        requestAnimationFrame(this.handleFrame);
     }
 
     static async init(config: InitConfig) {

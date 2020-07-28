@@ -12,25 +12,21 @@ interface RandomEngine {
 // const MAX_LIMIT = 0x80000000;
 const MAX_LIMIT = 0x7FFFFFFF;
 
-class Lcg32 {
-    seed: number;
-    readonly a: number;
-    readonly c: number;
-    readonly max: number;
+class Lcg32 implements RandomEngine {
 
     // c++ version : a = 1103515245, c = 12345
-    constructor(seed = +new Date(),
-                a = 1664525,
-                c = 1013904223,
-                max = MAX_LIMIT) {
-        this.a = a;
-        this.c = c;
-        this.max = max;
-        this.seed = seed % max;
+    constructor(public seed = (+new Date()) & 0x3FFFFFFF,
+                readonly a = 1664525,
+                readonly c = 1013904223,
+                readonly max = MAX_LIMIT) {
+        //this.seed = (seed % max) | 0;
     }
 
     next(): number {
-        return this.seed = (this.seed * this.a + this.c) % this.max;
+        const v = this.seed * this.a + this.c;
+        const cl = v % this.max;
+        this.seed = cl | 0;
+        return this.seed;
     }
 }
 
@@ -38,8 +34,8 @@ export class Random {
     constructor(private engine: RandomEngine = new Lcg32()) {
     }
 
-    roll(maxExclusive: number) {
-        return this.next() % maxExclusive;
+    roll(maxExclusive: number): number {
+        return (this.next() % maxExclusive) | 0;
     }
 
     next(): number {

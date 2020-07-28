@@ -7,10 +7,13 @@ export class TargetFollow_Data {
     constructor(readonly entity: Entity) {
     }
 
-    target: Entity | undefined = undefined;
+    target: Entity | null = null;
 
     // interactive
-    cameraPointer: Entity | undefined = undefined;
+    cameraPointer: Entity | null = null;
+
+    dispose() {
+    }
 }
 
 export const TargetFollow = new EntityComponentType(TargetFollow_Data);
@@ -21,7 +24,7 @@ export function updateTargetFollow() {
     for (let i = 0; i < components.length; ++i) {
         const follow = components[i];
         const pos = follow.entity.tryGet(Transform2D);
-        if (pos !== undefined && follow.cameraPointer !== undefined) {
+        if (pos !== undefined && follow.cameraPointer !== null) {
             const camera = follow.cameraPointer.tryGet(Camera2D);
             if (camera !== undefined) {
                 const mouse = engine.interactiveManager.pointerScreenSpace;

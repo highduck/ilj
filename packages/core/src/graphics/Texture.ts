@@ -1,5 +1,5 @@
 import {Graphics} from "./Graphics";
-import {Rect, Vec2} from "@highduck/math";
+import {Recta, Vec2} from "@highduck/math";
 import {ResourceType} from "../util/Resources";
 
 const enum TextureType {
@@ -45,7 +45,7 @@ export class Texture {
     target: GLenum;
     texture: WebGLTexture;
     type: TextureType = TextureType.Color32;
-    spot?: Rect;
+    spot: Recta | null = null;
 
     generateMipMaps = false;
     hasMipMap = false;

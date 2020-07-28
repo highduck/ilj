@@ -1,4 +1,4 @@
-import {BoundsBuilder, Rect} from "@highduck/math";
+import {BoundsBuilder, Recta} from "@highduck/math";
 import {DecodedBitmap, Element, ElementType} from "@highduck/xfl";
 import {TransformModel} from "./TransformModel";
 import {RenderBatch} from "./RenderBatch";
@@ -47,7 +47,7 @@ export class ShapeProcessor {
         if (shape === undefined) {
             return false;
         }
-        const rc = new Rect(
+        const rc = new Recta(
             shape._x ?? 0,
             shape._y ?? 0,
             shape._objectWidth ?? 0,
@@ -100,7 +100,7 @@ export class ShapeProcessor {
         batch.commands.push(cmd);
         batch.total = 1;
 
-        const rc = new Rect(0, 0, bitmap.width, bitmap.height).transform(world.matrix);
+        const rc = new Recta(0, 0, bitmap.width, bitmap.height).transform(world.matrix);
         batch.bounds.addRect(rc.x, rc.y, rc.width, rc.height);
 
         return this.add(batch);

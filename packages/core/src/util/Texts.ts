@@ -1,37 +1,50 @@
-export interface StringToken {
-    kind: 0 | 1;
-    value: string;
+export const enum StringTokenKind {
+    Value = 0,
+    Key = 1
 }
 
-export function parseString(input: string): StringToken[] {
-    const tokens: StringToken[] = [];
+export class StringTokenArray {
+    static EMPTY = new StringTokenArray();
 
+    kinds: StringTokenKind[] = [StringTokenKind.Value];
+    values: string[] = [''];
+    count = 0;
+}
+
+export function parseString(input: string, out: StringTokenArray) {
+    out.count = 0;
+
+    let i = 0;
     let begin = input.indexOf('{{');
     let prev = 0;
     while (begin >= 0) {
         const end = input.indexOf('}}', begin + 2);
         if (end >= begin + 2) {
             if (begin > prev) {
-                tokens.push({kind: 0, value: input.substring(prev, begin)});
+                out.kinds[i] = StringTokenKind.Value;
+                out.values[i] = input.substring(prev, begin);
             }
             if (begin + 2 < end) {
-                tokens.push({kind: 1, value: input.substring(begin + 2, end)});
+                out.kinds[i] = StringTokenKind.Key;
+                out.values[i] = input.substring(begin + 2, end);
             }
+            ++out.count;
             prev = end + 2;
         }
         begin = input.indexOf('{{', prev);
     }
     if (prev < input.length) {
-        tokens.push({kind: 0, value: input.substring(prev)});
+        out.kinds[out.count] = StringTokenKind.Value;
+        out.values[out.count] = input.substring(prev);
+        ++out.count;
     }
-    return tokens;
 }
 
 interface Dictionary<T> {
     [key: string]: T;
 }
 
-type TokensMap = Map<string, StringToken[]>;
+type TokensMap = Map<string, StringTokenArray>;
 
 const _store = {
     version: 0,
@@ -41,7 +54,9 @@ const _store = {
 
 function loadIntoStore(target: TokensMap, data: Dictionary<string>) {
     for (const key of Object.keys(data)) {
-        target.set(key, parseString(data[key]));
+        const v = new StringTokenArray();
+        parseString(data[key], v)
+        target.set(key, v);
     }
 }
 
@@ -56,9 +71,7 @@ export function setLocale(base: any, data?: any) {
     ++_store.version;
 }
 
-const EMPTY_TOKENS: StringToken[] = [];
-
-export function getStringTokens(key: string): StringToken[] {
+export function getStringTokens(key: string): StringTokenArray {
     let r = _store.locale.get(key);
     if (r !== undefined) {
         return r;
@@ -67,17 +80,18 @@ export function getStringTokens(key: string): StringToken[] {
     if (r !== undefined) {
         return r;
     }
-    return EMPTY_TOKENS;
+    return StringTokenArray.EMPTY;
 }
 
-export function renderString(tokens: StringToken[]): string {
+export function renderString(tokens: StringTokenArray): string {
     let result = '';
-    for (let i = 0, e = tokens.length; i < e; ++i) {
-        const tk = tokens[i];
-        if (tk.kind === 0) {
-            result += tk.value;
-        } else if (tk.kind === 1) {
-            result += renderString(getStringTokens(tk.value));
+    for (let i = 0, e = tokens.count; i < e; ++i) {
+        const kind = tokens.kinds[i];
+        const value = tokens.values[i];
+        if (kind === StringTokenKind.Value) {
+            result += value;
+        } else if (kind === 1) {
+            result += renderString(getStringTokens(value));
         }
     }
     return result;

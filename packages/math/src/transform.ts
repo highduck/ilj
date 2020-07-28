@@ -1,7 +1,7 @@
 import {Matrix2D} from "./Matrix2D";
-import {Rect} from "./Rect";
+import {Recta} from "./Recta";
 
-export function transformRectMatrix2D(rc: Rect, matrix: Matrix2D, out: Rect) {
+export function transformRectMatrix2D(rc: Recta, matrix: Matrix2D, out: Recta) {
     const a = matrix.a;
     const b = matrix.b;
     const c = matrix.c;

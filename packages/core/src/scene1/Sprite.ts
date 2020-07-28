@@ -1,12 +1,12 @@
 import {Texture} from "../graphics/Texture";
-import {Rect} from "@highduck/math";
+import {Recta} from "@highduck/math";
 import {AssetRef, ResourceType} from "../util/Resources";
 import {Drawer} from "../drawer/Drawer";
 import {SpriteFlag} from "@highduck/anijson";
 
 export class Sprite {
-    readonly rect = new Rect();
-    readonly tex = new Rect();
+    readonly rect = new Recta();
+    readonly tex = new Recta();
 
     constructor(public texture: AssetRef<Texture>,
                 public flags: SpriteFlag = 0) {

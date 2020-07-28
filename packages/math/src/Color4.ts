@@ -28,9 +28,13 @@ export class Color4 {
         return packFloats(this.a, this.b, this.g, this.r);
     }
 
-    static readonly ONE: Readonly<Color4> = new Color4(1, 1, 1, 1);
-    static readonly ZERO: Readonly<Color4> = new Color4(0, 0, 0, 0);
-    static readonly BLACK: Readonly<Color4> = new Color4(0, 0, 0, 1);
+    static readonly ONE: Readonly<Color4> = new Color4(1.0, 1.0, 1.0, 1.0);
+    static readonly ZERO: Readonly<Color4> = new Color4(0.0, 0.0, 0.0, 0.0);
+    static readonly BLACK: Readonly<Color4> = new Color4(0.0, 0.0, 0.0, 1.0);
+
+    clone(): Color4 {
+        return new Color4(this.r, this.g, this.b, this.a);
+    }
 
     static color32(value: Color32_ARGB): Color4 {
         return new Color4(
@@ -45,14 +49,22 @@ export class Color4 {
             ((value >>> 16) & 0xFF) / 255.0,
             ((value >>> 8) & 0xFF) / 255.0,
             (value & 0xFF) / 255.0,
-            1);
+            1.0);
     }
 
-    constructor(public r: number = 0,
-                public g: number = 0,
-                public b: number = 0,
-                public a: number = 1) {
+    r = NaN;
+    g = NaN;
+    b = NaN;
+    a = NaN;
 
+    constructor(r = 0.0,
+                g = 0.0,
+                b = 0.0,
+                a = 1.0) {
+        this.r = r;
+        this.g = g;
+        this.b = b;
+        this.a = a;
     }
 
     equals(v: Color4): boolean {
@@ -168,10 +180,10 @@ export class Color4 {
     }
 
     saturate(): this {
-        this.r = this.r > 1 ? 1 : (this.r < 0 ? 0 : this.r);
-        this.g = this.g > 1 ? 1 : (this.g < 0 ? 0 : this.g);
-        this.b = this.b > 1 ? 1 : (this.b < 0 ? 0 : this.b);
-        this.a = this.a > 1 ? 1 : (this.a < 0 ? 0 : this.a);
+        this.r = this.r > 1.0 ? 1.0 : (this.r < 0.0 ? 0.0 : this.r);
+        this.g = this.g > 1.0 ? 1.0 : (this.g < 0.0 ? 0.0 : this.g);
+        this.b = this.b > 1.0 ? 1.0 : (this.b < 0.0 ? 0.0 : this.b);
+        this.a = this.a > 1.0 ? 1.0 : (this.a < 0.0 ? 0.0 : this.a);
         return this;
     }
 
@@ -184,7 +196,7 @@ export class Color4 {
     }
 
     lerp(b: Color4, t: number): this {
-        const inv = 1 - t;
+        const inv = 1.0 - t;
         this.r = inv * this.r + t * b.r;
         this.g = inv * this.g + t * b.g;
         this.b = inv * this.b + t * b.b;
@@ -193,7 +205,7 @@ export class Color4 {
     }
 
     lerpTuple(dest: [number, number, number, number], t: number): this {
-        const inv = 1 - t;
+        const inv = 1.0 - t;
         this.r = inv * this.r + t * dest[0];
         this.g = inv * this.g + t * dest[1];
         this.b = inv * this.b + t * dest[2];
@@ -216,7 +228,7 @@ export class Color4 {
     }
 
     static _lerp(out: Color4, a: Readonly<Color4>, b: Readonly<Color4>, t: number) {
-        const inv = 1 - t;
+        const inv = 1.0 - t;
         out.r = inv * a.r + t * b.r;
         out.g = inv * a.g + t * b.g;
         out.b = inv * a.b + t * b.b;
@@ -248,13 +260,13 @@ export class Color4 {
 
 // 7
 const HUE_TABLE: Color4[] = [
-    new Color4(1, 0, 0, 1),
-    new Color4(1, 1, 0, 1),
-    new Color4(0, 1, 0, 1),
-    new Color4(0, 1, 1, 1),
-    new Color4(0, 0, 1, 1),
-    new Color4(1, 0, 1, 1),
-    new Color4(1, 0, 0, 1),
+    new Color4(1.0, 0.0, 0.0, 1.0),
+    new Color4(1.0, 1.0, 0.0, 1.0),
+    new Color4(0.0, 1.0, 0.0, 1.0),
+    new Color4(0.0, 1.0, 1.0, 1.0),
+    new Color4(0.0, 0.0, 1.0, 1.0),
+    new Color4(1.0, 0.0, 1.0, 1.0),
+    new Color4(1.0, 0.0, 0.0, 1.0),
 ];
 
 function rgbHue(max: number, delta: number, r: number, g: number, b: number): number {
@@ -276,7 +288,7 @@ function rgbHue(max: number, delta: number, r: number, g: number, b: number): nu
 }
 
 function lerpChannel(value: number, x: number, y: number) {
-    return lerp(0, lerp(1, value, x), y);
+    return lerp(0.0, lerp(1.0, value, x), y);
 }
 
 export function toRGB(hvs: Color4): Color4 {

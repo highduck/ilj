@@ -1,4 +1,4 @@
-import {clamp, Color32_ARGB, Color4, Matrix2D, Rect, Vec2} from "@highduck/math";
+import {clamp, Color32_ARGB, Color4, Matrix2D, Recta, Vec2} from "@highduck/math";
 import {
     DOMColorHolder,
     DOMMatrix2DHolder,
@@ -76,7 +76,7 @@ export function readColor(out: Color4, data: any, colorTag: string = '_color', a
     out.a = a;
 }
 
-export function readScaleGrid(out: Rect, data: DOMScaleGrid) {
+export function readScaleGrid(out: Recta, data: DOMScaleGrid) {
     out.setBounds(
         data._scaleGridLeft ?? 0,
         data._scaleGridTop ?? 0,
@@ -98,7 +98,7 @@ export function readAlignment(out: Vec2, data?: string) {
     }
 }
 
-export function readRect(rc: Rect, data: FDOMRect) {
+export function readRect(rc: Recta, data: FDOMRect) {
     rc.set(
         data._left ?? 0,
         data._top ?? 0,

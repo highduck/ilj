@@ -3,7 +3,7 @@ import {Time} from "../app/Time";
 import {ADSREnvelope, atADSR} from "@highduck/math";
 import {ComponentTypeA, getComponents} from "../ecs";
 
-export const SlowMotion = new ComponentTypeA(class {
+class SlowMotionData {
     readonly envelope: ADSREnvelope = {
         level: 1,
         attackLevel: 0,
@@ -13,7 +13,7 @@ export const SlowMotion = new ComponentTypeA(class {
         releaseTime: 0.4
     };
 
-    time = 0;
+    time = 0.0;
     playing = false;
     releaseTime = 0;
     pauseLevel = 0;
@@ -37,7 +37,9 @@ export const SlowMotion = new ComponentTypeA(class {
             this.playing = true;
         }
     }
-});
+}
+
+export const SlowMotion = new ComponentTypeA(SlowMotionData);
 
 export function updateSlowMotion() {
     const rootDeltaTime = Engine.current.time.delta;

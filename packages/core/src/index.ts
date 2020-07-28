@@ -48,6 +48,7 @@ export * from './scene1/extra/Layout';
 export * from './scene1/extra/LayoutSystem';
 export * from './scene1/extra/FastScript';
 export * from './scene1/extra/EntityAge';
+export * from './scene1/extra/EntityDestroyer';
 export * from './scene1/extra/TargetFollow';
 
 export * from './scene1/BitmapFont';
@@ -62,6 +63,8 @@ export * from './loaders/loadBundle';
 
 export * from './ds/ArrayRun';
 export * from './ds/ArraySwap';
+export * from './ds/ObjectQueue';
+export * from './ds/CoolArrays';
 
 /// GCF
 export * from './gcf/Tween';

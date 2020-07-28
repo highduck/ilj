@@ -11,6 +11,8 @@ export class ParticleLayer_Data {
     cycled = false;
     keepAlive = false;
     timer = Time.ROOT;
+
+    dispose() {}
 }
 
 export const ParticleLayer = new EntityComponentType(ParticleLayer_Data);

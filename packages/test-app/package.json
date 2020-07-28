@@ -8,7 +8,7 @@
     "build": "ilj build -v"
   },
   "dependencies": {
-    "@capacitor/core": "^2.2.1",
+    "@capacitor/core": "^2.4.0",
     "@highduck/core": "0.0.1",
     "@highduck/live-inspector": "0.0.1",
     "@highduck/math": "0.0.1",

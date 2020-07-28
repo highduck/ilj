@@ -1,10 +1,11 @@
-import {Entity} from "../../ecs/Entity";
 import {Signal} from "../../util/Signal";
-import {EntityMap, ComponentTypeA} from "../../ecs";
+import {ComponentTypeA, Entity, EntityMap} from "../../ecs";
 
-export const FastScript = new ComponentTypeA(class {
+class FastScriptData {
     readonly updated = new Signal<Entity>();
-});
+}
+
+export const FastScript = new ComponentTypeA(FastScriptData);
 
 export function updateFastScripts() {
     const components = FastScript.map.values;

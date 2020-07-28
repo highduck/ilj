@@ -1,17 +1,39 @@
 import {DevStatGraph} from "./DevStatGraph";
 import {StringMap} from "../ds/StringMap";
 import {Drawer} from "../drawer/Drawer";
-import {FontResource} from "..";
+import {ECS_getUsedCount, FontResource} from "..";
+import {FPSMeter} from "./FPSMeter";
+
+const frameBudgetMillis = 1000.0 / 60.0;
 
 export class Profiler {
-
-    enabled = false;
     readonly graphs = new StringMap<DevStatGraph>();
     readonly groups = new StringMap<number>();
     readonly font = FontResource.get("Comfortaa-Regular");
+    readonly fps = new FPSMeter();
 
-    constructor() {
+    readonly FPS = this.getGraph('FPS');
+    readonly DC = this.getGraph('DC');
+    readonly TRIS = this.getGraph('TRI');
+    readonly ENTITIES = this.getGraph('entities');
+    enabled = false;
 
+    constructor(readonly drawer: Drawer) {
+        this.FPS.threshold = 30;
+        this.DC.threshold = 10;
+        this.TRIS.threshold = 1000;
+        this.ENTITIES.threshold = 500;
+    }
+
+    updateProfiler(elapsedTime: number) {
+        // this.fps.calcFPS(elapsedTime);
+        if (elapsedTime > 0.0) {
+            this.FPS.add(Math.round(1.0 / elapsedTime) | 0);
+        }
+        const gr = this.drawer.batcher.graphics;
+        this.DC.add(gr.drawCalls);
+        this.TRIS.add(gr.triangles);
+        this.ENTITIES.add(ECS_getUsedCount());
     }
 
     getGraph(name: string): DevStatGraph {
@@ -27,28 +49,33 @@ export class Profiler {
         this.getGraph(name).add(value);
     }
 
-    draw(drawer: Drawer) {
+    draw() {
         const e = this.graphs.size;
         const graphs = this.graphs.values;
-        for (let i = 0; i < e; ++i) {
-            graphs[i].update();
-        }
+        // for (let i = 0; i < e; ++i) {
+        //     graphs[i].update();
+        // }
 
-        drawer.state.saveMatrix();
-        drawer.state.setEmptyTexture();
+        const drawer = this.drawer;
+        drawer.state.saveMatrix().setEmptyTexture();
+        const m = drawer.state.matrix;
         let y = 0;
         for (let i = 0; i < e; ++i) {
-            drawer.state.matrix.y = y;
+            m.y = y;
             const graph = graphs[i];
-            graph.drawGraph(drawer);
+            graph.drawBackground(drawer);
+            if(graph.delta > 0) {
+                graph.drawGraph(drawer);
+            }
             y += graph.height + 10;
         }
-        if (this.font.data !== undefined) {
+        if (this.font.data !== null) {
             y = 0;
             for (let i = 0; i < e; ++i) {
-                drawer.state.matrix.y = y;
+                m.y = y;
                 const graph = graphs[i];
                 graph.drawLabels(this.font.data);
+                graph.drawLabelCurrent(this.font.data);
                 y += graph.height + 10;
             }
         }
@@ -75,7 +102,9 @@ export class Profiler {
         const ts = this.groups.get(name);
         if (ts !== undefined) {
             const delta = performance.now() - ts;
-            this.getGraph(name).add(Math.round(1000 * delta));
+            const frameGraph = this.getGraph(name);
+            frameGraph.add(Math.round(100.0 * delta / frameBudgetMillis) | 0);
+            frameGraph.threshold = 100;
         }
     }
 }

@@ -176,9 +176,9 @@ export class MovieClipTarget_Data {
 export const MovieClipTarget = new ComponentTypeA(MovieClipTarget_Data);
 
 export class MovieClip2D_Data {
-    libraryAsset: AssetRef<Ani> | undefined = undefined;
-    movieDataSymbol: string | undefined = undefined;
-    data: MovieJson | undefined = undefined;
+    //libraryAsset: AssetRef<Ani> | undefined = undefined;
+    //movieDataSymbol: string | undefined = undefined;
+    data: MovieJson | null = null;
 
     _time = 0.0;
     playing = true;
@@ -193,15 +193,8 @@ export class MovieClip2D_Data {
         return data ? data.l : 0;
     }
 
-    getMovieClipData(): MovieJson | undefined {
+    getMovieClipData(): MovieJson | null {
         let result = this.data;
-        if (!result && this.libraryAsset &&
-            this.libraryAsset.data && this.movieDataSymbol) {
-            const symbolData = this.libraryAsset.data.lookup[this.movieDataSymbol];
-            if (symbolData && symbolData.mc) {
-                result = symbolData.mc;
-            }
-        }
         return result;
     }
 
@@ -231,7 +224,7 @@ export class MovieClip2D_Data {
     applyFrameData(entity: Entity, data: MovieJson) {
         const time = this.discreteMode ? Math.trunc(this._time) : this._time;
         const totalTargets = data.t.length;
-        for (let it = entity.childFirst; it !== undefined; it = it.siblingNext) {
+        for (let it = entity.childFirst; it !== null; it = it.siblingNext) {
             const targetData = it.tryGet(MovieClipTarget);
             if (targetData !== undefined && targetData.keyAnimation < totalTargets) {
                 updateTarget(time, it, data.t[targetData.keyAnimation]);

@@ -1,4 +1,4 @@
-import {Color32_ARGB, Color4, Matrix2D, Rect, Vec2} from "@highduck/math";
+import {Color32_ARGB, Color4, Matrix2D, Recta, Vec2} from "@highduck/math";
 import {
     BlendMode,
     DecodedBitmap,
@@ -464,12 +464,12 @@ export class Element {
     readonly matrix = new Matrix2D();
     readonly colorMultiplier = new Color4(1, 1, 1, 1);
     readonly colorOffset = new Color4(0, 0, 0, 0);
-    readonly rect = new Rect();
+    readonly rect = new Recta();
 
     /// SYMBOL ITEM
     readonly timeline = new Timeline();
 
-    readonly scaleGrid = new Rect(); //scaleGridLeft="-2" scaleGridRight="2" scaleGridTop="-2" scaleGridBottom="2"
+    readonly scaleGrid = new Recta(); //scaleGridLeft="-2" scaleGridRight="2" scaleGridTop="-2" scaleGridBottom="2"
 
 /// ref to item
     libraryItemName: undefined | string = undefined;

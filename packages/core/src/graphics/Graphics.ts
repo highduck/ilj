@@ -1,4 +1,4 @@
-import {Color4, Rect} from "@highduck/math";
+import {Color4, Recta} from "@highduck/math";
 import {BlendMode} from "./BlendMode";
 
 function createGLContext(canvas: HTMLCanvasElement, options: WebGLContextAttributes): WebGLRenderingContext | null {
@@ -13,15 +13,15 @@ function createGLContext(canvas: HTMLCanvasElement, options: WebGLContextAttribu
 }
 
 export class Graphics {
-    readonly currentFramebufferRect = new Rect();
-    readonly viewportRect = new Rect();
+    framebufferWidth = 0;
+    framebufferHeight = 0;
     readonly gl: WebGLRenderingContext;
-
-    triangles = 0;
-    drawCalls = 0;
 
     readonly maxRenderBufferSize: number = 2048;
     readonly maxTextureSize: number = 2048;
+
+    triangles = 0;
+    drawCalls = 0;
 
     constructor(canvas: HTMLCanvasElement) {
         const options: WebGLContextAttributes = {
@@ -69,37 +69,43 @@ export class Graphics {
         GL.clear(GL.COLOR_BUFFER_BIT);
     }
 
-    viewport(rc?: Rect) {
-        const GL = this.gl;
-        if (rc) {
-            this.viewportRect.copyFrom(rc);
-            GL.viewport(rc.x, rc.y, rc.width, rc.height);
-        } else {
-            this.viewportRect.copyFrom(this.currentFramebufferRect);
-            GL.viewport(0, 0, this.currentFramebufferRect.width, this.currentFramebufferRect.height);
-        }
+    viewport() {
+        // this.vp.x = 0;
+        // this.vp.y = 0;
+        // this.vp.w = this.framebufferWidth;
+        // this.vp.h = this.framebufferHeight;
+        this.gl.viewport(0, 0, this.framebufferWidth, this.framebufferHeight);
+    }
+
+    viewportRect(rc: Recta) {
+        // this.vp.x = 0;
+        // this.vp.y = 0;
+        // this.vp.w = this.framebufferWidth;
+        // this.vp.h = this.framebufferHeight;
+        // this.currentViewport.copyFrom(rc);
+        this.gl.viewport(rc.x | 0, rc.y | 0, rc.width | 0, rc.height | 0);
     }
 
     blendMode(blendMode: BlendMode) {
         this.gl.blendFunc(blendMode.source, blendMode.destination);
     }
 
-    scissors(rc?: Rect) {
+    scissorsEnable(rc: Recta) {
         const GL = this.gl;
-        if (rc) {
-            GL.enable(GL.SCISSOR_TEST);
-            GL.scissor(rc.x, this.currentFramebufferRect.height - rc.y - rc.height, rc.width, rc.height);
-        } else {
-            GL.disable(GL.SCISSOR_TEST);
-        }
+        GL.enable(GL.SCISSOR_TEST);
+        GL.scissor(rc.x, this.framebufferHeight - rc.y - rc.height, rc.width, rc.height);
     }
 
-    getPixels(rc: Rect, pixels: ArrayBufferView | null) {
+    scissorsDisable() {
         const GL = this.gl;
-        const h = this.currentFramebufferRect.height;
+        GL.disable(GL.SCISSOR_TEST);
+    }
+
+    getPixels(rc: Recta, pixels: ArrayBufferView | null) {
+        const GL = this.gl;
         GL.readPixels(
             rc.x,
-            this.currentFramebufferRect.height - rc.y - rc.height,
+            this.framebufferHeight - rc.y - rc.height,
             rc.width,
             rc.height,
             GL.RGBA,

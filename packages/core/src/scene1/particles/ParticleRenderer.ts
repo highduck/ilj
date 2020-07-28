@@ -21,17 +21,22 @@ export class ParticleRendererComponent extends Display2DComponent {
             s_colorOffset.copyFrom(drawer.state.colorOffset);
             drawer.state.saveTransform();
             const arr = layer.particles.primary;
+            const len = layer.particles.length;
             if (layer.cycled) {
-                for (let i = 0, e = arr.length; i < e; ++i) {
+                for (let i = 0; i < len; ++i) {
                     arr[i].drawCycled(s_matrix, s_colorMultiplier, s_colorOffset, drawer);
                 }
             } else {
-                for (let i = 0, e = arr.length; i < e; ++i) {
+                for (let i = 0; i < len; ++i) {
                     arr[i].draw(s_matrix, s_colorMultiplier, s_colorOffset, drawer, 0);
                 }
             }
             drawer.state.restoreTransform();
         }
+    }
+
+    dispose() {
+
     }
 }
 

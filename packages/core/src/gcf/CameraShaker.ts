@@ -3,7 +3,7 @@ import {integrateExp, lerp, reach, Vec2} from "@highduck/math";
 import {Entity, EntityComponentType, getComponents} from "../ecs";
 import {Time} from "../app/Time";
 
-export const CameraShaker = new EntityComponentType(class {
+class CameraShakerData {
     constructor(readonly entity: Entity) {
     }
 
@@ -16,7 +16,11 @@ export const CameraShaker = new EntityComponentType(class {
     start(v: number = 1) {
         this.state = Math.max(v, this.state);
     }
-});
+
+    dispose() {}
+}
+
+export const CameraShaker = new EntityComponentType(CameraShakerData);
 
 const TEMP_VEC2 = new Vec2();
 

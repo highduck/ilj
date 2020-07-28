@@ -21,6 +21,6 @@
   "devDependencies": {
     "howler": "^2.2.0",
     "rimraf": "^3.0.2",
-    "typescript": "^3.9.6"
+    "typescript": "^3.9.7"
   }
 }

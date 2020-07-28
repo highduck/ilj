@@ -1,15 +1,15 @@
 import {Matrix2D} from "./Matrix2D";
 
 export class Matrix4 {
-    static readonly IDENTITY: Readonly<Matrix4> = new Matrix4();
+    static readonly IDENTITY: Readonly<Matrix4> = new Matrix4(1.0);
 
     readonly data = new Float32Array(16);
 
-    constructor(n = 1) {
+    constructor(n = 1.0) {
         this.setIdentity(n);
     }
 
-    setIdentity(n = 1) {
+    setIdentity(n = 1.0) {
         this.data.set([
             n, 0, 0, 0,
             0, n, 0, 0,

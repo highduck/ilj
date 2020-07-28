@@ -13,7 +13,8 @@ export class CameraManager {
     updateCameraStack() {
         const engine = Engine.current;
         const contentScale = engine.view.contentScale;
-        const rc = engine.graphics.currentFramebufferRect;
+        const fbWidth = engine.graphics.framebufferWidth;
+        const fbHeight = engine.graphics.framebufferHeight;
 
         this.activeCameras.length = 0;
         const cameras = Camera2D.map.values;
@@ -30,10 +31,14 @@ export class CameraManager {
             }
 
             camera.screenRect.set(
-                rc.x + rc.width * camera.viewport.x,
-                rc.y + rc.height * camera.viewport.y,
-                rc.width * camera.viewport.width,
-                rc.height * camera.viewport.height,
+                // rc.x + rc.width * camera.viewport.x,
+                // rc.y + rc.height * camera.viewport.y,
+                // rc.width * camera.viewport.width,
+                // rc.height * camera.viewport.height,
+                fbWidth * camera.viewport.x,
+                fbHeight * camera.viewport.y,
+                fbWidth * camera.viewport.width,
+                fbHeight * camera.viewport.height
             );
 
             camera.calcMatrix(entity, 1, camera.matrix);

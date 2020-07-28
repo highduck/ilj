@@ -12,7 +12,7 @@ import {
     TweenType
 } from "@highduck/xfl";
 import {SgDynamicText, SgEasing, SgFile, SgFilterData, SgMovie, SgMovieFrame, SgMovieLayer, SgNode} from "./SgModel";
-import {Matrix2D, Rect} from "@highduck/math";
+import {Matrix2D, Recta} from "@highduck/math";
 import {DomScanner, estimateBounds} from "./render/DomScanner";
 import {EAtlas} from "../spritepack/EAtlas";
 import {renderShapes} from "./rasterizer/RenderToSprite";
@@ -641,12 +641,12 @@ function shouldConvertItemToSprite(item: ExportItem) {
 function setupSpecialLayer(doc: AnimateDoc, layer: Layer, toItem: ExportItem): boolean {
     if (isHitRect(layer.name)) {
         toItem.node.hitRect.copyFrom(
-            estimateBounds(doc, layer.frames[0].elements) as Rect
+            estimateBounds(doc, layer.frames[0].elements) as Recta
         );
         return true;
     } else if (isClipRect(layer.name)) {
         toItem.node.clipRect.copyFrom(
-            estimateBounds(doc, layer.frames[0].elements) as Rect
+            estimateBounds(doc, layer.frames[0].elements) as Recta
         );
         return true;
     }

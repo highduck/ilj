@@ -30,15 +30,15 @@ export function dispatchBroadcast<T>(e: Entity, data: EventData<T>) {
     }
 
     let it = e.childFirst;
-    while (it !== undefined) {
+    while (it !== null) {
         dispatchBroadcast(it, data);
         it = it.siblingNext;
     }
 }
 
 export function dispatchBubbling<T>(e: Entity, data: EventData<T>) {
-    let it: Entity | undefined = e;
-    while (it !== undefined && it.isValid) {
+    let it: Entity | null = e;
+    while (it !== null && it.isValid) {
         const receiver = it.tryGet(EventReceiver);
         if (receiver !== undefined) {
             receiver.emit(data);

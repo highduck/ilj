@@ -1,4 +1,5 @@
 import {Signal} from "../util/Signal";
+import {ObjectQueue} from "../ds/ObjectQueue";
 
 export class AppMouseEvent {
     constructor(public type: string = "",
@@ -25,9 +26,9 @@ export class AppKeyboardEvent {
     }
 }
 
-const TMP_MOUSE_EVENT = new AppMouseEvent();
-const TMP_TOUCH_EVENT = new AppTouchEvent();
-const TMP_KEYBOARD_EVENT = new AppKeyboardEvent();
+// const TMP_MOUSE_EVENT = new AppMouseEvent();
+// const TMP_TOUCH_EVENT = new AppTouchEvent();
+// const TMP_KEYBOARD_EVENT = new AppKeyboardEvent();
 
 type MouseEventKeys = "mousedown" | "mouseup" | "mousemove" | "mouseleave" | "mouseenter" | "mouseover" | "wheel";
 type TouchEventKeys = "touchstart" | "touchmove" | "touchend" | "touchcancel";
@@ -40,6 +41,10 @@ export class InputState {
     readonly onMouse = new Signal<AppMouseEvent>();
     readonly onTouch = new Signal<AppTouchEvent>();
     readonly onKeyboard = new Signal<AppKeyboardEvent>();
+
+    _mouseEvents = new ObjectQueue(AppMouseEvent);
+    _touchEvents = new ObjectQueue(AppTouchEvent);
+    _keyboardEvents = new ObjectQueue(AppKeyboardEvent);
 
     private readonly keyState = new Set<string>();
     private readonly keyDown = new Set<string>();
@@ -75,6 +80,23 @@ export class InputState {
         this.cancelEvent = this.cancelEvent.bind(this);
         window.addEventListener('contextmenu', this.cancelEvent, false);
         canvas.addEventListener('click', this.cancelEvent, false);
+    }
+
+    dispatchInputEvents() {
+        for (let i = 0; i < this._mouseEvents.count; ++i) {
+            this.onMouse.emit(this._mouseEvents.get(i));
+        }
+        this._mouseEvents.reset();
+
+        for (let i = 0; i < this._touchEvents.count; ++i) {
+            this.onTouch.emit(this._touchEvents.get(i));
+        }
+        this._touchEvents.reset();
+
+        for (let i = 0; i < this._keyboardEvents.count; ++i) {
+            this.onKeyboard.emit(this._keyboardEvents.get(i));
+        }
+        this._keyboardEvents.reset();
     }
 
     update(newDpr: number) {
@@ -126,13 +148,14 @@ export class InputState {
         }
 
         const rect = this.canvas.getBoundingClientRect();
-        const event = TMP_MOUSE_EVENT;
+        // const event = TMP_MOUSE_EVENT;
+        const event = this._mouseEvents.next();
         event.type = e.type;
         event.x = this.dpr * (e.clientX - rect.left);
         event.y = this.dpr * (e.clientY - rect.top);
         event.button = e.button;
         event.wheel = e instanceof WheelEvent ? (e as WheelEvent).deltaY : 0;
-        this.onMouse.emit(event);
+        // this.onMouse.emit(event);
 
         return true;
     }
@@ -151,15 +174,17 @@ export class InputState {
             this.touchUp = true;
         }
 
-        const event = TMP_TOUCH_EVENT;
-        event.type = e.type;
+        // const event = TMP_TOUCH_EVENT;
+        // event.type = e.type;
         const rect = this.canvas.getBoundingClientRect();
         for (let i = 0; i < e.changedTouches.length; ++i) {
             const touch = e.changedTouches[i];
+            const event = this._touchEvents.next();
+            event.type = e.type;
             event.id = touch.identifier;
             event.x = this.dpr * (touch.clientX - rect.left);
             event.y = this.dpr * (touch.clientY - rect.top);
-            this.onTouch.emit(event);
+            // this.onTouch.emit(event);
         }
 
         return true;
@@ -179,7 +204,8 @@ export class InputState {
                 break;
         }
 
-        const event = TMP_KEYBOARD_EVENT;
+        // const event = TMP_KEYBOARD_EVENT;
+        const event = this._keyboardEvents.next();
         event.type = e.type;
         event.code = e.code;
         event.key = e.key;
@@ -188,7 +214,7 @@ export class InputState {
             e.stopImmediatePropagation();
             e.preventDefault();
         }
-        this.onKeyboard.emit(event);
+        // this.onKeyboard.emit(event);
     }
 
     private cancelEvent(e: Event) {

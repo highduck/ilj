@@ -2,17 +2,28 @@ import {Matrix2D} from "./Matrix2D";
 import {Vec2} from "./Vec2";
 
 const TEMP_VEC2 = new Vec2();
-const TEMP_VEC2_1 = new Vec2();
 
-export class Rect {
-    constructor(public x: number = 0,
-                public y: number = 0,
-                public width: number = 0,
-                public height: number = 0) {
+export class Recta {
+    static readonly EMPTY: Readonly<Recta> = new Recta(0.0, 0.0, 0.0, 0.0);
+    static readonly UNIT: Readonly<Recta> = new Recta(0.0, 0.0, 1.0, 1.0);
 
+    x = Number.NaN;
+    y = Number.NaN;
+    width = Number.NaN;
+    height = Number.NaN;
+
+    constructor(x = 0, y = 0, width = 0, height = 0) {
+        this.x = x;
+        this.y = y;
+        this.width = width;
+        this.height = height;
     }
 
-    copyFrom(rc: Rect): this {
+    clone(): Recta {
+        return new Recta(this.x, this.y, this.width, this.height);
+    }
+
+    copyFrom(rc: Recta): this {
         this.x = rc.x;
         this.y = rc.y;
         this.width = rc.width;
@@ -37,13 +48,13 @@ export class Rect {
     }
 
     setTuple(values: [number, number, number, number]) {
-        this.x = values[0];
-        this.y = values[1];
-        this.width = values[2];
-        this.height = values[3];
+        this.x = +values[0];
+        this.y = +values[1];
+        this.width = +values[2];
+        this.height = +values[3];
     }
 
-    intersect(rc: Rect) {
+    intersect(rc: Recta) {
         const l = Math.max(this.x, rc.x);
         const t = Math.max(this.y, rc.y);
         const r = Math.min(this.right, rc.right);
@@ -51,7 +62,7 @@ export class Rect {
         this.set(l, t, r - l, b - t);
     }
 
-    combine(rc: Rect) {
+    combine(rc: Recta) {
         const l = Math.min(this.x, rc.x);
         const t = Math.min(this.y, rc.y);
         const r = Math.max(this.right, rc.right);
@@ -92,26 +103,27 @@ export class Rect {
     }
 
     contains(x: number, y: number): boolean {
+        return this.x <= x && x <= (this.x + this.width) && this.y <= y && y <= (this.y + this.height);
         // A little more complicated than usual due to proper handling of negative widths/heights
-        x -= this.x;
-        if (this.width >= 0) {
-            if (x < 0 || x > this.width) {
-                return false;
-            }
-        } else if (x > 0 || x < this.width) {
-            return false;
-        }
-
-        y -= this.y;
-        if (this.height >= 0) {
-            if (y < 0 || y > this.height) {
-                return false;
-            }
-        } else if (y > 0 || y < this.height) {
-            return false;
-        }
-
-        return true;
+        // x -= this.x;
+        // if (this.width >= 0) {
+        //     if (x < 0 || x > this.width) {
+        //         return false;
+        //     }
+        // } else if (x > 0 || x < this.width) {
+        //     return false;
+        // }
+        //
+        // y -= this.y;
+        // if (this.height >= 0) {
+        //     if (y < 0 || y > this.height) {
+        //         return false;
+        //     }
+        // } else if (y > 0 || y < this.height) {
+        //     return false;
+        // }
+        //
+        // return true;
     }
 
     relative(rx: number, ry: number): [number, number] {
@@ -122,7 +134,7 @@ export class Rect {
         return this.width <= 0 || this.height <= 0;
     }
 
-    overlaps(rc: Rect): boolean {
+    overlaps(rc: Recta): boolean {
         return this.x <= rc.right && rc.x <= this.right && this.y <= rc.bottom && rc.y <= this.bottom;
     }
 
@@ -152,11 +164,9 @@ export class Rect {
         return `Rect(${this.x}, ${this.y}, w: ${this.width}, h: ${this.height})`;
     }
 
-    equals(other: Rect) {
-        return this.x === other.x &&
-            this.y === other.y &&
-            this.width === other.width &&
-            this.height === other.height;
+    equals(other: Recta) {
+        return this.x === other.x && this.y === other.y &&
+            this.width === other.width && this.height === other.height;
     }
 
     transform(matrix: Matrix2D): this {

@@ -10,12 +10,11 @@ export class ComponentTypeA<T> implements Component<T> {
                 base?: Component<any>) {
 
         this.iid = NextComponentID();
+        this.id = this.iid;
+        this.map = new IntMap<T>();
         if (base !== undefined) {
             this.id = base.id;
             this.map = base.map;
-        } else {
-            this.id = this.iid;
-            this.map = new IntMap<T>();
         }
 
         _registerComponentType(this);
@@ -30,13 +29,5 @@ export class ComponentTypeA<T> implements Component<T> {
 
     unbind(entityIndex: number): void {
         this.map.delete(entityIndex);
-    }
-
-    components(): T[] {
-        return this.map.values;
-    }
-
-    entities(): number[] {
-        return this.map.keys;
     }
 }

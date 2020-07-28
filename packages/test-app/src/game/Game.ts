@@ -2,7 +2,7 @@ import {Camera2D, Engine, Entity, Transform2D} from "@highduck/core";
 import {TestAni} from "./scene/TestAni";
 import {Entities} from "./scene/Entities";
 import {TrailDemo} from "./scene/TrailTest";
-import {Rect} from "@highduck/math";
+import {Recta} from "@highduck/math";
 import {SweepDemo} from "./drawer/SweepDemo";
 import {Asteroids} from "./asteroids/Asteroids";
 import {DrawerDemo} from "./drawer/DrawerDemo";
@@ -25,7 +25,7 @@ export function startMain() {
 
     const sweepDemo = new SweepDemo();
     const trailTest = new TrailDemo();
-    const mousePosition = new Rect();
+    const mousePosition = new Recta();
     let mouse_push = false;
     engine.input.onMouse.on((e) => {
         mousePosition.x = e.x;

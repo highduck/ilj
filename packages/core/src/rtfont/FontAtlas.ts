@@ -27,7 +27,7 @@ export function updateFonts() {
     const objects = FontResource.map.values;
     for (let i = 0; i < objects.length; ++i) {
         const font = objects[i].data;
-        font !== undefined && font.atlas.dirty && font.atlas.updateTexture();
+        font !== null && font.atlas.dirty && font.atlas.updateTexture();
     }
 }
 
@@ -35,7 +35,7 @@ export function resetFonts() {
     const objects = FontResource.map.values;
     for (let i = 0; i < objects.length; ++i) {
         const font = objects[i].data;
-        font !== undefined && font.atlas.dirty && font.atlas.resetSheet('');
+        font !== null && font.atlas.dirty && font.atlas.resetSheet('');
     }
 }
 
@@ -53,7 +53,7 @@ export class FontAtlas {
 
     canvas!: HTMLCanvasElement;
     ctx!: CanvasRenderingContext2D;
-    texture: Texture | undefined = undefined;
+    texture: Texture | null = null;
 
     sheetWidth: number = 256;
     sheetHeight: number = 256;
@@ -189,9 +189,9 @@ export class FontAtlas {
         );
     }
 
-    addCharacter(code: number) {
+    getCharacter(code: number): CharacterData {
         if (this.characterMap.has(code)) {
-            return;
+            return this.characterMap.get(code)!;
         }
 
         const character = String.fromCharCode(code);
@@ -210,8 +210,7 @@ export class FontAtlas {
             this.sheetLineHeight = 0;
             if (y + h > this.canvas.height) {
                 this.biggerSheet();
-                this.addCharacter(code);
-                return;
+                return this.getCharacter(code);
             }
         }
 
@@ -251,12 +250,14 @@ export class FontAtlas {
         this.nextSheetX = x;
         this.nextSheetY = y;
         this.dirty = true;
+
+        return data;
     }
 
     addChars(characters: string) {
         const chars = characters.replace(SPACE_REGEX, '');
-        for (let i = 0, l = chars.length; i < l; i += 1) {
-            this.addCharacter(chars.charCodeAt(i));
+        for (let i = 0; i < chars.length; i++) {
+            this.getCharacter(chars.charCodeAt(i) | 0);
         }
     }
 
@@ -273,7 +274,7 @@ export class FontAtlas {
     }
 
     updateTexture() {
-        if (this.texture === undefined) {
+        if (this.texture === null) {
             this.texture = new Texture(this.engine.graphics, false);
         }
         const GL = this.texture.graphics.gl;
@@ -281,15 +282,6 @@ export class FontAtlas {
         this.texture.upload(this.canvas);
         GL.pixelStorei(GL.UNPACK_PREMULTIPLY_ALPHA_WEBGL, 0);
         this.dirty = false;
-    }
-
-    getCharacter(code: number) {
-        const c = this.characterMap.get(code);
-        if (c !== undefined) {
-            return c;
-        }
-        this.addCharacter(code);
-        return this.characterMap.get(code)!;
     }
 
     private setupContext() {

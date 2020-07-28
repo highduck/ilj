@@ -1,31 +1,36 @@
 import {Display2D, Display2DComponent} from "./Display2D";
-import {Color32_ARGB, Rect} from "@highduck/math";
+import {Color32_ARGB, Recta} from "@highduck/math";
 import {Drawer} from "../../drawer/Drawer";
-import {SpriteResource} from "../Sprite";
+import {Sprite} from "../Sprite";
 import {ComponentTypeA} from "../../ecs";
-
-const TEMP_RECT = new Rect();
+import {AssetRef} from "../../util/Resources";
 
 export class DisplayArcComponent extends Display2DComponent {
-    angle0 = 0;
-    angle1 = 2 * Math.PI;
-    radius = 10;
-    lineWidth = 10;
-    segments = 50;
+    angle0 = NaN;
+    angle1 = NaN;
+    radius = NaN;
+    lineWidth = NaN;
+    segments = NaN;
     colorInner: Color32_ARGB = 0xFFFFFFFF;
     colorOuter: Color32_ARGB = 0xFFFFFFFF;
-    sprite?: string = undefined;
+    sprite: AssetRef<Sprite> = AssetRef.NONE;
 
     constructor() {
         super();
+
+        this.angle0 = 0.0;
+        this.angle1 = 2.0 * Math.PI;
+        this.radius = 10.0;
+        this.lineWidth = 10.0;
+        this.segments = 50.0;
     }
 
     draw(drawer: Drawer) {
-        if (this.sprite) {
-            const spr = SpriteResource.get(this.sprite).data;
-            if (spr && spr.texture.data) {
-                TEMP_RECT.set(spr.tex.centerX, spr.tex.y, 0, spr.tex.height);
-                drawer.state.setTextureRegion(spr.texture.data, TEMP_RECT);
+        const spr = this.sprite.data;
+        if (spr) {
+            if (spr.texture.data) {
+                drawer.state.setTexture(spr.texture.data)
+                    .setTextureCoords(spr.tex.centerX, spr.tex.y, 0.0, spr.tex.height)
             }
         } else {
             drawer.state.setEmptyTexture();
@@ -44,10 +49,9 @@ export class DisplayArcComponent extends Display2DComponent {
         );
     }
 
-    getBounds(out: Rect): Rect {
+    getBounds(out: Recta): void {
         const s = this.radius + this.lineWidth;
         out.set(-s, -s, 2 * s, 2 * s);
-        return out;
     }
 }
 

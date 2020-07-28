@@ -6,15 +6,17 @@ export class ParticleEmitter_Data {
     constructor(readonly entity: Entity) {
     }
 
-    data?: undefined | EmitterData = new EmitterData();
-    layer?: Entity;
+    data = new EmitterData();
+    layer: Entity | null = null;
     time = 0;
     enabled = true;
     timer = Time.ROOT;
 
-    get particleData(): ParticleDecl | undefined {
-        return this.data?.particle?.data;
+    get particleData(): ParticleDecl | null {
+        return this.data.particle.data;
     }
+
+    dispose() {}
 }
 
 export const ParticleEmitter = new EntityComponentType(ParticleEmitter_Data);

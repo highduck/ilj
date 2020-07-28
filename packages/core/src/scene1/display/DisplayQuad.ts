@@ -1,10 +1,10 @@
-import {Color32_ARGB, Rect} from "@highduck/math";
+import {Color32_ARGB, Recta} from "@highduck/math";
 import {Drawer} from "../../drawer/Drawer";
 import {Display2D, Display2DComponent} from "./Display2D";
 import {ComponentTypeA} from "../../ecs";
 
 export class DisplayQuadComponent extends Display2DComponent {
-    readonly rect: Rect = new Rect(0, 0, 1, 1);
+    readonly rect: Recta = new Recta(0, 0, 1, 1);
     readonly colors: [Color32_ARGB, Color32_ARGB, Color32_ARGB, Color32_ARGB] = [0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF];
 
     constructor() {
@@ -35,12 +35,8 @@ export class DisplayQuadComponent extends Display2DComponent {
             this.colors[0], this.colors[1], this.colors[2], this.colors[3]);
     }
 
-    getBounds(out: Rect): Rect {
-        return out.copyFrom(this.rect);
-    }
-
-    hitTest(x: number, y: number): boolean {
-        return this.rect.contains(x, y);
+    getBounds(out: Recta): void {
+        out.copyFrom(this.rect);
     }
 
     setGradientVertical(top: Color32_ARGB, bottom: Color32_ARGB) {
