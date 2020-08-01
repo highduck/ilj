@@ -11,7 +11,7 @@ import android.widget.RelativeLayout;
 
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
 
-import com.getcapacitor.Config;
+import com.getcapacitor.CapConfig;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.NativePlugin;
 import com.getcapacitor.Plugin;
@@ -45,7 +45,7 @@ public class AdMob extends Plugin {
 
     @Override
     public void load() {
-        final Config config = bridge.getConfig();
+        final CapConfig config = getBridge().getConfig();
         final String[] testDevices = config.getArray("plugins.AdMob.testDevices", new String[0]);
         final Context context = this.getContext();
         final RequestConfiguration requestConfig = new RequestConfiguration.Builder()

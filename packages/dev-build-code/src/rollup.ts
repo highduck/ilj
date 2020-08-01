@@ -16,6 +16,8 @@ import sourcemaps from 'rollup-plugin-sourcemaps';
 
 const {babel} = Babel;
 
+const release_profile = false;
+
 export async function compileBundle(options?: Partial<CompileBundleOptions>) {
     return rollupBuild(fillDefaults(options));
 }
@@ -87,21 +89,23 @@ function getTerserOptions(options: CompileBundleOptions): undefined | TerserOpti
     }
 
     const opts: MinifyOptions = {
-        ecma: 2020,
+        ecma: options.compat ? 5 : 2015,
         compress: {
             passes: 2,
             hoist_funs: true,
-            // sequences: false,
             reduce_funcs: false,
-            // reduce_vars: false,
+            reduce_vars: false,
             keep_infinity: true,
             negate_iife: false,
             toplevel: true
         },
-        mangle: {
+        mangle: release_profile ? false : {
             toplevel: true,
-            module: !options.compat,
-            // properties: {
+            // module: !options.compat,
+            module: true,
+            eval: true,
+
+            // properties: true
             //     keep_quoted: true,
             //     reserved:[
             //         "HowlerGlobal", "Howl", "Sound",
@@ -115,9 +119,8 @@ function getTerserOptions(options: CompileBundleOptions): undefined | TerserOpti
         },
         toplevel: true,
         safari10: true,
-        output: { // format in terser 5
-            beautify: options.debug
-            // beautify: true
+        format: {
+            beautify: options.debug || release_profile
         }
     };
 
@@ -144,6 +147,8 @@ function getBabelConfig(options: CompileBundleOptions): RollupBabelInputPluginOp
         plugins: []
     };
 
+    // (modules: false) - do not touch imports exports to allow more effective tree-shaking
+
     if (platform === 'android') {
         // 5.0 (api level 21)
         const androidCompat = 37;
@@ -165,10 +170,10 @@ function getBabelConfig(options: CompileBundleOptions): RollupBabelInputPluginOp
                     targets: "> 0.25%, not dead",
                     useBuiltIns: "usage",
                     corejs: 3,
-                    modules: false,
                     spec: true,
                     forceAllTransforms: true,
                     debug: verbose,
+                    modules: false,
                 }
             ]);
         } else {
@@ -177,6 +182,7 @@ function getBabelConfig(options: CompileBundleOptions): RollupBabelInputPluginOp
                     bugfixes: true,
                     targets: {esmodules: true},
                     debug: verbose,
+                    modules: false,
                 }
             ]);
         }
@@ -195,9 +201,13 @@ function getRollupInput(options: CompileBundleOptions): InputOptions {
     }
     plugins.push(
         nodeResolve({
-            preferBuiltins: true
+            preferBuiltins: true,
+            // browser: true,
         }),
-        commonjs(),
+        commonjs({
+            // transformMixedEsModules: true,
+            // ignoreGlobal: true
+        }),
         alias({
             entries: [
                 {find: '@AppConfig', replacement: 'dist/esm/AppConfig.js'}
@@ -222,8 +232,13 @@ function getRollupInput(options: CompileBundleOptions): InputOptions {
                 'process.env.TARGET': JSON.stringify(options.target),
                 'process.env.APP_VERSION': JSON.stringify(options.version),
                 'process.env.APP_VERSION_CODE': JSON.stringify(options.versionCode),
-                'DEBUG': JSON.stringify(options.debug),
-                'ASSERT': JSON.stringify(options.debug)
+                DEBUG: JSON.stringify(options.debug),
+                ASSERT: JSON.stringify(options.debug),
+                B2_DEBUG: JSON.stringify(options.debug),
+                B2_ASSERT: JSON.stringify(options.debug),
+                B2_ENABLE_CONTROLLER: JSON.stringify(false),
+                B2_ENABLE_PARTICLE: JSON.stringify(false),
+                B2_ENABLE_PROFILER: JSON.stringify(false)
             }
         }),
         babel(getBabelConfig(options)),
@@ -265,7 +280,7 @@ function getRollupInput(options: CompileBundleOptions): InputOptions {
     };
 
     if (!options.compat && !options.modules) {
-        input.preserveEntrySignatures = 'strict';
+        // input.preserveEntrySignatures = 'strict';
         // input.manualChunks = (id) => {
         //     if (id.includes('node_modules')) {
         //         // vendor
@@ -321,9 +336,10 @@ async function rollupBuild(opts: CompileBundleOptions) {
             if (id.includes('node_modules')) {
                 // vendor
                 return 'support';
-            } else if (id.includes('box2d.ts')) {
+            }
+            else if (id.includes('box2d.ts')) {
                 return 'box2d';
-            }else if (id.includes('packages/core')||id.includes('packages/math')||id.includes('packages/anijson')) {
+            } else if (id.includes('packages/core') || id.includes('packages/math') || id.includes('packages/anijson')) {
                 return 'engine';
             }
             return undefined;

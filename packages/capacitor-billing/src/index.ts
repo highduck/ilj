@@ -1,4 +1,5 @@
 import {BillingProtocol} from "./definition";
+import {Plugins} from '@capacitor/core';
 
 export * from './definition';
 
@@ -9,7 +10,7 @@ export async function getBilling(): Promise<BillingProtocol> {
         return instance;
     }
     try {
-        const billing = require('@capacitor/core').Plugins.Billing as BillingProtocol;
+        const billing = Plugins.Billing as BillingProtocol;
         if (billing) {
             await billing.initialize();
             console.log("Billing init OK");

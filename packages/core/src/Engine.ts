@@ -30,7 +30,7 @@ import {updateSlowMotion} from "./gcf/SlowMotion";
 import {updateCameraShakers} from "./gcf/CameraShaker";
 import {updateTweens} from "./gcf/Tween";
 import {updateScrollArea} from "./gcf/ScrollArea";
-import {updatePopupManagers} from "./gcf/PopupManager";
+import {updatePopupManagers} from "./gcf/popups/PopupManager";
 import {updateMovieClips} from "./scene1/display/MovieClipSystem";
 import {processEntityAge} from "./scene1/extra/EntityAge";
 import {invalidateTransform} from "./scene1/systems/invalidateTransform";

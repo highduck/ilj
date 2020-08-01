@@ -26,7 +26,9 @@ export class Profiler {
     }
 
     updateProfiler(elapsedTime: number) {
-        // this.fps.calcFPS(elapsedTime);
+        if (process.env.NODE_ENV === 'development') {
+            this.fps.calcFPS(elapsedTime);
+        }
         if (elapsedTime > 0.0) {
             this.FPS.add(Math.round(1.0 / elapsedTime) | 0);
         }
@@ -64,7 +66,7 @@ export class Profiler {
             m.y = y;
             const graph = graphs[i];
             graph.drawBackground(drawer);
-            if(graph.delta > 0) {
+            if (graph.delta > 0) {
                 graph.drawGraph(drawer);
             }
             y += graph.height + 10;

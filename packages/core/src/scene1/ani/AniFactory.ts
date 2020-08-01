@@ -1,7 +1,7 @@
 import {Entity} from "../../ecs/Entity";
 import {Ani, AniResource, findLinkageRef} from "./Ani";
 import {Transform2D} from "../display/Transform2D";
-import {DisplaySprite, DisplaySpriteComponent} from "../display/DisplaySprite";
+import {DisplaySprite} from "../display/DisplaySprite";
 import {Display2D} from "../display/Display2D";
 import {SpriteResource} from "../Sprite";
 import {Matrix2D, Recta} from "@highduck/math";
@@ -11,6 +11,7 @@ import {Interactive} from "./Interactive";
 import {Button} from "./Button";
 import {NodeJson} from "@highduck/anijson";
 import {FontResource} from "../..";
+import {DisplayNinePatch, DisplayNinePatchComponent} from "../display/DisplayNinePatch";
 
 export class AniFactory {
 
@@ -18,7 +19,7 @@ export class AniFactory {
     }
 
     applyData(entity: Entity, data: NodeJson) {
-        if(data.id !== undefined) {
+        if (data.id !== undefined) {
             entity.name = data.id;
         }
 
@@ -81,25 +82,21 @@ export class AniFactory {
             mov.fps = data.mc.f ?? 24;
         }
 
-        let sprite: DisplaySpriteComponent | undefined;
-        const display = entity.tryGet(Display2D);
-
-        if (display !== undefined && display instanceof DisplaySpriteComponent) {
-            sprite = display;
-        }
-
-        if (data.spr && !sprite) {
-            sprite = entity.set(DisplaySprite);
-            sprite.sprite = SpriteResource.get(data.spr);
+        if (data.spr) {
             if (data.scaleGrid) {
-                sprite.scaleGrid = new Recta();
-                sprite.scaleGrid.setTuple(data.scaleGrid);
+                const np = entity.set(DisplayNinePatch);
+                np.sprite = SpriteResource.get(data.spr);
+                np.scaleGrid.setTuple(data.scaleGrid);
+            } else {
+                const sprite = entity.set(DisplaySprite);
+                sprite.sprite = SpriteResource.get(data.spr);
             }
         }
+        const display = entity.tryGet(Display2D);
 
-        if (sprite && sprite.scaleGrid && data.s) {
-            sprite.scale.x = data.s[0];
-            sprite.scale.y = data.s[1];
+        if (data.s && display instanceof DisplayNinePatchComponent) {
+            display.scale.x = data.s[0];
+            display.scale.y = data.s[1];
         }
 
         if (data.button !== undefined) {

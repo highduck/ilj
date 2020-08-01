@@ -39,6 +39,14 @@ export class Recta {
         return this;
     }
 
+    setZero(): this {
+        this.x = 0.0;
+        this.y = 0.0;
+        this.width = 0.0;
+        this.height = 0.0;
+        return this;
+    }
+
     setBounds(l: number, t: number, r: number, b: number): this {
         this.x = Math.min(l, r);
         this.y = Math.min(t, b);

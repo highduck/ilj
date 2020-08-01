@@ -32,7 +32,7 @@ export class Batcher {
     uploadAsWebGL2: boolean;
 
     constructor(readonly graphics: Graphics) {
-        this.uploadAsWebGL2 = graphics.gl instanceof WebGL2RenderingContext;
+        this.uploadAsWebGL2 = !!window["WebGL2RenderingContext"] && graphics.gl instanceof WebGL2RenderingContext;
 
         const vertexMaxSize = VERTEX_2D.size;
         const verticesLimit = MAX_VERTICES_LIMIT;

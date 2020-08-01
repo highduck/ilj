@@ -69,7 +69,9 @@ export * from './ds/CoolArrays';
 /// GCF
 export * from './gcf/Tween';
 export * from './gcf/ScreenManager';
-export * from './gcf/PopupManager';
 export * from './gcf/CameraShaker';
 export * from './gcf/SlowMotion';
 export * from './gcf/ScrollArea';
+
+export * from './gcf/popups/PopupManager';
+export * from './gcf/popups/Popup';
