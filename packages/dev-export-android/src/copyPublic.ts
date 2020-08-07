@@ -18,6 +18,7 @@ export function copyPublic(options: CopyPublicOptions) {
     try {
         const pkg = readPkg(process.cwd());
         const view:any = {
+            NAME: pkg.name,
             VERSION_NAME: pkg.version,
             APP_NAME: pkg.appName,
             BUILD_MODE: pkg.appName,

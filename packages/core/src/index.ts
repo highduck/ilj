@@ -9,7 +9,6 @@ export * from './util/awaitDocument';
 export * from './util/delay';
 export * from './util/Disposable';
 export * from './util/initCanvas';
-export * from './util/load';
 export * from './util/ObservableValue';
 export * from './util/Signal';
 export * from './util/SignalMap';
@@ -60,6 +59,7 @@ export * from './scene1/TextFormat';
 export * from './graphics/Texture';
 
 export * from './loaders/loadBundle';
+export * from './loaders/loadURL';
 
 export * from './ds/ArrayRun';
 export * from './ds/ArraySwap';

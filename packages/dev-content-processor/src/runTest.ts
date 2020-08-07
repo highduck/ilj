@@ -8,7 +8,7 @@ async function runTest() {
     atlas.trimSprites();
     atlas.addSpot();
     atlas.pack();
-    atlas.save(destDir, 'png');
+    atlas.save(destDir, 'png', true);
     atlas.dispose();
 }
 

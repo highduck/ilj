@@ -1,0 +1,28 @@
+{
+  "name": "@highduck/starter",
+  "version": "0.0.1",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "type": "module",
+  "sideEffects": false,
+  "scripts": {
+    "ci": "run build",
+    "build": "tsc -b tsconfig.esm.json",
+    "build-ts": "tsc -b -v tsconfig.esm.json",
+    "watch": "tsc -b -w tsconfig.esm.json",
+    "clean": "rimraf dist *.tsbuildinfo"
+  },
+  "dependencies": {
+    "@capacitor/core": "^2.4.0",
+    "@highduck/capacitor-admob": "0.0.1",
+    "@highduck/capacitor-billing": "0.0.1",
+    "@highduck/capacitor-firebase": "0.0.1",
+    "@highduck/capacitor-play-games": "0.0.1",
+    "@highduck/core": "0.0.1",
+    "@highduck/live-inspector": "0.0.1"
+  },
+  "devDependencies": {
+    "rimraf": "^3.0.2",
+    "typescript": "^3.9.7"
+  }
+}

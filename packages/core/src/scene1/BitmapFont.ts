@@ -1,7 +1,7 @@
 import {Engine} from "../Engine";
 import {BoundsBuilder, Recta} from "@highduck/math";
 import {Sprite, SpriteResource} from "./Sprite";
-import {loadJSON} from "../util/load";
+import {loadJSON} from "../loaders/loadURL";
 import {TextFormat} from "./TextFormat";
 import {AssetRef, ResourceType} from "../util/Resources";
 import {FontJson, GlyphJson, SpriteFlag} from "@highduck/anijson";

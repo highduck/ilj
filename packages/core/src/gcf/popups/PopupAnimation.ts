@@ -30,7 +30,6 @@ export const PopupAnimation_Background_Close = (entity: Entity, progress: number
 };
 
 export class PopupAnimation {
-    static defaultAnimation = new PopupAnimation();
     openDelay = 0.1;
     openDuration = 0.4;
     closeDelay = 0.1;

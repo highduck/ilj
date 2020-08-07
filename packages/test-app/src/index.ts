@@ -5,7 +5,8 @@ import {Plugins} from '@capacitor/core';
 async function main() {
     Plugins.SplashScreen.hide().then();
 
-    await Engine.init({
+    await awaitDocument();
+    new Engine({
         width: 768,
         height: 1024
     });

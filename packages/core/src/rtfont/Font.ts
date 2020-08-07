@@ -2,7 +2,7 @@ import {Engine} from "../Engine";
 import {BoundsBuilder, Recta} from "@highduck/math";
 import {TextFormat} from "../scene1/TextFormat";
 import {loadFontFace} from "./loadFontFace";
-import {FontAtlas} from "./FontAtlas";
+import {FontAtlas, FontStyleDef} from "./FontAtlas";
 import {ResourceType} from "../util/Resources";
 
 const LF = '\n'.charCodeAt(0) | 0;
@@ -13,13 +13,13 @@ const PT_2_PX = 1.0;
 
 export class Font {
 
-    static async load(engine: Engine, family: string, url: string, size: number, scale: number): Promise<Font> {
+    static async load(engine: Engine, family: string, url: string, size: number, scale: number, style?: FontStyleDef): Promise<Font> {
         try {
             await loadFontFace(family, engine.assetsPath + "/" + url, {});
         } catch {
             console.warn(`Font ${family} load error`);
         }
-        const atlas = new FontAtlas(engine, family, size, scale);
+        const atlas = new FontAtlas(engine, family, size, scale, style ?? {});
         return new Font(engine, atlas);
     }
 

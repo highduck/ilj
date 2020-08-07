@@ -1,5 +1,5 @@
 import {Engine} from "../../Engine";
-import {loadJSON} from "../../util/load";
+import {loadJSON} from "../../loaders/loadURL";
 import {AssetRef, ResourceType} from "../../util/Resources";
 import {AniJson, NodeJson} from "@highduck/anijson";
 

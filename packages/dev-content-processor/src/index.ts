@@ -1,5 +1,5 @@
 import {makeDirs} from "./nodejs/utils";
-import fs from "fs";
+import fs, {mkdirSync} from "fs";
 import path from "path";
 import {BundleDef} from "./export/BundleDef";
 import {BundleItem, BundleItemType} from "@highduck/anijson";
@@ -56,16 +56,50 @@ export async function exportAssets(input: string, output: string, production = f
     for (const item of bundle.items) {
         if (item.type === 'font') {
             const filepath = item.path ?? (item.id + '.ttf');
+            const destPath = path.join(output, filepath);
+            mkdirSync(path.dirname(destPath), {recursive: true});
             fs.copyFileSync(
                 path.join(input, filepath),
-                path.join(output, filepath)
+                destPath
             );
             list.push({
                 type: BundleItemType.Font,
                 id: item.id,
                 size: item.size ?? 30,
-                path: filepath
+                path: filepath,
+                style: {
+                    strokeWidth: item.style?.strokeWidth ?? 0,
+                    strokeColor: item.style?.strokeColor
+                }
             });
+        } else if (item.type === 'texture') {
+            const filepath = item.path;
+            const destPath = path.join(output, filepath);
+            mkdirSync(path.dirname(destPath), {recursive: true});
+            fs.copyFileSync(
+                path.join(input, filepath),
+                destPath
+            );
+            list.push({
+                type: BundleItemType.Texture,
+                id: item.id,
+                path: filepath,
+            });
+        } else if (item.type === 'json') {
+            const filepath = item.path ?? (item.id + '.json');
+            const destPath = path.join(output, filepath);
+            mkdirSync(path.dirname(destPath), {recursive: true});
+            fs.copyFileSync(
+                path.join(input, filepath),
+                destPath
+            );
+            if (!item.excludeFromBundle) {
+                list.push({
+                    type: BundleItemType.Json,
+                    id: item.id,
+                    path: filepath,
+                });
+            }
         }
     }
 
@@ -95,7 +129,7 @@ export async function exportAssets(input: string, output: string, production = f
         atlas.trimSprites();
         atlas.addSpot();
         atlas.pack();
-        atlas.save(output, meta.format ?? 'png', meta.jpeg?.quality ?? 80, quant);
+        atlas.save(output, meta.format ?? 'png', meta.alpha ?? true, meta.jpeg?.quality ?? 80, quant);
         atlas.dispose();
         list.push({
             type: BundleItemType.Atlas,

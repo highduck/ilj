@@ -148,25 +148,33 @@ export class InteractiveManager {
         return cursor;
     }
 
+    private firePointerDown() {
+        for (let i = 0; i < this.targetsPrev.length; ++i) {
+            const target = this.targetsPrev[i];
+            if (target.isValid) {
+                target.tryGet(Interactive)?.firePointerDown(target);
+            }
+        }
+    }
+
+    private firePointerUp() {
+        for (let i = 0; i < this.targetsPrev.length; ++i) {
+            const target = this.targetsPrev[i];
+            if (target.isValid) {
+                target.tryGet(Interactive)?.firePointerUp(target);
+            }
+        }
+    }
+
     handleMouseEvent(ev: AppMouseEvent) {
         if (ev.type === "mousedown") {
             this.primaryMouse.set(ev.x, ev.y);
             this.pointerDown = true;
-            for (let i = 0; i < this.targetsPrev.length; ++i) {
-                const target = this.targetsPrev[i];
-                if (target.isValid) {
-                    target.tryGet(Interactive)?.firePointerDown(target);
-                }
-            }
+            this.firePointerDown();
         } else if (ev.type === "mouseup") {
             this.primaryMouse.set(ev.x, ev.y);
             this.pointerDown = false;
-            for (let i = 0; i < this.targetsPrev.length; ++i) {
-                const target = this.targetsPrev[i];
-                if (target.isValid) {
-                    target.tryGet(Interactive)?.firePointerUp(target);
-                }
-            }
+            this.firePointerUp();
         } else if (ev.type === "mousemove") {
             this.primaryMouse.set(ev.x, ev.y);
             this.mouseActive = true;
@@ -174,7 +182,8 @@ export class InteractiveManager {
         } else if (ev.type === "mouseout" || ev.type === "mouseleave") {
             this.pointerDown = false;
             this.mouseActive = false;
-            this.process();
+            this.firePointerUp();
+            // this.process();
         }
     }
 
@@ -186,12 +195,7 @@ export class InteractiveManager {
                 this.mouseActive = false;
                 this.pointerDown = true;
                 this.process();
-                for (let i = 0; i < this.targetsPrev.length; ++i) {
-                    const target = this.targetsPrev[i];
-                    if (target.isValid) {
-                        target.tryGet(Interactive)?.firePointerDown(target);
-                    }
-                }
+                this.firePointerDown();
             }
         }
 
@@ -200,12 +204,7 @@ export class InteractiveManager {
                 this.primaryTouchID = -1;
                 this.primaryTouch.set(0, 0);
                 this.pointerDown = false;
-                for (let i = 0; i < this.targetsPrev.length; ++i) {
-                    const target = this.targetsPrev[i];
-                    if (target.isValid) {
-                        target.tryGet(Interactive)?.firePointerUp(target);
-                    }
-                }
+                this.firePointerUp();
             } else {
                 this.primaryTouch.set(ev.x, ev.y);
             }

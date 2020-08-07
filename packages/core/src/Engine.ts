@@ -4,11 +4,11 @@ import {Drawer} from "./drawer/Drawer";
 import {Batcher} from "./drawer/Batcher";
 import {Signal} from "./util/Signal";
 import {InputState} from "./app/InputState";
-import {Recta, Vec2} from "@highduck/math";
+import {Vec2} from "@highduck/math";
 import {InteractiveManager} from "./scene1/ani/InteractiveManager";
 import {DisplaySystem} from "./scene1/display/DisplaySystem";
 import {Transform2D} from "./scene1/display/Transform2D";
-import {Entity} from "./ecs/Entity";
+import {Entity} from "./ecs";
 import {AniFactory} from "./scene1/ani/AniFactory";
 import {initCanvas} from "./util/initCanvas";
 import {TextureResource} from "./graphics/Texture";
@@ -18,7 +18,6 @@ import {createProgram2D} from "./graphics/util/createProgram2D";
 import {AudioMan} from "./scene1/AudioMan";
 import {updateFonts} from "./rtfont/FontAtlas";
 import {LayoutData} from "./scene1/extra/Layout";
-import {awaitDocument} from "./util/awaitDocument";
 import {CameraManager} from "./scene1/display/CameraManager";
 import {Time, updateTimers} from "./app/Time";
 import {Profiler} from "./profiler/Profiler";
@@ -44,10 +43,12 @@ export interface InitConfig {
     height: number;
 }
 
+let rafHandle = -1;
+
 function _raf(millis: number) {
     const engine = Engine.current;
     engine.profiler.beginGroup("Frame");
-    requestAnimationFrame(_raf);
+    rafHandle = requestAnimationFrame(_raf);
     engine.handleFrame(millis);
     engine.profiler.endGroup("Frame");
 }
@@ -66,8 +67,8 @@ export class Engine {
     readonly time = new Time();
 
     readonly onUpdate = new Signal<void>();
-    readonly onRender = new Signal<Readonly<Recta>>();
-    readonly onRenderFinish = new Signal<Readonly<Recta>>();
+    readonly onRender = new Signal<void>();
+    readonly onRenderFinish = new Signal<void>();
     readonly frameCompleted = new Signal<void>();
 
     // readonly root: Entity;
@@ -80,13 +81,11 @@ export class Engine {
     // DEBUG
     readonly profiler: Profiler;
 
-    running = false;
-
     constructor(config: InitConfig) {
         Engine.current = this;
 
         if (!config.canvas) {
-            config.canvas = initCanvas();
+            config.canvas = initCanvas('gameview');
         }
 
         this.graphics = new Graphics(config.canvas);
@@ -139,9 +138,9 @@ export class Engine {
 
         this.drawer.begin(rc);
         {
-            this.onRender.emit(rc);
+            this.onRender.emit();
             this.displaySystem.process();
-            this.onRenderFinish.emit(rc);
+            this.onRenderFinish.emit();
         }
         // ~~~ force draw
         this.batcher.flush();
@@ -237,18 +236,8 @@ export class Engine {
         this.frameCompleted.emit();
     }
 
-    start() {
-        this.running = true;
-    }
-
-    stop() {
-        this.running = false;
-    }
-
-    static async init(config: InitConfig) {
-        await awaitDocument();
-        const engine = new Engine(config);
-        engine.start();
-        return engine;
+    dispose() {
+        // TODO:
+        cancelAnimationFrame(rafHandle);
     }
 }

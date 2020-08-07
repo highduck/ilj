@@ -1,4 +1,4 @@
-import {loadBuffer} from "../util/load";
+import {loadBuffer} from "../loaders/loadURL";
 
 const testSize = '250px';
 const testString = 'Quid pro quo';

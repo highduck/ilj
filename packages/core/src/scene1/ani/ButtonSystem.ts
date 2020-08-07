@@ -1,4 +1,4 @@
-import {Button, Button_Data, ButtonSkin} from "./Button";
+import {Button, Button_Data} from "./Button";
 import {Transform2D, Transform2D_Data} from "../display/Transform2D";
 import {Interactive, InteractiveComponent} from "./Interactive";
 import {MovieClip2D, MovieClip2D_Data} from "../display/MovieClip2D";
@@ -29,32 +29,32 @@ function handleBackButton(btn: Button_Data) {
 function onOver(e: Entity) {
     const btn = e.tryGet(Button);
     if (btn !== undefined) {
-        Engine.current.audio.playSound(btn.skin.sfxOver);
+        Engine.current.audio.playSound(btn.style.sfxOver);
     }
 }
 
 function onOut(e: Entity) {
     const btn = e.tryGet(Button);
-    const interactive = e.tryGet(Interactive);
     if (btn !== undefined) {
+        const interactive = e.tryGet(Interactive);
         if (interactive !== undefined && interactive.pushed) {
             startPostTween(btn);
         }
-        Engine.current.audio.playSound(btn.skin.sfxOut);
+        btn.style.onOut();
     }
 }
 
 function onDown(e: Entity) {
     const btn = e.tryGet(Button);
     if (btn !== undefined) {
-        Engine.current.audio.playSound(btn.skin.sfxDown);
+        btn.style.onDown();
     }
 }
 
 function onClicked(e: Entity) {
     const btn = e.tryGet(Button);
     if (btn !== undefined) {
-        Engine.current.audio.playSound(btn.skin.sfxClick);
+        btn.style.onClick();
         startPostTween(btn);
         btn.clicked.emit(e);
 
@@ -84,38 +84,6 @@ function initEvents(e: Entity) {
     e.getOrCreate(EventReceiver).hub.on(InteractiveManagerEvent.BackButton, onBackButton);
 }
 
-const PUSH_COLOR_0 = new Color4(1, 1, 1, 1);
-const PUSH_COLOR_1 = new Color4(0.55, 0.55, 0.55, 1);
-const OVER_COLOR_0 = new Color4(0, 0, 0, 0);
-const OVER_COLOR_1 = new Color4(0.1, 0.1, 0.1, 0);
-
-function applySkin(skin: ButtonSkin, btn: Button_Data, transform: Transform2D_Data) {
-    const over = btn.timeOver;
-    const push = btn.timePush;
-    const post = btn.timePost;
-    const pi = Math.PI;
-
-    const sx = 1.0 + 0.5 * Math.sin((1.0 - post) * pi * 5.0) * post;
-    const sy = 1.0 + 0.5 * Math.sin((1.0 - post) * pi) * Math.cos((1.0 - post) * pi * 5.0) * post;
-
-    transform.colorMultiplier.copyFrom(PUSH_COLOR_0).lerp(PUSH_COLOR_1, push).multiply(btn.baseColorMultiplier);
-    transform.colorOffset.copyFrom(OVER_COLOR_0).lerp(OVER_COLOR_1, over).add(btn.baseColorOffset);
-
-    transform.scale.x = btn.baseScale.x * sx;
-    transform.scale.y = btn.baseScale.y * sy;
-}
-
-function updateMovieFrame(mc: MovieClip2D_Data, interactive: InteractiveComponent) {
-    let frame = 0;
-    if (interactive.over || interactive.pushed) {
-        frame = 1;
-        if (interactive.pushed && interactive.over) {
-            frame = 2;
-        }
-    }
-    mc.gotoAndStop(frame);
-}
-
 export function updateButtons() {
     const dt = Time.UI.dt;
     const entities = Button.map.keys;
@@ -134,7 +102,7 @@ export function updateButtons() {
             initEvents(EntityMap.get(ei)!);
         }
         const interactive = interactives.get(ei)!;
-        const skin = btn.skin;
+        const skin = btn.style;
         btn.timeOver = reachDelta(btn.timeOver,
             interactive.over ? 1.0 : 0.0,
             dt * skin.overSpeedForward,
@@ -148,14 +116,7 @@ export function updateButtons() {
         btn.timePost = reach(btn.timePost, 0.0, 2.0 * dt);
 
         if (transform !== undefined) {
-            applySkin(skin, btn, transform);
-        }
-
-        if (btn.movieFrames) {
-            const mc = MovieClip2D.map.get(ei);
-            if (mc !== undefined) {
-                updateMovieFrame(mc, interactive);
-            }
+            btn.style.applySkin(ei, btn, transform);
         }
     }
 }

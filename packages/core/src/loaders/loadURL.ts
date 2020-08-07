@@ -1,4 +1,4 @@
-async function loadUrl(url: string, type: 'arraybuffer' | 'text'): Promise<XMLHttpRequest> {
+async function loadURL(url: string, type: 'arraybuffer' | 'text'): Promise<XMLHttpRequest> {
     return new Promise((resolve, reject) => {
         const xhr = new XMLHttpRequest();
         xhr.responseType = type;
@@ -21,16 +21,16 @@ async function loadUrl(url: string, type: 'arraybuffer' | 'text'): Promise<XMLHt
 }
 
 export async function loadBuffer(url: string): Promise<ArrayBuffer> {
-    const xhr = await loadUrl(url, 'arraybuffer');
+    const xhr = await loadURL(url, 'arraybuffer');
     return xhr.response as ArrayBuffer;
 }
 
 export async function loadJSON(url: string): Promise<object> {
-    const xhr = await loadUrl(url, 'text');
+    const xhr = await loadURL(url, 'text');
     return JSON.parse(xhr.responseText);
 }
 
 export async function loadText(url: string): Promise<string> {
-    const xhr = await loadUrl(url, 'text');
+    const xhr = await loadURL(url, 'text');
     return xhr.responseText;
 }

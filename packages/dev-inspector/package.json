@@ -20,6 +20,6 @@
     "@highduck/core": "0.0.1",
     "golden-layout": "^1.5.9",
     "jquery": "^3.5.1",
-    "preact": "^10.4.6"
+    "preact": "^10.4.7"
   }
 }

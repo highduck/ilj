@@ -17,7 +17,7 @@
     "@highduck/binpack": "0.0.1",
     "@highduck/math": "0.0.1",
     "@highduck/xfl": "0.0.1",
-    "canvaskit-wasm": "^0.17.2",
+    "canvaskit-wasm": "^0.17.3",
     "fast-png": "^5.0.2",
     "folder-hash": "^3.3.2",
     "glob": "^7.1.6",

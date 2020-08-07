@@ -30,7 +30,7 @@ export class ResourceType<T extends object> {
     readonly id = resourceTypeId++;
     readonly map: StringMap<AssetRef<T>> = new StringMap();
 
-    constructor(readonly ctor: { new(...args: any[]): T; }) {
+    constructor(readonly ctor?: { new(...args: any[]): T; }) {
         _resourceTypes.set(this.id, this);
     }
 
@@ -61,3 +61,5 @@ export class ResourceType<T extends object> {
         return s;
     }
 }
+
+export const JsonResource = new ResourceType<any>();

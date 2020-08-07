@@ -119,9 +119,9 @@ function getTerserOptions(options: CompileBundleOptions): undefined | TerserOpti
         },
         toplevel: true,
         safari10: true,
-        format: {
-            beautify: options.debug || release_profile
-        }
+        // output: {
+        //     beautify: options.debug || release_profile
+        // }
     };
 
     if (options.platform === 'android') {
@@ -225,13 +225,13 @@ function getRollupInput(options: CompileBundleOptions): InputOptions {
         replace({
             values: {
                 'process.env.NODE_ENV': JSON.stringify(options.mode),
-                'process.env.ILJ_PROFILE': JSON.stringify(false),
-                'process.env.ILJ_WEBGL_DEBUG': JSON.stringify(false),
                 'process.env.PRODUCTION': JSON.stringify(isProduction),
                 'process.env.PLATFORM': JSON.stringify(options.platform),
                 'process.env.TARGET': JSON.stringify(options.target),
                 'process.env.APP_VERSION': JSON.stringify(options.version),
                 'process.env.APP_VERSION_CODE': JSON.stringify(options.versionCode),
+                'process.env.ILJ_PROFILE': JSON.stringify(false),
+                'process.env.ILJ_WEBGL_DEBUG': JSON.stringify(false),
                 DEBUG: JSON.stringify(options.debug),
                 ASSERT: JSON.stringify(options.debug),
                 B2_DEBUG: JSON.stringify(options.debug),

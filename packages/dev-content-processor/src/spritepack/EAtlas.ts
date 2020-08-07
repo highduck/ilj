@@ -114,7 +114,7 @@ export class EAtlas {
         }
     }
 
-    save(destDir: string, format: string, quality?: number, quant?: boolean) {
+    save(destDir: string, format: string, alpha: boolean, quality?: number, quant?: boolean) {
         makeDirs(destDir);
         quality = quality ?? 90;
         quant = quant ?? false;
@@ -128,11 +128,13 @@ export class EAtlas {
                     logDebug(`save atlas page: ${page.pathImage}`);
                     savePNG(path.join(destDir, page.pathImage), page.image, quant);
                 } else if (format === 'jpeg') {
-                    page.pathMask = page.pathImage + '_.png';
-                    page.pathImage += '.jpg';
                     logDebug(`save atlas page: ${page.pathImage}`);
+                    if(alpha) {
+                        page.pathMask = page.pathImage + '_.png';
+                        saveAlphaMaskPNG(path.join(destDir, page.pathMask), page.image);
+                    }
+                    page.pathImage += '.jpg';
                     saveJPEG(path.join(destDir, page.pathImage), page.image, quality);
-                    saveAlphaMaskPNG(path.join(destDir, page.pathMask), page.image);
                 }
             }
 

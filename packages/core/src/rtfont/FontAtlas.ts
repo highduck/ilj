@@ -40,6 +40,7 @@ export function resetFonts() {
 }
 
 const fallbackFonts = '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif';
+// "Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol"
 
 const CHAR_BOUNDING_BOX = {
     supported: 0,
@@ -48,6 +49,11 @@ const CHAR_BOUNDING_BOX = {
     ascent: 0,
     descent: 0
 };
+
+export interface FontStyleDef {
+    strokeWidth?: number;
+    strokeColor?: { r: number, g: number, b: number, a: number };
+}
 
 export class FontAtlas {
 
@@ -62,9 +68,6 @@ export class FontAtlas {
     sheetLineHeight: number = 0;
     characters: string = '';
 
-    strokeColor: string | undefined = 'rgba(0,0,0,0.5)';
-    strokeLineWidth = 3;
-
     border: number = Math.ceil(this.scale); // in pixels, resolution independent
 
     spaceWidth: number = 1;
@@ -73,10 +76,18 @@ export class FontAtlas {
 
     dirty: boolean = false;
 
+    strokeWidth: number;
+    strokeColor: string;
+
     constructor(readonly engine: Engine,
                 readonly family: string,
                 readonly size: number,
-                readonly scale: number) {
+                readonly scale: number,
+                readonly style: FontStyleDef) {
+
+        this.strokeWidth = style.strokeWidth ?? 0;
+        this.strokeColor = style.strokeColor ? `rgba(${style.strokeColor.r},${style.strokeColor.g},${style.strokeColor.b},${style.strokeColor.a})`
+            : 'rgba(0,0,0,0.5)';
 
         this.resetSheet(DEFAULT_CHARACTERS);
     }
@@ -199,7 +210,7 @@ export class FontAtlas {
         const invScale = 1 / this.scale;
         const metrics = this.ctx.measureText(character);
         const bb = this.readMetrics(metrics);
-        const padding = this.border + (this.strokeColor !== undefined ? this.strokeLineWidth * this.scale : 0)
+        const padding = this.border + this.strokeWidth * this.scale;
         const w = bb.right + bb.left + 2 * padding;
         const h = bb.descent + bb.ascent + 2 * padding;
         let x = this.nextSheetX;
@@ -234,9 +245,9 @@ export class FontAtlas {
         this.characters += character;
         const px = x + bb.left + padding;
         const py = y + bb.ascent + padding;
-        if (this.strokeColor !== undefined) {
+        if (this.strokeWidth > 0) {
             this.ctx.strokeStyle = this.strokeColor;
-            this.ctx.lineWidth = this.strokeLineWidth * this.scale;
+            this.ctx.lineWidth = this.strokeWidth * this.scale;
             this.ctx.lineJoin = 'round';
             ctx.strokeText(character, px, py);
         }

@@ -3,7 +3,7 @@ export interface BundleDef {
     items?: AnyItem[]
 }
 
-export type AnyItem = AtlasDef | FlashDef | AudioDef | FontDef;
+export type AnyItem = AtlasDef | FlashDef | AudioDef | FontDef | TextureDef | JsonFileDef;
 
 export const enum ImageFormatType {
     PNG = 'png',
@@ -14,6 +14,7 @@ export interface AtlasDef {
     type: 'atlas'
     id: string,
     format?: ImageFormatType,
+    alpha?: boolean,
     png?: {
         quant?: boolean // false
     },
@@ -40,5 +41,25 @@ export interface FontDef {
     type: 'font'
     id: string,
     path?: string,
-    size?: number
+    size?: number,
+    style?: {
+        strokeWidth?: number,
+        strokeColor?: { r: number, g: number, b: number, a: number }
+    }
+}
+
+export interface TextureDef {
+    type: 'texture'
+    id: string,
+    path: string
+}
+
+export interface JsonFileDef {
+    type: 'json'
+    id: string,
+    path?: string,
+    // resource will processed, and exported to bundle,
+    // but not included in bundle meta,
+    // and could be loaded only manually if you know the path
+    excludeFromBundle?: boolean
 }

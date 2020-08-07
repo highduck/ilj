@@ -8,14 +8,14 @@ function resetStyle(el: HTMLElement | null) {
     }
 }
 
-export function initCanvas(name = "gameview", parent?: HTMLElement | null): HTMLCanvasElement {
+export function initCanvas(elementID: string, parent?: HTMLElement | null): HTMLCanvasElement {
     const container = document.createElement("div");
     container.style.width = "100%";
     container.style.height = "100%";
     resetStyle(container);
 
     const canvas = document.createElement('canvas');
-    canvas.id = name;
+    canvas.id = elementID;
     canvas.contentEditable = 'false';
     canvas.style.touchAction = 'none';
     canvas.style.webkitTapHighlightColor = 'transparent';

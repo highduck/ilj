@@ -3,10 +3,10 @@ import {Texture, TextureResource} from "../graphics/Texture";
 import {Disposable} from "../util/Disposable";
 import {AssetRef, ResourceType} from "../util/Resources";
 import {Sprite, SpriteResource} from "./Sprite";
-import {loadJSON} from "../util/load";
+import {loadJSON} from "../loaders/loadURL";
 import {Recta} from "@highduck/math";
 import {AtlasJson, SpriteFlag} from "@highduck/anijson";
-import {destroyCanvas, destroyImage, loadImage, loadSplitAlpha} from "../util/loadImage";
+import {destroyCanvas, destroyImage, loadImage, loadSplitAlpha} from "../loaders/loadImage";
 
 function pathDir(path: string): string {
     const i = path.lastIndexOf("/");

@@ -6,7 +6,7 @@ import {SpriteFlag} from "@highduck/anijson";
 
 export class Sprite {
     readonly rect = new Recta();
-    readonly tex = new Recta();
+    readonly tex = new Recta(0, 0, 1, 1);
 
     constructor(public texture: AssetRef<Texture>,
                 public flags: SpriteFlag = 0) {
@@ -14,7 +14,7 @@ export class Sprite {
     }
 
     hitTest(x: number, y: number): boolean {
-        return this.texture.data !== undefined;
+        return this.texture.data !== null;
     }
 
     draw(drawer: Drawer) {
