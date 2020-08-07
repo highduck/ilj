@@ -7,9 +7,9 @@
   "sideEffects": false,
   "scripts": {
     "ci": "run build",
-    "build": "tsc -b tsconfig.esm.json",
-    "build-ts": "tsc -b -v tsconfig.esm.json",
-    "watch": "tsc -b -w tsconfig.esm.json",
+    "build": "tsc -b tsconfig.project.json",
+    "build-ts": "tsc -b -v tsconfig.project.json",
+    "watch": "tsc -b -w tsconfig.project.json",
     "clean": "rimraf dist *.tsbuildinfo"
   },
   "dependencies": {
