@@ -79,8 +79,7 @@ export class FontAtlas {
     strokeWidth: number;
     strokeColor: string;
 
-    constructor(readonly engine: Engine,
-                readonly family: string,
+    constructor(readonly family: string,
                 readonly size: number,
                 readonly scale: number,
                 readonly style: FontStyleDef) {
@@ -286,7 +285,7 @@ export class FontAtlas {
 
     updateTexture() {
         if (this.texture === null) {
-            this.texture = new Texture(this.engine.graphics, false);
+            this.texture = new Texture(Engine.current.graphics, false);
         }
         const GL = this.texture.graphics.gl;
         GL.pixelStorei(GL.UNPACK_PREMULTIPLY_ALPHA_WEBGL, 1);

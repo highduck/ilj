@@ -1,33 +1,8 @@
 import {Recta, Vec2} from "@highduck/math";
 import {Signal} from "../util/Signal";
 
-export const enum Cursor {
-    Bypass = 0,
-    Arrow = 1,
-    Button = 2,
-}
-
-const CursorDefs = ["default", "default", "pointer"];
-
 /* GameView: creates graphics context, handle view resize, provide input events */
 export class GameView {
-
-    _cursor = Cursor.Arrow;
-
-    set cursor(v: Cursor) {
-        if (process.env.PLATFORM === 'web' && this._cursor !== Cursor.Bypass) {
-            if (this._cursor !== v) {
-                this.canvas.style.cursor = CursorDefs[v];
-                this._cursor = v;
-            }
-        }
-    }
-
-    get cursor(): Cursor {
-        return this._cursor;
-    }
-
-    readonly canvas: HTMLCanvasElement;
 
     readonly onResize = new Signal<void>();
 
@@ -56,7 +31,8 @@ export class GameView {
         return this._visible;
     }
 
-    constructor(canvas: HTMLCanvasElement, size: Vec2,
+    constructor(readonly canvas: HTMLCanvasElement,
+                size: Vec2,
                 readonly maxBackBufferSize: number) {
         this.canvas = canvas;
         this.reference.width = size.x;

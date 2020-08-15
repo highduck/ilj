@@ -9,7 +9,8 @@
     "noImplicitAny": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "sourceMap": true
+    "sourceMap": true,
+    "preserveConstEnums": true
   },
   "files": [
     "src/index.ts"

@@ -8,11 +8,11 @@ import {JsonResource} from "../util/Resources";
 import {Texture, TextureResource} from "../graphics/Texture";
 import {destroyImage, loadImage} from "./loadImage";
 
-async function loadTexture(id: string, path: string): Promise<Texture> {
+async function loadTexture(id: string, url: string): Promise<Texture> {
     const texture = new Texture(Engine.current.graphics);
     TextureResource.reset(id, texture);
     texture.generateMipMaps = true;
-    const image = await loadImage(path);
+    const image = await loadImage(url);
     texture.upload(image);
     destroyImage(image);
     return texture;
@@ -30,29 +30,28 @@ async function loadJsonFile(id: string, path: string): Promise<any> {
     return obj;
 }
 
-async function loadItems(items: BundleItem[]) {
+async function loadItems(baseURL: string, contentScale: number, items: BundleItem[]) {
     const engine = Engine.current;
-    const texturesScale = engine.view.contentScale;
     const loaders: Promise<any>[] = [];
     for (const item of items) {
         switch (item.type) {
             case BundleItemType.Atlas:
-                loaders.push(Atlas.load(engine, item.id, texturesScale));
+                loaders.push(Atlas.load(baseURL + '/' + item.id, contentScale));
                 break;
             case BundleItemType.Texture:
                 if (item.path) {
-                    loaders.push(loadTexture(item.id, engine.assetsPath + '/' + item.path));
+                    loaders.push(loadTexture(item.id, baseURL + '/' + item.path));
                 } else {
                     console.warn('bundle meta error: no path for texture');
                 }
                 break;
             case BundleItemType.Json:
-                loaders.push(loadJsonFile(item.id, engine.assetsPath + '/' + item.path));
+                loaders.push(loadJsonFile(item.id, baseURL + '/' + item.path));
                 break;
             case BundleItemType.Ani:
                 if (item.id) {
                     loaders.push(
-                        Ani.load(item.id).then((a: Ani) => {
+                        Ani.load(baseURL + '/' + item.id + '.ani.json').then((a: Ani) => {
                             registerAniLibrary(item.id, a);
                         })
                     );
@@ -62,8 +61,9 @@ async function loadItems(items: BundleItem[]) {
                 const font = item as BundleFontItem;
                 if (font.id && font.path) {
                     loaders.push(
-                        Font
-                            .load(engine, font.id, font.path, font.size !== undefined ? font.size : 16, texturesScale, font.style)
+                        Font.load(font.id, baseURL + '/' + font.path,
+                            font.size !== undefined ? font.size : 16,
+                            contentScale, font.style)
                             .then((res: Font) => {
                                 FontResource.reset(font.id, res);
                             })
@@ -73,7 +73,8 @@ async function loadItems(items: BundleItem[]) {
                 break;
             case BundleItemType.Audio:
                 if (item.id) {
-                    engine.audio.preload(item.id);
+                    const url = item.path ?? (item.id + ".mp3");
+                    engine.audio.preload(baseURL + '/' + url, item.id);
                 }
                 break;
         }
@@ -82,11 +83,12 @@ async function loadItems(items: BundleItem[]) {
     return Promise.all(loaders);
 }
 
-export async function loadBundle() {
-    const bundle = await loadJSON(Engine.current.assetsPath + "/bundle.json") as Bundle;
+export async function loadBundle(url: string) {
+    const bundle = await loadJSON(url + "/bundle.json") as Bundle;
+    const contentScale = Engine.current.view.contentScale;
     if (bundle.items) {
-        let lazyItems: BundleItem[] = [];
-        let normalItems: BundleItem[] = [];
+        const lazyItems: BundleItem[] = [];
+        const normalItems: BundleItem[] = [];
         for (const item of bundle.items) {
             const lazy = item.lazy !== undefined ? item.lazy : (item.type === BundleItemType.Audio);
             if (lazy) {
@@ -95,7 +97,7 @@ export async function loadBundle() {
                 normalItems.push(item);
             }
         }
-        await loadItems(normalItems);
-        loadItems(lazyItems).then();
+        await loadItems(url, contentScale, normalItems);
+        loadItems(url, contentScale, lazyItems).then();
     }
 }

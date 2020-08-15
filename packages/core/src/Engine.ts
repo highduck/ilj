@@ -36,6 +36,7 @@ import {invalidateTransform} from "./scene1/systems/invalidateTransform";
 import {updateTrails} from "./scene1/particles/TrailUpdateSystem";
 import {updateParticleEmitters, updateParticleSystems} from "./scene1/particles/ParticleSystem";
 import {destroyEntities} from "./scene1/extra/EntityDestroyer";
+import {MouseCursor} from "./app/MouseCursor";
 
 export interface InitConfig {
     canvas?: HTMLCanvasElement;
@@ -57,11 +58,11 @@ export class Engine {
     static current: Engine;
 
     readonly view: GameView;
+    readonly cursor: MouseCursor;
     readonly graphics: Graphics;
     readonly batcher: Batcher;
     readonly drawer: Drawer;
     readonly input: InputState;
-    readonly assetsPath: string = "assets";
     readonly variables: object[] = [];
 
     readonly time = new Time();
@@ -84,17 +85,16 @@ export class Engine {
     constructor(config: InitConfig) {
         Engine.current = this;
 
-        if (!config.canvas) {
-            config.canvas = initCanvas('gameview');
-        }
+        const canvas = config.canvas ?? initCanvas('gameview');
 
-        this.graphics = new Graphics(config.canvas);
+        this.graphics = new Graphics(canvas);
         this.view = new GameView(
-            config.canvas,
+            canvas,
             new Vec2(config.width, config.height),
             Math.min(this.graphics.maxTextureSize, this.graphics.maxRenderBufferSize)
         );
-        this.input = new InputState(this.view.canvas);
+        this.cursor = new MouseCursor(canvas);
+        this.input = new InputState(canvas);
         this.input.dpr = this.view.dpr;
 
         TextureResource.reset("empty", createEmptyTexture(this.graphics));
@@ -102,7 +102,7 @@ export class Engine {
 
         this.batcher = new Batcher(this.graphics);
         this.drawer = new Drawer(this.batcher);
-        this.audio = new AudioMan(this);
+        this.audio = new AudioMan();
         this.profiler = new Profiler(this.drawer);
 
         Entity.root.name = "Root";

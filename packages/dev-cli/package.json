@@ -14,7 +14,7 @@
   "types": "./dist/index.d.js",
   "type": "module",
   "dependencies": {
-    "@highduck/export-android": "^0.0.1",
+    "@highduck/export-app": "^0.0.1",
     "@highduck/exporter": "0.0.1",
     "@highduck/tools-build-code": "^0.0.1",
     "app-icon": "^0.13.2",

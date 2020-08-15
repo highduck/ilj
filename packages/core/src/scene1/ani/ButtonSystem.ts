@@ -1,14 +1,13 @@
 import {Button, Button_Data} from "./Button";
 import {Transform2D, Transform2D_Data} from "../display/Transform2D";
-import {Interactive, InteractiveComponent} from "./Interactive";
-import {MovieClip2D, MovieClip2D_Data} from "../display/MovieClip2D";
-import {Cursor} from "../../app/GameView";
-import {Color4, reach, reachDelta} from "@highduck/math";
+import {Interactive} from "./Interactive";
+import {reach, reachDelta} from "@highduck/math";
 import {Engine} from "../../Engine";
 import {EventData, EventReceiver} from "../EventReceiver";
 import {InteractiveManagerEvent} from "./InteractiveManager";
 import {Time} from "../../app/Time";
 import {Entity, EntityMap} from "../../ecs";
+import {Cursor} from "../../app/MouseCursor";
 
 function initBaseTransform(btn: Button_Data, transform: Transform2D_Data) {
     btn.baseColorMultiplier.copyFrom(transform.colorMultiplier);

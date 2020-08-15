@@ -107,7 +107,7 @@ export interface AdOptions {
 *  For more information
 *   Read:  https://developers.google.com/android/reference/com/google/android/gms/ads/AdSize
 * */
-export enum AdSize {
+export const enum AdSize {
     // Mobile Marketing Association (MMA)
     // banner ad size (320x50 density-independent pixels).
     BANNER = 'BANNER',
@@ -161,7 +161,7 @@ export enum AdSize {
 * https://developer.android.com/reference/android/widget/LinearLayout#attr_android:gravity
 * */
 
-export enum AdPosition {
+export const enum AdPosition {
     TOP_CENTER = 'TOP_CENTER',
     CENTER = 'CENTER',
     BOTTOM_CENTER = 'BOTTOM_CENTER',

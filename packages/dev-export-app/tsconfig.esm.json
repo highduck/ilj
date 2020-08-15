@@ -5,13 +5,15 @@
     "composite": true,
     "outDir": "dist"
   },
-  "files": [
-    "./src/index.ts"
-  ],
   "include": [
     "./src/**/*.ts"
   ],
   "exclude": [
     "dist/**"
+  ],
+  "references": [
+    {
+      "path": "../dev-content-processor/tsconfig.esm.json"
+    }
   ]
 }

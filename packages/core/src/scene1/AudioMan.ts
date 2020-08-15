@@ -1,4 +1,3 @@
-import {Engine} from "../Engine";
 import {ObservableValue} from "../util/ObservableValue";
 import {Howl, Howler as HowlerStatic} from 'howler';
 
@@ -16,7 +15,9 @@ export class AudioMan {
     private _muteGlobal: boolean = false;
     private _muteLockers: number = 0;
 
-    constructor(readonly engine: Engine) {
+    readonly _map = new Map<string, string>();
+
+    constructor() {
         HowlerStatic.autoSuspend = false;
         HowlerStatic.autoUnlock = true;
 
@@ -55,28 +56,32 @@ export class AudioMan {
     playMusic(id: string) {
         if (this.music !== undefined) {
             this.music.stop();
+            this.music = undefined;
         }
-        this.music = new Howl({
-            src: this.engine.assetsPath + "/" + id + ".mp3",
-            loop: true,
-            volume: this.currentMusicVolume
-        });
-        this.music.play();
+        const src = this._map.get(id);
+        if (src !== undefined) {
+            this.music = new Howl({
+                src, loop: true, volume: this.currentMusicVolume
+            });
+            this.music.play();
+        }
     }
 
     playSound(id: string, pitch?: number, volume?: number) {
         if (this.soundEnabled.value) {
-            new Howl({
-                src: this.engine.assetsPath + "/" + id + ".mp3",
-                rate: pitch,
-                volume: this.currentSoundVolume * (volume ?? 1),
-            }).play();
+            const src = this._map.get(id);
+            if (src) {
+                new Howl({
+                    src, rate: pitch, volume: this.currentSoundVolume * (volume ?? 1),
+                }).play();
+            }
         }
     }
 
-    preload(id: string) {
+    preload(url: string, id: string) {
+        this._map.set(id, url);
         new Howl({
-            src: this.engine.assetsPath + "/" + id + ".mp3"
+            src: url
         });
     }
 
@@ -95,7 +100,7 @@ export class AudioMan {
         this.updateMute();
     }
 
-    vibrate(duration:number) {
+    vibrate(duration: number) {
         // TODO:
     }
 

@@ -1,4 +1,3 @@
-import {Engine} from "../../Engine";
 import {loadJSON} from "../../loaders/loadURL";
 import {AssetRef, ResourceType} from "../../util/Resources";
 import {AniJson, NodeJson} from "@highduck/anijson";
@@ -45,8 +44,7 @@ export class Ani {
     }
 
     static async load(url: string): Promise<Ani> {
-        const assetPath = Engine.current.assetsPath;
-        const json = await loadJSON(assetPath + "/" + url + ".ani.json");
+        const json = await loadJSON(url);
         return new Ani(json as AniJson);
     }
 }

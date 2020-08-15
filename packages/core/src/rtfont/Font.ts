@@ -13,17 +13,17 @@ const PT_2_PX = 1.0;
 
 export class Font {
 
-    static async load(engine: Engine, family: string, url: string, size: number, scale: number, style?: FontStyleDef): Promise<Font> {
+    static async load(family: string, url: string, size: number, scale: number, style?: FontStyleDef): Promise<Font> {
         try {
-            await loadFontFace(family, engine.assetsPath + "/" + url, {});
+            await loadFontFace(family, url, {});
         } catch {
             console.warn(`Font ${family} load error`);
         }
-        const atlas = new FontAtlas(engine, family, size, scale, style ?? {});
-        return new Font(engine, atlas);
+        const atlas = new FontAtlas(family, size, scale, style ?? {});
+        return new Font(atlas);
     }
 
-    constructor(private engine: Engine, readonly atlas: FontAtlas) {
+    constructor(readonly atlas: FontAtlas) {
     }
 
     draw(text: string, size: number, x: number, y: number, lineHeight: number, lineSpacing: number) {
@@ -35,7 +35,7 @@ export class Font {
         let cx = x;
         let cy = y + 4;
 
-        const drawer = this.engine.drawer;
+        const drawer = Engine.current.drawer;
 
         if (this.atlas.texture === null) {
             return;
@@ -163,7 +163,7 @@ export class Font {
         const cx = rcRelX - drawZoneX;
         const cy = rcRelY - drawZoneY;
 
-        const drawerState = this.engine.drawer.state;
+        const drawerState = Engine.current.drawer.state;
         if (format.shadow) {
             drawerState.saveColor().multiplyColor32(format.shadowColor);
             this.draw(text,

@@ -1,13 +1,14 @@
 import {readFileSync, writeFileSync} from "fs";
 import path from "path";
-import {AndroidProjectContext} from "./context";
-import {AndroidSigningConfig, AndroidSigningConfigurations} from "./config";
+import {AndroidSigningConfig, AndroidSigningConfigurations, AndroidProjectContext} from "./context";
 
 export function setupSigning(ctx: AndroidProjectContext) {
-    const configPath = ctx.pkg.androidSigningConfig;
-    if (configPath === undefined) {
+    const keyPath = ctx.config.keys;
+    if (!keyPath) {
         return;
     }
+
+    const configPath = path.join(keyPath, 'android_signing.json');
 
     console.log("setup android signing keys");
     const configDir = path.dirname(configPath);

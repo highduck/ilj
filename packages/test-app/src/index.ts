@@ -11,7 +11,7 @@ async function main() {
         height: 1024
     });
 
-    await loadBundle();
+    await loadBundle('assets');
     startMain();
 }
 

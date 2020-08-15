@@ -79,12 +79,12 @@ export async function bootGame(config: ApplicationConfig) {
 
     new Engine(config.view);
     if (process.env.NODE_ENV === 'development') {
-        import('@highduck/live-inspector');
+        import('@highduck/live-inspector').then();
     }
 
     await Promise.all([
         Application.createAsync(config),
-        loadBundle(),
+        loadBundle('assets'),
         config.boot.preload()
     ]);
 

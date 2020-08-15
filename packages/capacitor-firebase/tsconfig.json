@@ -6,10 +6,13 @@
     "moduleResolution": "node",
     "declaration": true,
     "allowSyntheticDefaultImports": true,
+    "strict": true,
     "noImplicitAny": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "sourceMap": true,
+    "sourceMap": false,
+    "inlineSourceMap": true,
+    "inlineSources": true,
     "baseUrl": "./",
     "paths": {
       "@AppConfig": ["./src/config.ts"]

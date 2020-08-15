@@ -13,6 +13,7 @@ import Babel, {RollupBabelInputPluginOptions} from '@rollup/plugin-babel';
 import nodeResolve from '@rollup/plugin-node-resolve';
 import path from "path";
 import sourcemaps from 'rollup-plugin-sourcemaps';
+import externalGlobals from 'rollup-plugin-external-globals';
 
 const {babel} = Babel;
 
@@ -205,6 +206,7 @@ function getRollupInput(options: CompileBundleOptions): InputOptions {
             // browser: true,
         }),
         commonjs({
+            // dynamicRequireTargets: '@highduck/capacitor-firebase'
             // transformMixedEsModules: true,
             // ignoreGlobal: true
         }),
@@ -240,7 +242,17 @@ function getRollupInput(options: CompileBundleOptions): InputOptions {
                 B2_ENABLE_PARTICLE: JSON.stringify(false),
                 B2_ENABLE_PROFILER: JSON.stringify(false)
             }
-        }),
+        })
+    );
+
+    if (options.platform !== 'web') {
+        plugins.push(externalGlobals({
+            '@capacitor/core': '({Capacitor:Capacitor,Plugins:Capacitor.Plugins})',
+            '@highduck/capacitor-firebase': 'undefined'
+        }));
+    }
+
+    plugins.push(
         babel(getBabelConfig(options)),
         json(),
         glslify({
@@ -279,6 +291,13 @@ function getRollupInput(options: CompileBundleOptions): InputOptions {
         plugins
     };
 
+    // if (options.platform !== 'web') {
+    //     input.external = [
+    //         '@capacitor/core',
+    //         '@highduck/capacitor-firebase'
+    //     ];
+    // }
+
     if (!options.compat && !options.modules) {
         // input.preserveEntrySignatures = 'strict';
         // input.manualChunks = (id) => {
@@ -302,7 +321,7 @@ function createOutputPlugins(opts: CompileBundleOptions): Plugin[] {
         const postfix = opts.compat ? '.all' : '';
         plugins.push(
             visualizer({
-                filename: `dist/stats${postfix}.html`,
+                filename: `dist/${opts.target}/stats${postfix}.html`,
                 sourcemap: opts.sourceMap
             })
         );
@@ -322,6 +341,13 @@ async function rollupBuild(opts: CompileBundleOptions) {
         strict: true
     };
 
+    // TODO: for `watch` as well
+    // if (opts.platform !== 'web') {
+    //     output.global = {
+    //         '@capacitor/core': 'Capacitor'
+    //     };
+    // }
+
     if (opts.compat) {
         output.file = path.join(opts.dir, 'all.js');
         output.format = 'iife';
@@ -336,8 +362,7 @@ async function rollupBuild(opts: CompileBundleOptions) {
             if (id.includes('node_modules')) {
                 // vendor
                 return 'support';
-            }
-            else if (id.includes('box2d.ts')) {
+            } else if (id.includes('box2d.ts')) {
                 return 'box2d';
             } else if (id.includes('packages/core') || id.includes('packages/math') || id.includes('packages/anijson')) {
                 return 'engine';

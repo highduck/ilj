@@ -3,16 +3,16 @@ import fs from "fs";
 import yargs from "yargs";
 import console from "./common/log";
 import {appicon} from "./bins/appicon";
-import {exportAssets, optimizeImageFile} from "@highduck/exporter";
+import {importAssets, optimizeImageFile} from "@highduck/exporter";
 import {build as ccBuild, BuildOptions, watch as ccWatch} from '@highduck/tools-build-code';
 import browserSync from "browser-sync";
 import {BuildMode, PlatformType} from "./proj/NProject";
-import {copyPublic, exportAndroid, readPkg} from "@highduck/export-android";
+import {exportAppProject, exportWebTemplate, readAppConfig} from "@highduck/export-app";
 
 const args = yargs
     .scriptName('ilj')
-    .command('export', 'export assets', {}, async (args) => {
-        await exportAssets("assets", "public/assets");
+    .command('assets', 'import assets', {}, async (args) => {
+        await importAssets("assets", "public/assets");
     })
     .command('optimize', 'optimize png and jpeg images with glob pattern',
         (yargs) => yargs.options({input: {type: 'array', array: true, alias: "i", default: []}}),
@@ -47,12 +47,13 @@ const args = yargs
             debug: {type: 'boolean', alias: 'd', default: undefined},
             profile: {type: 'boolean', default: undefined},
             webgldebug: {type: 'boolean', default: undefined},
+            deploy: {type: 'boolean', default: undefined}
         }),
         async (args) => {
             const platform: PlatformType = args.platform as PlatformType;
             const target = platform;
             const verbose = args.verbose as boolean;
-            const dest = `dist/www/${target}`;
+            const wwwDestDir = `dist/${target}/www`;
             const buildMode = !!args.prod ? 'production' : args.mode as BuildMode;
             const flags = [];
             if (args.profile === true) {
@@ -66,7 +67,7 @@ const args = yargs
                     mode: buildMode,
                     target: target,
                     platform: platform,
-                    dir: dest,
+                    dir: wwwDestDir,
                     flags,
                     verbose
                 };
@@ -78,23 +79,16 @@ const args = yargs
                 }
 
                 const bb = ccBuild(opts);
-                const aa = exportAssets("assets", path.join(dest, 'assets'), opts.mode === 'production');
+                const aa = importAssets("assets", path.join(wwwDestDir, 'assets'), opts.mode === 'production');
                 await Promise.all([aa, bb]);
 
-                const pkg = readPkg(process.cwd());
-                copyPublic({
-                    src: 'public_' + target,
-                    dest: dest,
-                    pkg: pkg,
-                    buildMode: buildMode,
-                    flags,
-                    target: target,
-                    platform: platform
-                });
+                const cwd = process.cwd();
+                const pkg = readAppConfig(cwd);
+                exportWebTemplate({
+                    config: pkg, buildMode, flags, target, platform
+                }, wwwDestDir);
             }
-            if (platform === 'android') {
-                exportAndroid(undefined, target, buildMode, args.debug);
-            }
+            await exportAppProject(target, buildMode, !!args.debug, undefined /* cwd */, !!args.deploy);
         })
     .command('start', 'Watch mode', (yargs) => yargs.options({}),
         async (args) => {
@@ -103,7 +97,7 @@ const args = yargs
             const verbose = true;
             const buildRoot = `build/${target}`;
             const buildMode = 'development';
-            const flags:string[] = []; // TODO:
+            const flags: string[] = []; // TODO:
 
             const watchTask = ccWatch({
                 modules: true,
@@ -120,18 +114,16 @@ const args = yargs
                 verbose
             });
 
-            const assetsTask = exportAssets("assets", `${buildRoot}/content/assets`);
+            const assetsTask = importAssets("assets", `${buildRoot}/content/assets`);
 
-            const pkg = readPkg(process.cwd());
-            copyPublic({
-                src: 'public_' + target,
-                dest: `${buildRoot}/content`,
-                pkg: pkg,
+            const pkg = readAppConfig(process.cwd());
+            exportWebTemplate({
+                config: pkg,
                 buildMode: buildMode,
                 target: target,
                 platform: platform,
                 flags
-            });
+            }, `${buildRoot}/content`);
 
             await Promise.all([watchTask, assetsTask]);
 

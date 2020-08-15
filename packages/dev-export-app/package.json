@@ -1,8 +1,8 @@
 {
-  "name": "@highduck/export-android",
+  "name": "@highduck/export-app",
   "version": "0.0.1",
   "bin": {
-    "ilj-export-android": "./export-android.js"
+    "ilj-export-app": "./export-app.js"
   },
   "scripts": {
     "ci": "run build",
@@ -17,9 +17,12 @@
     "@capacitor/cli": "^2.4.0",
     "@capacitor/core": "^2.4.0",
     "@capacitor/ios": "^2.4.0",
+    "@fiahfy/ico": "^0.0.4",
+    "@highduck/exporter": "0.0.1",
     "glob": "^7.1.6",
     "mustache": "^4.0.1",
-    "rimraf": "^3.0.2"
+    "rimraf": "^3.0.2",
+    "xcode": "^3.0.1"
   },
   "devDependencies": {
     "@types/glob": "^7.1.3",

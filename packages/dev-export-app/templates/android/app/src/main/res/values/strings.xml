@@ -1,0 +1,9 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">I Have To Flap</string>
+    <string name="title_activity_main">I Have To Flap</string>
+    <string name="app_name_alternative">Flap Machine</string>
+    <string name="release_notes">
+
+    </string>
+</resources>

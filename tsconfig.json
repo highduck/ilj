@@ -3,7 +3,6 @@
   "compilerOptions": {
     "noEmit": true,
     "isolatedModules": false,
-
     "baseUrl": "packages",
     "paths": {
       "@AppConfig": [
@@ -12,8 +11,8 @@
       "@highduck/tools-build-code": [
         "dev-build-code/src"
       ],
-      "@highduck/export-android": [
-        "dev-export-android/src"
+      "@highduck/export-app": [
+        "dev-export-app/src"
       ],
       "@highduck/exporter": [
         "dev-content-processor/src"

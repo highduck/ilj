@@ -1,7 +1,7 @@
 import '@highduck/capacitor-firebase';
+import {FirebaseProtocol} from "@highduck/capacitor-firebase";
 import {AppState, Plugins} from '@capacitor/core';
 import {Engine} from "@highduck/core";
-import {FirebaseProtocol} from "@highduck/capacitor-firebase";
 
 const {App} = Plugins;
 

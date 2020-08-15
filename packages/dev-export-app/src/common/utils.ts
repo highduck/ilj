@@ -1,19 +1,17 @@
 import resolve from "resolve";
 import {spawnSync} from "child_process";
-import {copyFileSync, existsSync, lstatSync, mkdirSync, readdirSync} from "fs";
+import fs, {copyFileSync, existsSync, lstatSync, mkdirSync, readdirSync} from "fs";
 import path from "path";
 
 const bin_cap = resolve.sync("@capacitor/cli/bin/capacitor");
 
 export function cap(args: string[], dir: string) {
     const child = spawnSync(bin_cap, args, {
-            stdio: 'pipe',
+            stdio: 'inherit',
             encoding: 'utf-8',
             cwd: dir
         }
     );
-    console.log(child.stderr.toString());
-    console.log(child.stdout.toString());
     if (child.error) {
         throw child.error;
     }
@@ -38,4 +36,8 @@ export function copyFolderRecursiveSync(source: string, target: string) {
             }
         });
     }
+}
+
+export function isDir(p: string) {
+    return fs.existsSync(p) && fs.lstatSync(p).isDirectory();
 }

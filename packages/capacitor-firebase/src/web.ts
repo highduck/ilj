@@ -1,12 +1,28 @@
-import {registerWebPlugin, WebPlugin} from '@capacitor/core';
+import {WebPlugin} from '@capacitor/core';
 import {FirebaseProtocol, LogEventParams, ScreenParams, UserIDParams, UserPropParams} from './definitions';
 import appConfig from '@AppConfig';
 
 import firebase from 'firebase/app';
 import 'firebase/analytics';
+
 // import 'firebase/performance';
 
+async function checkAnalyticsSupported() {
+    try {
+        const supported = await firebase.analytics.isSupported();
+        if (!supported) {
+            console.warn('firebase analytics web is not supported');
+        }
+        return supported;
+    } catch (e) {
+        console.error('firebase analytics web error:', e);
+        return false;
+    }
+}
+
 class FirebasePluginWeb extends WebPlugin implements FirebaseProtocol {
+
+    analyticsSupported: Promise<boolean>;
 
     constructor() {
         super({
@@ -15,19 +31,25 @@ class FirebasePluginWeb extends WebPlugin implements FirebaseProtocol {
         });
 
         console.info("FirebasePluginWeb init");
-        const firebaseConfig = appConfig.firebase;
-
-        firebase.initializeApp(firebaseConfig);
-        firebase.analytics();
-        // firebase.performance();
+        try {
+            const firebaseConfig = appConfig.firebase;
+            firebase.initializeApp(firebaseConfig);
+        } catch (e) {
+            console.error('firebase.initializeApp error:', e);
+        }
+        this.analyticsSupported = checkAnalyticsSupported();
     }
 
     async disable(): Promise<void> {
-        firebase.analytics().setAnalyticsCollectionEnabled(false);
+        if (await this.analyticsSupported) {
+            firebase.analytics().setAnalyticsCollectionEnabled(false);
+        }
     }
 
     async enable(): Promise<void> {
-        firebase.analytics().setAnalyticsCollectionEnabled(true);
+        if (await this.analyticsSupported) {
+            firebase.analytics().setAnalyticsCollectionEnabled(true);
+        }
     }
 
     async instance(): Promise<{ id: string }> {
@@ -36,7 +58,9 @@ class FirebasePluginWeb extends WebPlugin implements FirebaseProtocol {
     }
 
     async logEvent(options: LogEventParams): Promise<void> {
-        firebase.analytics().logEvent(options.name, options.params);
+        if (await this.analyticsSupported) {
+            firebase.analytics().logEvent(options.name, options.params);
+        }
     }
 
     async reset(): Promise<void> {
@@ -44,17 +68,23 @@ class FirebasePluginWeb extends WebPlugin implements FirebaseProtocol {
     }
 
     async setScreen(options: ScreenParams): Promise<void> {
-        firebase.analytics().setCurrentScreen(options.name);
+        if (await this.analyticsSupported) {
+            firebase.analytics().setCurrentScreen(options.name);
+        }
     }
 
     async setUserID(options: UserIDParams): Promise<void> {
-        firebase.analytics().setUserId(options.value);
+        if (await this.analyticsSupported) {
+            firebase.analytics().setUserId(options.value);
+        }
     }
 
     async setUserProp(options: UserPropParams): Promise<void> {
-        firebase.analytics().setUserProperties({
-            [options.key]: options.value
-        });
+        if (await this.analyticsSupported) {
+            firebase.analytics().setUserProperties({
+                [options.key]: options.value
+            });
+        }
     }
 
     async forceCrash() {
@@ -65,4 +95,5 @@ class FirebasePluginWeb extends WebPlugin implements FirebaseProtocol {
 const FirebasePlugin = new FirebasePluginWeb();
 export {FirebasePlugin};
 
+import {registerWebPlugin} from '@capacitor/core';
 registerWebPlugin(FirebasePlugin);

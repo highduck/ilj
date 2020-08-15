@@ -13,7 +13,7 @@
       "path": "../dev-build-code/tsconfig.esm.json"
     },
     {
-      "path": "../dev-export-android/tsconfig.esm.json"
+      "path": "../dev-export-app/tsconfig.esm.json"
     }
   ],
   "files": [

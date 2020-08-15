@@ -1,5 +1,5 @@
 import {Signal} from "../../util/Signal";
-import {Cursor} from "../../app/GameView";
+import {Cursor} from "../../app/MouseCursor";
 import {Entity} from "../../ecs/Entity";
 import {ComponentTypeA} from "../../ecs";
 import {Vec2} from "@highduck/math";

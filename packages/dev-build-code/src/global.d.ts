@@ -1,3 +1,9 @@
+declare module 'rollup-plugin-external-globals' {
+    import {Plugin} from 'rollup';
+
+    export default function (options: object): Plugin;
+}
+
 declare module '@rollup/plugin-babel' {
     import {Plugin} from 'rollup';
     export type RollupBabelInputPluginOptions = any;

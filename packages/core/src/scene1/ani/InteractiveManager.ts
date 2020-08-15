@@ -1,11 +1,11 @@
 import {Entity} from "../../ecs/Entity";
-import {Cursor} from "../../app/GameView";
 import {Interactive} from "./Interactive";
 import {hitTest} from "../display/hitTest";
 import {AppKeyboardEvent, AppMouseEvent, AppTouchEvent} from "../../app/InputState";
 import {Vec2} from "@highduck/math";
 import {Engine} from "../../Engine";
 import {dispatchBroadcast, EventData, EventReceiver} from "../EventReceiver";
+import {Cursor} from "../../app/MouseCursor";
 
 export const enum InteractiveManagerEvent {
     BackButton = "back_button",
@@ -118,7 +118,7 @@ export class InteractiveManager {
         this.targetsCurr = this.targetsPrev;
         this.targetsPrev = tmp;
 
-        this.engine.view.cursor = cursor;
+        this.engine.cursor.set(cursor);
     }
 
     searchInteractiveTargets(pointer: Vec2, node: Entity, outEntityList: Entity[]): Cursor {

@@ -4,7 +4,7 @@ import {AndroidProjectContext} from "./context";
 
 export function patchAndroidManifest(ctx: AndroidProjectContext) {
 
-    const orientation = ctx.pkg.orientation === 'portrait' ? 'sensorPortrait' : 'sensorLandscape';
+    const orientation = ctx.config.orientation === 'portrait' ? 'sensorPortrait' : 'sensorLandscape';
 
     const removeStrings = [
         '<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />',

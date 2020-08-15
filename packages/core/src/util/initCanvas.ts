@@ -15,6 +15,7 @@ export function initCanvas(elementID: string, parent?: HTMLElement | null): HTML
     resetStyle(container);
 
     const canvas = document.createElement('canvas');
+    canvas.innerText = 'Interactive game content. Maybe your browser have no support for the HTML5 Canvas element.';
     canvas.id = elementID;
     canvas.contentEditable = 'false';
     canvas.style.touchAction = 'none';

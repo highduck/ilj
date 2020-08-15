@@ -1,3 +1,7 @@
+export * from './imagefile/optimize';
+export * from './imagefile/resize';
+export * from './anif/rasterizer/SkiaHelpers';
+
 import {makeDirs} from "./nodejs/utils";
 import fs, {mkdirSync} from "fs";
 import path from "path";
@@ -9,9 +13,7 @@ import {copySound} from "./sounds/copySound";
 import {createAtlas, exportFlashAsset} from "./export/Export";
 import {checkBuildInfo, saveBuildInfo} from "./nodejs/buildinfo";
 
-export * from './imagefile/optimize';
-
-export async function exportAssets(input: string, output: string, production = false) {
+export async function importAssets(input: string, output: string, production = false) {
     const diff = await checkBuildInfo(input, output, production);
     if (!diff.changed) {
         return;
@@ -141,3 +143,4 @@ export async function exportAssets(input: string, output: string, production = f
 
     saveBuildInfo(diff, output);
 }
+

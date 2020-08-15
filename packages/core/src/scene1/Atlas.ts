@@ -46,15 +46,14 @@ function getScaleSuffix(scale: number): string {
 }
 
 export class Atlas implements Disposable {
-    static async load(engine: Engine, path: string, scale: number): Promise<Atlas | undefined> {
-        const uid = path;
+    static async load(url: string, scale: number): Promise<Atlas | undefined> {
         const scaleSuffix = getScaleSuffix(scale);
-        const basePath = engine.assetsPath + "/" + pathDir(uid);
-        const fileMeta = engine.assetsPath + "/" + uid + scaleSuffix + ".atlas.json";
+        const basePath = pathDir(url);
+        const fileMeta = url + scaleSuffix + ".atlas.json";
 
         const meta = await loadJSON(fileMeta);
         const atlas = new Atlas();
-        await atlas.setMeta(engine, basePath, meta as AtlasJson);
+        await atlas.setMeta(basePath, meta as AtlasJson);
         return atlas;
     }
 
@@ -71,9 +70,11 @@ export class Atlas implements Disposable {
         }
     }
 
-    private async setMeta(engine: Engine, basePath: string, meta: AtlasJson) {
+    private async setMeta(basePath: string, meta: AtlasJson) {
         console.debug("Decoding Atlas META");
         console.debug("Atlas Base Path: ", basePath);
+
+        const graphics = Engine.current.graphics;
 
         for (const page of meta.pages) {
             const textureAsset = TextureResource.get(page.img);
@@ -91,7 +92,7 @@ export class Atlas implements Disposable {
         }
 
         for (const page of meta.pages) {
-            const texture = new Texture(engine.graphics);
+            const texture = new Texture(graphics);
             texture.generateMipMaps = page.mipmap ?? true;
             if (page.spot !== undefined) {
                 const rc = page.spot;

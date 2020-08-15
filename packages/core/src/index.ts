@@ -17,6 +17,7 @@ export * from './util/Timer';
 
 export * from './app/Time';
 export * from './app/GameView';
+export * from './app/MouseCursor';
 export * from './app/InputState';
 
 export * from './scene1/particles/TrailRenderer';

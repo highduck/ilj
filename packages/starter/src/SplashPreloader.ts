@@ -3,6 +3,15 @@ export class SplashPreloader {
     div: HTMLElement | null = null;
 
     constructor() {
+        if (process.env.PLATFORM !== 'web') {
+            try {
+                (window as any)["Capacitor"]["Plugins"]["SplashScreen"]["hide"]({
+                    fadeOutDuration: 0
+                });
+            } catch {
+            }
+        }
+
         this.div = document.getElementById('loader');
         this.infoDiv = document.getElementById('loader_info');
     }
@@ -15,9 +24,5 @@ export class SplashPreloader {
 
     dispose() {
         this.div?.remove();
-        // TODO: check if needed
-        // Plugins.SplashScreen.hide({
-        //     fadeOutDuration: 0
-        // }).then();
     }
 }

@@ -18,9 +18,10 @@ type GlyphData = {
 
 export class BitmapFont {
 
-    static async load(engine: Engine, url: string): Promise<BitmapFont> {
-        const json = await loadJSON(engine.assetsPath + "/" + url + ".font.json");
-        return new BitmapFont(engine, json as FontJson);
+    // NAME.font.json
+    static async load(url: string): Promise<BitmapFont> {
+        const json = await loadJSON(url);
+        return new BitmapFont(json as FontJson);
     }
 
     bitmapSizeTable: number[]; /* u16[] */
@@ -29,7 +30,7 @@ export class BitmapFont {
 
     debugMaxSize = 0;
 
-    constructor(private engine: Engine, data: FontJson) {
+    constructor(data: FontJson) {
         this.unitsPerEM = data.unitsPerEM;
         this.bitmapSizeTable = data.sizes;
         for (const g of data.glyphs) {
@@ -59,7 +60,7 @@ export class BitmapFont {
         //     this.debugMaxSize = size;
         // }
 
-        const drawer = this.engine.drawer;
+        const drawer = Engine.current.drawer;
         // var vertexColor = drawer.calcVertexColorMultiplier(color);
 
         let bitmapSizeIndex = this.bitmapSizeTable.length - 1;
@@ -233,7 +234,7 @@ export class BitmapFont {
         const cx = rcRelX - drawZoneX;
         const cy = rcRelY - drawZoneY;
 
-        const drawerState = this.engine.drawer.state;
+        const drawerState = Engine.current.drawer.state;
         if (format.shadow) {
             drawerState.saveColor().multiplyColor32(format.shadowColor);
             this.draw(text,

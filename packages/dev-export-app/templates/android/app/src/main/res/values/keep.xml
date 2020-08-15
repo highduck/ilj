@@ -1,0 +1,2 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:keep="@mipmap/ic_launcher_round,@mipmap/ic_launcher,@drawable/splash,@string/app_name,@string/title_activity_main,@string/app_name_alternative,@string/release_notes" />
