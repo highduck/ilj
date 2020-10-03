@@ -13,7 +13,13 @@ function getComponentIcon(config?: ComponentViewConfig) {
 }
 
 function getComponentReadableName(comp: object, config?: ComponentViewConfig) {
-    return config && config.name ? config.name : comp.constructor.name;
+    if(config && config.name) {
+        return config.name;
+    }
+    if(!comp || !comp.constructor) {
+        console.debug(comp);
+    }
+    return comp?.constructor?.name ?? "Unknown";
 }
 
 const openedSet = new Map<number, boolean>();
@@ -38,6 +44,20 @@ export const EntityInspector: FunctionalComponent<EntityInspectorProps> = (props
         const compType = _componentTypes[compID];
         const config = COMPONENTS_CONFIG.get(compType);
         const compData = compType.map.get(e.index);
+        if(compData === undefined) {
+            els.push(
+                <div class="noselect">
+                <span style={{
+                    display: "inline-block",
+                    width: "16px"
+                }}>:</span>
+                    <span>{getComponentIcon(config)}</span>
+                    <span>{config && config.kind ? ("[" + config.kind + "] ") : ""}</span>
+                    <b>{getComponentReadableName(compData, config)}</b>
+                </div>
+            );
+            continue;
+        }
         let isOpen = openedSet.get(compID) ?? true;
         const openerIcon = isOpen ? '▼' : '►';
         const handleToggle = (ev: MouseEvent) => openedSet.set(compID, !isOpen);

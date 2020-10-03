@@ -1,10 +1,10 @@
 import path from "path";
-import {TemplateContextOptions, TemplateGenerator} from "./common/TemplateGenerator";
+import {TemplateGenerator} from "./common/TemplateGenerator";
 import {isDir} from "./common/utils";
 import {exportAndroid} from "./android";
 import {exportIOS} from "./ios";
 import {exportPWA} from "./pwa";
-import {PackagerContext} from "./common/PackagerContext";
+import {PackagerContext, PackagerContextOptions} from "./common/PackagerContext";
 import {generateStartupScript} from "./common/generateStartupScript";
 import * as fs from 'fs';
 
@@ -28,7 +28,7 @@ export async function exportAppProject(
     }
 }
 
-export function exportWebTemplate(options: TemplateContextOptions, dest: string) {
+export function exportWebTemplate(options: PackagerContextOptions, dest: string) {
     const packager = new PackagerContext(options);
     const generator = new TemplateGenerator(packager);
     generator.copy(

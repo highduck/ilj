@@ -1,5 +1,5 @@
 import {FunctionalComponent, h} from "preact";
-import {_componentTypes, _services, ECS_getUsedCount, Engine} from "@highduck/core";
+import {_componentTypes, _services, ECS_getUsedCount, Engine, Time} from "@highduck/core";
 import {BoolField} from "./fields/BoolField";
 import {ActionField} from "./fields/ActionField";
 import {NumberField} from "./fields/NumberField";
@@ -26,7 +26,7 @@ export const StatsView: FunctionalComponent<{}> = (props: {}) => {
                      target={engine}
                      field="_step"/>
         <NumberField label="Time Scale"
-                     target={engine.time}
+                     target={Time.ROOT}
                      field="scale"
                      min={0}
                      max={10}/>

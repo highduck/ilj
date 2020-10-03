@@ -3,31 +3,8 @@ import {copyFileSync, mkdirSync, readFileSync, writeFileSync} from "fs";
 import path from "path";
 import glob from "glob";
 import Mustache from "mustache";
-import {fileURLToPath} from "url";
 import {isDir} from "./utils";
 import {PackagerContext} from "./PackagerContext";
-
-export interface TemplateContextOptions {
-    config: IljAppConfig;
-    flags: string[];
-    buildMode: string;
-    target: string;
-    platform: string;
-}
-
-//
-// export interface CopyPublicOptions extends TemplateContextOptions {
-//     src: string;
-//     dest: string;
-// }
-//
-// export function copyPublic(options: CopyPublicOptions) {
-//     try {
-//         const generator = new TemplateGenerator(options);
-//         generator.copyDir(options.src, options.dest);
-//     } catch {
-//     }
-// }
 
 interface TemplateVariables {
     NAME: string;

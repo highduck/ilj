@@ -24,7 +24,7 @@ function generateWebRedirect(redirects?: WebRedirectConfig): string {
 function generateSentryWrapper(context: PackagerContext): string {
     let script = "";
     const sentryApiUrl = context.options.config.sentry
-    if (sentryApiUrl) {
+    if (sentryApiUrl && context.options.buildMode === 'production') {
         script += fs.readFileSync(path.join(context.packagerPath, 'templates/_common/sentry.min.js'), 'utf-8');
         const name = context.options.config.name;
         const target = context.options.target;
