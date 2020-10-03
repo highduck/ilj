@@ -1,7 +1,0 @@
-src/
-testData/
-.idea/
-*.tsbuildinfo
-.github/
-.mocharc.cjs
-tsconfig*.json

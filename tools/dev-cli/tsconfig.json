@@ -1,0 +1,23 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "isolatedModules": false,
+    "baseUrl": ".",
+    "paths": {
+      "@highduck/export-app": [
+        "../dev-export-app/src/index.ts"
+      ],
+      "@highduck/exporter": [
+        "../dev-content-processor/src/index.ts"
+      ],
+      "@highduck/tools-build-code": [
+        "../dev-build-code/src/index.ts"
+      ]
+    }
+  },
+  "exclude": [
+    "**/node_modules",
+    "**/dist"
+  ]
+}

@@ -1,7 +1,0 @@
-src/
-tsconfig*.json
-.idea
-.eslintignore
-.eslintrc.js
-example/
-**/*.tsbuildinfo

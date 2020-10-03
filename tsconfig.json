@@ -3,42 +3,8 @@
   "compilerOptions": {
     "noEmit": true,
     "isolatedModules": false,
-    "baseUrl": "packages",
-    "paths": {
-      "@AppConfig": [
-        "config.ts"
-      ],
-      "@highduck/tools-build-code": [
-        "dev-build-code/src"
-      ],
-      "@highduck/export-app": [
-        "dev-export-app/src"
-      ],
-      "@highduck/exporter": [
-        "dev-content-processor/src"
-      ],
-      "@highduck/math": [
-        "math/src"
-      ],
-      "@highduck/polykit": [
-        "polykit/src"
-      ],
-      "@highduck/anijson": [
-        "anijson/src"
-      ],
-      "@highduck/binpack": [
-        "binpack/src"
-      ],
-      "@highduck/xfl": [
-        "xfl/src"
-      ],
-      "@highduck/live-inspector": [
-        "dev-inspector/src"
-      ],
-      "@highduck/zipfile": [
-        "zipfile/src"
-      ]
-    }
+    "baseUrl": ".",
+    "paths": {}
   },
   "exclude": [
     "**/node_modules",

@@ -1,0 +1,42 @@
+{
+  "name": "@highduck/zipfile",
+  "version": "0.0.1",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "type": "module",
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsc -b tsconfig.project.json",
+    "clean": "rimraf dist/ *.tsbuildinfo",
+    "test": "jest"
+  },
+  "devDependencies": {
+    "@types/jest": "^26.0.14",
+    "@types/node": "^14.11.2",
+    "@types/pako": "^1.0.1",
+    "@types/rimraf": "^3.0.0",
+    "jest": "^26.4.2",
+    "rimraf": "^3.0.2",
+    "ts-jest": "^26.4.0",
+    "typescript": "^4.0.3"
+  },
+  "dependencies": {
+    "pako": "^1.0.11"
+  },
+  "license": "ISC",
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "README.md",
+    "CHANGELOG.md",
+    "dist"
+  ],
+  "author": "Elias Ku",
+  "homepage": "https://github.com/eliasku/ts-libs/tree/master/packages/zipfile/#readme",
+  "bugs": "https://github.com/eliasku/ts-libs/issues",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/eliasku/ts-libs.git"
+  }
+}

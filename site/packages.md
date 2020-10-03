@@ -12,7 +12,7 @@
     - packages with entry point
     - or if using `const enum` feature
 
-Simple example of `tsconfig.esm.json`
+Simple example of `tsconfig.project.json`
 ```json
 {
   "compilerOptions": {

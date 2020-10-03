@@ -1,0 +1,42 @@
+{
+  "name": "@highduck/magicrepo",
+  "version": "0.0.1",
+  "main": "dist/index.js",
+  "bin": "./bin/cli.js",
+  "scripts": {
+    "build": "tsc -b tsconfig.project.json",
+    "watch": "tsc -b -w tsconfig.project.json",
+    "clean": "rimraf dist/ coverage/ *.tsbuildinfo",
+    "test": "jest"
+  },
+  "dependencies": {
+    "glob": "^7.1.6"
+  },
+  "devDependencies": {
+    "@types/glob": "^7.1.3",
+    "@types/jest": "^26.0.14",
+    "jest": "^26.4.2",
+    "rimraf": "^3.0.2",
+    "ts-jest": "^26.4.0",
+    "typescript": "^4.0.3"
+  },
+  "types": "dist/index.d.ts",
+  "sideEffects": false,
+  "type": "module",
+  "license": "ISC",
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "README.md",
+    "CHANGELOG.md",
+    "dist"
+  ],
+  "author": "Elias Ku",
+  "homepage": "https://github.com/eliasku/ts-libs/tree/master/packages/magicrepo/#readme",
+  "bugs": "https://github.com/eliasku/ts-libs/issues",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/eliasku/ts-libs.git"
+  }
+}

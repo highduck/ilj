@@ -1,0 +1,29 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "composite": true,
+    "outDir": "dist/esm",
+    "rootDir": "src",
+    "isolatedModules": false
+  },
+  "references": [
+    {
+      "path": "../../std/collision2d/tsconfig.project.json"
+    },
+    {
+      "path": "../../engine/core/tsconfig.project.json"
+    },
+    {
+      "path": "../../tools/dev-inspector/tsconfig.project.json"
+    },
+    {
+      "path": "../../std/math/tsconfig.project.json"
+    }
+  ],
+  "include": [
+    "./src/**/*.ts"
+  ],
+  "exclude": [
+    "**/node_modules"
+  ]
+}

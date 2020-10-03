@@ -1,0 +1,23 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "composite": true,
+    "rootDir": "src",
+    "outDir": "dist/esm",
+    "isolatedModules": false
+  },
+  "references": [
+    {
+      "path": "../../engine/core/tsconfig.project.json"
+    },
+    {
+      "path": "../../tools/dev-inspector/tsconfig.project.json"
+    }
+  ],
+  "include": [
+    "./src/**/*.ts"
+  ],
+  "exclude": [
+    "**/node_modules"
+  ]
+}

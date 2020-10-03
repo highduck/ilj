@@ -1,0 +1,23 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "isolatedModules": false,
+    "baseUrl": ".",
+    "paths": {
+      "@highduck/anijson": [
+        "../../std/anijson/src/index.ts"
+      ],
+      "@highduck/math": [
+        "../../std/math/src/index.ts"
+      ],
+      "@highduck/xfl": [
+        "../../std/xfl/src/index.ts"
+      ]
+    }
+  },
+  "exclude": [
+    "**/node_modules",
+    "**/dist"
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "isolatedModules": false,
+    "baseUrl": ".",
+    "paths": {
+      "@highduck/core": [
+        "../../engine/core/src/index.ts"
+      ],
+      "@highduck/live-inspector": [
+        "../../tools/dev-inspector/src/index.ts"
+      ]
+    }
+  },
+  "exclude": [
+    "**/node_modules",
+    "**/dist"
+  ]
+}

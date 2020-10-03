@@ -1,0 +1,29 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "composite": true,
+    "rootDir": "src",
+    "outDir": "dist"
+  },
+  "references": [
+    {
+      "path": "../dev-export-app/tsconfig.project.json"
+    },
+    {
+      "path": "../dev-content-processor/tsconfig.project.json"
+    },
+    {
+      "path": "../dev-build-code/tsconfig.project.json"
+    }
+  ],
+  "files": [
+    "./src/index.ts"
+  ],
+  "include": [
+    "./src/**/*.ts"
+  ],
+  "exclude": [
+    "**/node_modules",
+    "dist/**"
+  ]
+}

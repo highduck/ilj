@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no, shrink-to-fit=no">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    {{#PWA}}
+        <link rel="apple-touch-icon" sizes="180x180" href="./icons/app-icon-180.png">
+        <link rel="icon" type="image/png" sizes="32x32" href="./icons/app-icon-32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="./icons/app-icon-16.png">
+        <link rel="manifest" href="./site.webmanifest">
+    {{/PWA}}
+
+    <meta name="format-detection" content="telephone=no">
+    <meta name="msapplication-tap-highlight" content="no">
+    <title>{{APP_NAME}}</title>
+    <style>
+        html, body {
+            background: #000;
+            overflow: hidden;
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        .loader_container {
+            margin: auto;
+            left: 0;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            position: fixed;
+            width: 240px;
+            height: 240px;
+            z-index: 1;
+
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+            color: #b7c;
+            text-align: center;
+
+            pointer-events: none;
+            user-select: none;
+            -moz-user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .loader,
+        .loader:before,
+        .loader:after {
+            background: #b7c;
+            -webkit-animation: load1 1s infinite ease-in-out;
+            animation: load1 1s infinite ease-in-out;
+            width: 1em;
+            height: 4em;
+        }
+
+        .loader {
+            color: #b7c;
+            text-indent: -9999em;
+            margin: 88px auto;
+            position: relative;
+            font-size: 11px;
+            -webkit-transform: translateZ(0);
+            -ms-transform: translateZ(0);
+            transform: translateZ(0);
+            -webkit-animation-delay: -0.16s;
+            animation-delay: -0.16s;
+        }
+
+        .loader:before,
+        .loader:after {
+            position: absolute;
+            top: 0;
+            content: '';
+        }
+
+        .loader:before {
+            left: -1.5em;
+            -webkit-animation-delay: -0.32s;
+            animation-delay: -0.32s;
+        }
+
+        .loader:after {
+            left: 1.5em;
+        }
+
+        @-webkit-keyframes load1 {
+            0%,
+            80%,
+            100% {
+                box-shadow: 0 0;
+                height: 4em;
+            }
+            40% {
+                box-shadow: 0 -2em;
+                height: 5em;
+            }
+        }
+
+        @keyframes load1 {
+            0%,
+            80%,
+            100% {
+                box-shadow: 0 0;
+                height: 4em;
+            }
+            40% {
+                box-shadow: 0 -2em;
+                height: 5em;
+            }
+        }
+    </style>
+    <script src="startup.js"></script>
+    <script type="module" src="modules/index.js" async></script>
+    <script nomodule src="all.js" async></script>
+</head>
+<body>
+<div id="loader" class="loader_container">
+    <h3>{{APP_NAME}}</h3>
+    <i>{{VERSION_NAME}}</i>
+    <p id="loader_info">Loading...</p>
+    <div class="loader"></div>
+</div>
+</body>
+</html>

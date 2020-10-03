@@ -1,0 +1,20 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "composite": true,
+    "rootDir": "./src",
+    "outDir": "dist"
+  },
+  "references": [
+    {
+      "path": "../../std/math/tsconfig.project.json"
+    }
+  ],
+  "include": [
+    "./src/**/*.ts"
+  ],
+  "exclude": [
+    "**/node_modules",
+    "dist/**"
+  ]
+}

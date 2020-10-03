@@ -1,25 +1,35 @@
 {
+  "name": "@ilj/monorepo",
   "scripts": {
     "upgrade": "yarn upgrade-interactive",
-    "all:build": "yarn workspaces foreach --topological-dev -p -v run build",
-    "all:ci": "yarn workspaces foreach --topological-dev -p -v run ci",
-    "all:clean": "yarn workspaces foreach -p -v run clean && run clean:ts",
+    "build:all": "yarn workspaces foreach --topological-dev -p -v run build",
+    "ci:all": "yarn workspaces foreach --topological-dev -p -v run ci",
+    "clean:all": "yarn workspaces foreach -p -v run clean && run clean:ts",
+    "test:all": "yarn workspaces foreach -p -v run test",
     "capacitor:check": "yarn workspaces foreach -v run check",
     "capacitor:clean": "yarn workspaces foreach -p -v run clean",
     "capacitor:ios": "yarn workspaces foreach -p -v run ios",
     "capacitor:android": "yarn workspaces foreach -v run android",
     "clean:ts": "rimraf packages/**/*.tsbuildinfo",
-    "rebuild-solution": "run clean:ts && tsc -b -v tsconfig.solution.json",
-    "watch-solution": "run clean:ts && tsc -b -w -v tsconfig.solution.json"
+    "build:ts": "run clean:ts && tsc -b -v tsconfig.project.json",
+    "watch:ts": "run clean:ts && tsc -b -w -v tsconfig.project.json"
   },
   "private": true,
   "workspaces": [
-    "packages/*",
-    "modules/*"
+    "engine/*",
+    "std/*",
+    "tools/*",
+    "capacitor/*",
+    "apps/*"
   ],
+  "dependencies": {
+    "@types/jest": "^26.0.14",
+    "jest": "^26.4.2",
+    "ts-jest": "^26.4.0"
+  },
   "devDependencies": {
-    "@types/node": "^14.0.27",
+    "@types/node": "^14.11.2",
     "rimraf": "^3.0.2",
-    "typescript": "^3.9.7"
+    "typescript": "^4.0.3"
   }
 }

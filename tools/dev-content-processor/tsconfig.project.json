@@ -1,0 +1,27 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "composite": true,
+    "rootDir": "src",
+    "outDir": "dist",
+    "isolatedModules": false
+  },
+  "references": [
+    {
+      "path": "../../std/anijson/tsconfig.project.json"
+    },
+    {
+      "path": "../../std/math/tsconfig.project.json"
+    },
+    {
+      "path": "../../std/xfl/tsconfig.project.json"
+    }
+  ],
+  "include": [
+    "src/**/*.ts"
+  ],
+  "exclude": [
+    "**/node_modules",
+    "dist/**"
+  ]
+}

@@ -1,6 +1,0 @@
-/src
-tsconfig.esm.json
-*.tsbuildinfo
-.idea
-.eslintignore
-.eslintrc.js

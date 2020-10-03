@@ -1,0 +1,58 @@
+{
+  "name": "@highduck/capacitor-billing",
+  "version": "0.0.1",
+  "description": "In-app-purchases plugin for capacitor",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "type": "module",
+  "scripts": {
+    "ci": "run build",
+    "clean": "rimraf ./dist/ ./android/.gradle/ ./android/.idea/ ./android/build/",
+    "build": "tsc",
+    "check": "run clean && run android && run ios",
+    "ios:clean": "cd ios && xcodebuild clean -workspace Plugin.xcworkspace -scheme Plugin",
+    "ios:install": "cd ios && pod install --repo-update",
+    "ios:build": "cd ios && xcodebuild build -workspace Plugin.xcworkspace -scheme Plugin -destination 'platform=iOS Simulator,name=iPhone 11 Pro Max,OS=13.2.2'",
+    "ios": "run ios:clean && run ios:pods && run ios:build",
+    "android:clean": "cd android && ./gradlew clean",
+    "android:release": "cd android && ./gradlew assembleRelease",
+    "android": "run android:clean && run android:release"
+  },
+  "author": "eliasku",
+  "license": "MIT",
+  "dependencies": {
+    "@capacitor/core": "^2.4.2"
+  },
+  "devDependencies": {
+    "@capacitor/android": "^2.4.2",
+    "@capacitor/ios": "^2.4.2",
+    "rimraf": "^3.0.2",
+    "typescript": "^4.0.3"
+  },
+  "files": [
+    "dist/",
+    "ios/",
+    "android/",
+    "HighduckCapacitorBilling.podspec"
+  ],
+  "keywords": [
+    "capacitor",
+    "plugin",
+    "native"
+  ],
+  "capacitor": {
+    "ios": {
+      "src": "ios"
+    },
+    "android": {
+      "src": "android"
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/highduck/ilj"
+  },
+  "bugs": {
+    "url": "https://github.com/highduck/ilj/issues"
+  }
+}

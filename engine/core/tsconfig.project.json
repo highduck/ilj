@@ -1,0 +1,34 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "composite": true,
+    "rootDir": "./src",
+    "outDir": "./dist",
+    "isolatedModules": false,
+    "experimentalDecorators": true,
+    "sourceMap": false,
+    "inlineSourceMap": true,
+    "inlineSources": true
+  },
+  "references": [
+    {
+      "path": "../../std/anijson/tsconfig.project.json"
+    },
+    {
+      "path": "../../std/easing/tsconfig.project.json"
+    },
+    {
+      "path": "../../std/math/tsconfig.project.json"
+    }
+  ],
+  "files": [
+    "./src/index.ts"
+  ],
+  "include": [
+    "./src/**/*.ts"
+  ],
+  "exclude": [
+    "dist/**",
+    "**/node_modules"
+  ]
+}

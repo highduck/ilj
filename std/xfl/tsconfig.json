@@ -1,0 +1,26 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "baseUrl": ".",
+    "isolatedModules": false,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "paths": {
+      "@highduck/math": [
+        "../math/src/index.ts"
+      ],
+      "@highduck/zipfile": [
+        "../zipfile/src/index.ts"
+      ]
+    }
+  },
+  "include": [
+    "./src/**/*.ts"
+  ],
+  "exclude": [
+    "./src/index.ts",
+    "**/node_modules",
+    "dist/**"
+  ]
+}
