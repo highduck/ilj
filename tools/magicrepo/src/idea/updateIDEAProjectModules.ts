@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import {WorkTree} from "../workspaces/worktree";
 
+/** @deprecated **/
 export function updateIDEAProjectModules(worktree: WorkTree): void {
     const basedir = worktree.basedir;
 

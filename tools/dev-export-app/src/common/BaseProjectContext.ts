@@ -6,11 +6,12 @@ import {cap, isDir} from "./utils";
 import {getPackagerPath} from "./getPackagerPath";
 import {PackagerContext} from "./PackagerContext";
 import * as fs from 'fs';
+import {BuildMode} from '@highduck/build-config';
 
 export interface BaseProjectConfiguration {
     basedir: string;
     target: string;
-    mode: 'development' | 'production';
+    mode: BuildMode;
     debug: boolean;
 }
 
@@ -22,7 +23,7 @@ export class BaseProjectContext {
 
     buildTarget: string;
     buildPlatform: string;
-    buildMode: 'production' | 'development';
+    buildMode: BuildMode;
 
     basedir: string;
     packagerPath: string;

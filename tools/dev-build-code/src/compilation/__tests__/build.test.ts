@@ -8,7 +8,7 @@ import * as fs from 'fs';
 process.chdir('./testData');
 const cwd = process.cwd();
 
-test("Build bundle from TypeScript", async (done) => {
+test("Build bundle", async (done) => {
     await buildTypeScript(fillDefaultOptionsTypeScript({
         tsconfig: './tsconfig.project.json',
         verbose: true,
@@ -18,7 +18,6 @@ test("Build bundle from TypeScript", async (done) => {
     let file = await fs.promises.readFile(path.join(cwd, 'dist/index.js'), 'utf-8');
     expect(file).toContain(`console.log("OK")`);
     expect(file).toContain(`result: "OK"`);
-
 
     await buildRollup(fillDefaultOptionsRollup({
         inputMain: 'dist/index.js'

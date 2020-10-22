@@ -7,6 +7,9 @@
   },
   "references": [
     {
+      "path": "../build-config/tsconfig.project.json"
+    },
+    {
       "path": "../dev-export-app/tsconfig.project.json"
     },
     {

@@ -24,7 +24,7 @@ export class ImageRenderer {
     constructor(filepath: string) {
         // use CanvasKit for decoding, fastpng can't decode some big images
         const buffer = new Uint8Array(readFileSync(filepath));
-        this.image = CanvasKit.MakeImageFromEncoded(buffer);
+        this.image = CanvasKit.MakeImageFromEncoded(buffer)!;
     }
 
     resize(width: number, height: number) {

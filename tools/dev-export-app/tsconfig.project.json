@@ -13,6 +13,9 @@
   ],
   "references": [
     {
+      "path": "../build-config/tsconfig.project.json"
+    },
+    {
       "path": "../dev-content-processor/tsconfig.project.json"
     }
   ]

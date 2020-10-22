@@ -1,15 +1,15 @@
 import {Matrix2D, Color4} from "@highduck/math";
-import {SkBlendMode, SkMatrix, SkPaint, SkShader, SkSurface, SkTileMode} from "canvaskit-wasm";
+import {BlendMode as SkBlendMode, Matrix3x3 as SkMatrix, SkPaint, SkShader, SkSurface, TileMode} from "canvaskit-wasm";
 import {BlendMode, FillStyle, FillType, SpreadMethod} from "@highduck/xfl";
 import {TransformModel} from "../render/TransformModel";
 import {CanvasKit} from "./SkiaHelpers";
 
 export function convertMatrix(m: Matrix2D): SkMatrix {
-    return [
+    return new Float32Array([
         m.a, m.c, m.x,
         m.b, m.d, m.y,
         0, 0, 1
-    ];
+    ]);
 }
 
 export function setPaintColor(paint: SkPaint, r: number, g: number, b: number, a: number) {
@@ -54,7 +54,7 @@ export function convertBlendMode(mode: BlendMode): SkBlendMode {
 }
 
 
-export function convertSpreadMethod(spreadMethod?: SpreadMethod): SkTileMode {
+export function convertSpreadMethod(spreadMethod?: SpreadMethod): TileMode {
     if (spreadMethod === SpreadMethod.extend) {
         return CanvasKit.TileMode.Clamp;
     } else if (spreadMethod === SpreadMethod.repeat) {

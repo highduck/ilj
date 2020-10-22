@@ -1,4 +1,4 @@
-import {SkBlendMode, SkCanvas, SkPaint, SkPath} from "canvaskit-wasm";
+import {BlendMode, SkCanvas, SkPaint, SkPath} from "canvaskit-wasm";
 import {TransformModel} from "../render/TransformModel";
 import {DecodedBitmap, FillStyle, FillType, LineCaps, LineJoints, StrokeStyle} from "@highduck/xfl";
 import {RenderCommand} from "../render/RenderCommand";
@@ -18,7 +18,7 @@ export class SkiaRenderer {
     fill_style_: undefined | FillStyle = undefined;
     stroke_style_: undefined | StrokeStyle = undefined;
 
-    blendMode: SkBlendMode;
+    blendMode: BlendMode;
     paintStroke: SkPaint;
     paintSolidFill: SkPaint;
     paintShaderFill: SkPaint;
@@ -71,7 +71,7 @@ export class SkiaRenderer {
         paint.setAntiAlias(false);
         paint.setFilterQuality(CanvasKit.FilterQuality.None);
         this.canvas.drawImage(image, 0, 0, paint);
-        this.canvas.flush();
+        //this.canvas.flush();
         paint.delete();
         image.delete();
         // surface.dispose();
@@ -101,16 +101,14 @@ export class SkiaRenderer {
         const path = new CanvasKit.SkPath();
 
         // path.arcTo({fLeft: l, fTop: t, fRight: r, fBottom: b}, a0, sweep, true);
-        path.addArc({fLeft: l, fTop: t, fRight: r, fBottom: b}, a0, sweep);
+        path.addArc([l, t, r, b], a0, sweep);
         if (inner > 0) {
             const rx = inner * (r - l) / 2;
             const ry = inner * (b - t) / 2;
-            path.arcTo({
-                fLeft: cx - rx, fTop: cy - ry, fRight: cx + rx, fBottom: cy + ry
-            }, a0 + sweep, -sweep, !close);
+            path.arcToOval([cx - rx, cy - ry, cx + rx, cy + ry], a0 + sweep, -sweep, !close);
 
             if (close) {
-                path.arcTo({fLeft: l, fTop: t, fRight: r, fBottom: b}, a0, 0, false);
+                path.arcToOval([l, t, r, b], a0, 0, false);
                 path.close();
             }
         } else {
@@ -135,13 +133,13 @@ export class SkiaRenderer {
         const r3 = Math.min(maxRadius, cmd.v[6]);
         const r4 = Math.min(maxRadius, cmd.v[7]);
         path.moveTo(l, t + r1);
-        path.arcTo({fLeft: l, fTop: t, fRight: l + r1 * 2, fBottom: t + r1 * 2}, -180, 90, false);
+        path.arcToOval([l, t, l + r1 * 2, t + r1 * 2], -180, 90, false);
         path.lineTo(r - r2, t);
-        path.arcTo({fLeft: r - r2 * 2, fTop: t, fRight: r, fBottom: t + r2 * 2}, -90, 90, false);
+        path.arcToOval([r - r2 * 2, t, r, t + r2 * 2], -90, 90, false);
         path.lineTo(r, b - r3);
-        path.arcTo({fLeft: r - r3 * 2, fTop: b - r3 * 2, fRight: r, fBottom: b}, 0, 90, false);
+        path.arcToOval([r - r3 * 2, b - r3 * 2, r, b], 0, 90, false);
         path.lineTo(l + r4, b);
-        path.arcTo({fLeft: l, fTop: b - r4 * 2, fRight: l + r4 * 2, fBottom: b}, 90, 90, false);
+        path.arcToOval([l, b - r4 * 2, l + r4 * 2, b], 90, 90, false);
         path.close();
         path.transform(convertMatrix(matrix));
         return path;
@@ -152,13 +150,13 @@ export class SkiaRenderer {
         if (paint) {
             paint.setStyle(CanvasKit.PaintStyle.Fill);
             this.canvas.drawPath(path, paint);
-            this.canvas.flush();
+            //this.canvas.flush();
         }
         paint = this.setStrokeStyle(cmd.stroke);
         if (paint) {
             paint.setStyle(CanvasKit.PaintStyle.Stroke);
             this.canvas.drawPath(path, paint);
-            this.canvas.flush();
+            //this.canvas.flush();
         }
     }
 

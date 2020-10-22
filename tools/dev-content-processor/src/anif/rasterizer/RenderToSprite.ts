@@ -95,6 +95,9 @@ function renderGeneralBatches(bounds: Recta,
     canvas.restore();
 
     const imageSurface = CanvasKit.MakeSurface(w, h);
+    if(imageSurface === null) {
+        throw new Error("cannot make surface");
+    }
     blitDownSample(imageSurface, surface, ssw, ssh, upscale, BlendMode.normal);
     imageSurface.flush();
 

@@ -34,6 +34,9 @@
       "path": "std/zipfile/tsconfig.project.json"
     },
     {
+      "path": "tools/build-config/tsconfig.project.json"
+    },
+    {
       "path": "tools/dev-build-code/tsconfig.project.json"
     },
     {

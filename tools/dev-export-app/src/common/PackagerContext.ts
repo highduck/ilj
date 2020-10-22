@@ -1,3 +1,4 @@
+import { PlatformType } from "@highduck/build-config";
 import path from "path";
 import {fileURLToPath} from "url";
 import {IljAppConfig} from "./app-config";
@@ -7,7 +8,7 @@ export interface PackagerContextOptions {
     flags: string[];
     buildMode: 'production' | 'development';
     target: string;
-    platform: string;
+    platform: PlatformType;
 }
 
 export class PackagerContext {

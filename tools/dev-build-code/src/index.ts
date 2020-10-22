@@ -1,5 +1,5 @@
 import {TSCompileOptions} from "./compilation/tsc/TSCompileOptions";
-import {buildTypeScript} from "./compilation/tsc/build";
+import {buildTypeScript, watchTypeScript} from "./compilation/tsc/build";
 import {buildRollup} from "./compilation/rollup/build";
 import rimraf from "rimraf";
 import path from "path";
@@ -72,7 +72,7 @@ function setDefaults(options?: Partial<BuildOptions>): Partial<BuildOptions> {
         opts.version = opts.version ?? pkg.version;
         opts.versionCode = opts.versionCode ?? pkg.versionCode;
     } catch {
-        console.error('package.json not found, use default values');
+        console.warn('package.json not found, use default values');
     }
     return opts;
 }
@@ -103,17 +103,14 @@ export async function watch(options?: Partial<BuildOptions>) {
 
     cleanOutput(opts);
     console.debug('build all TS references before watch...');
-    opts.watch = false;
     await buildTypeScript(opts);
 
     console.debug('start watch typescript project...');
-    opts.watch = true;
     opts.force = false;
-    const tsc = buildTypeScript(opts);
+    const tscProcess = watchTypeScript(opts);
 
     console.debug('watch rollup...');
     const watcher = await watchBundle(fillDefaultOptionsRollup(opts)); // wait start
 
-    return {watcher, tsc};
-    // await rollup;
+    return {watcher, tscProcess};
 }

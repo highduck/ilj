@@ -5,6 +5,9 @@
     "isolatedModules": false,
     "baseUrl": ".",
     "paths": {
+      "@highduck/build-config": [
+        "../build-config/src/index.ts"
+      ],
       "@highduck/export-app": [
         "../dev-export-app/src/index.ts"
       ],

@@ -2,11 +2,10 @@ import path from "path";
 import fs from "fs";
 import yargs from "yargs";
 import console from "./common/log";
-import {appicon} from "./bins/appicon";
 import {importAssets, optimizeImageFile} from "@highduck/exporter";
 import {build as ccBuild, BuildOptions, watch as ccWatch} from '@highduck/tools-build-code';
 import browserSync from "browser-sync";
-import {BuildMode, PlatformType} from "./proj/NProject";
+import {BuildMode, PlatformType} from "@highduck/build-config";
 import {exportAppProject, exportWebTemplate, readAppConfig} from "@highduck/export-app";
 
 // console.debug(process.cwd());
@@ -25,17 +24,6 @@ const args = yargs(process.argv.slice(2))
             }
         }
     )
-    .command('icon', 'Update icon', (yargs) => yargs.options({
-            input: {
-                type: 'string',
-                array: false,
-                alias: "i",
-                default: []
-            }
-        }),
-        (args) => {
-            appicon('generate');
-        })
     .command('build', 'Build TypeScript project and compile JavaScript bundle', (yargs) => yargs.options({
             mode: {choices: ['development', 'production'], type: 'string', alias: 'm', default: 'development'},
             platform: {choices: ['web', 'android', 'ios'], type: 'string', alias: 'p', default: 'web'},

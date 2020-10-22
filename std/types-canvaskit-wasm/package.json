@@ -1,6 +1,6 @@
 {
   "name": "@highduck/types-canvaskit-wasm",
-  "version": "0.16.2",
+  "version": "0.18.1",
   "description": "TypeScript definitions for canvaskit-wasm",
   "license": "MIT",
   "types": "index.d.ts",

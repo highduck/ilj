@@ -1,13 +1,16 @@
-import CanvasKitInit, {CanvasKit as CanvasKitObject, SkImageInfo, SkSurface} from 'canvaskit-wasm';
+import CanvasKitInit, {SkImageInfo, SkSurface, UnsafeCanvasKit} from 'canvaskit-wasm';
 
-export let CanvasKit: CanvasKitObject;
-let lib: CanvasKitObject | undefined = undefined;
+export let CanvasKit: UnsafeCanvasKit;
+let lib: UnsafeCanvasKit | undefined = undefined;
 
-export async function initCanvasKit(): Promise<CanvasKitObject> {
+export async function initCanvasKit(): Promise<UnsafeCanvasKit> {
     if (lib !== undefined) {
         return lib;
     }
     CanvasKit = lib = await CanvasKitInit();
+    if (lib === undefined) {
+        throw new Error("cannot initialize CanvasKit");
+    }
     return lib;
 }
 
